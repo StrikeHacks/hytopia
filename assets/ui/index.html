@@ -476,7 +476,38 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
+            cursor: grab;
+            position: relative;
+        }
+
+        .inventory-slot::after {
+            content: attr(data-slot-index);
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+        }
+
+        .inventory-slot.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .inventory-slot.drag-over {
+            border-color: #FFD700;
+            background: rgba(255, 215, 0, 0.2);
+        }
+
+        .dragged-item {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1001;
+            width: 48px;
+            height: 48px;
+            transform: translate(-50%, -50%);
+            opacity: 0.8;
         }
 
         .inventory-slot.hotbar-mirror {
@@ -495,6 +526,19 @@
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
+        }
+
+        .dragged-item {
+            width: 48px !important;
+            height: 48px !important;
+            background-size: contain !important;
+            background-repeat: no-repeat !important;
+            background-position: center !important;
+            pointer-events: none !important;
+            position: fixed !important;
+            z-index: 1001 !important;
+            transform: translate(-50%, -50%) !important;
+            opacity: 0.8 !important;
         }
     </style>
 </head>
@@ -610,14 +654,6 @@
                 const slotIndex = (row * 5) + col + 5; // Start from slot 5
                 slot.dataset.slotIndex = slotIndex.toString();
                 slot.innerHTML = '<div class="item"></div>';
-                slot.addEventListener('mousedown', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    hytopia.sendData({ 
-                        inventoryInteraction: true,
-                        slotClicked: slotIndex
-                    });
-                });
                 inventoryGrid.appendChild(slot);
             }
         }
@@ -629,53 +665,153 @@
             slot.className = 'inventory-slot hotbar-mirror';
             slot.dataset.slotIndex = i.toString(); // Slots 0-4 are hotbar
             slot.innerHTML = '<div class="item"></div>';
-            slot.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                hytopia.sendData({ 
-                    inventoryInteraction: true,
-                    slotClicked: i
-                });
-            });
             inventoryHotbar.appendChild(slot);
         }
 
-        // Prevent mouse events from affecting game camera
-        inventoryContainer.addEventListener('mousemove', (e) => {
-            e.stopPropagation();
-        });
+        // Add drag and drop functionality
+        let draggedItem = null;
+        let draggedSlot = null;
+        let draggedItemElement = null;
+        let isDragging = false;
 
-        // Only prevent clicks inside the inventory container
-        inventoryContainer.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        });
+        function createDraggedItemElement(itemClass) {
+            const elem = document.createElement('div');
+            elem.className = 'dragged-item ' + itemClass;
+            document.body.appendChild(elem);
+            return elem;
+        }
 
-        inventoryContainer.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        });
-
-        // Add document-level handlers to prevent pointer unlock when inventory is open
-        document.addEventListener('mousedown', (e) => {
-            if (inventoryContainer.style.display === 'block') {
-                e.preventDefault();
-                e.stopPropagation();
+        function updateDraggedItemPosition(e) {
+            if (draggedItemElement && isDragging) {
+                draggedItemElement.style.left = e.clientX + 'px';
+                draggedItemElement.style.top = e.clientY + 'px';
             }
-        }, true);
+        }
 
-        document.addEventListener('click', (e) => {
-            if (inventoryContainer.style.display === 'block') {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        }, true);
+        function setupInventorySlot(slot) {
+            slot.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return; // Only handle left click
+                
+                const slotIndex = parseInt(slot.dataset.slotIndex);
+                console.log(`[UI] Selected slot ${slotIndex}`);
 
+                isDragging = true;
+                draggedSlot = slot;
+                draggedItem = {
+                    fromSlot: slotIndex
+                };
+
+                slot.classList.add('dragging');
+            });
+
+            slot.addEventListener('mouseover', (e) => {
+                const slotIndex = parseInt(slot.dataset.slotIndex);
+                if (isDragging && draggedItem && slot !== draggedSlot) {
+                    console.log(`[UI] Hovering over slot ${slotIndex}`);
+                    
+                    // Send the move request immediately on hover
+                    if (draggedItem.fromSlot !== undefined) {
+                        console.log(`[UI] Swapping slots ${draggedItem.fromSlot} and ${slotIndex}`);
+                        hytopia.sendData({
+                            inventoryMove: {
+                                fromSlot: draggedItem.fromSlot,
+                                toSlot: slotIndex
+                            }
+                        });
+                        
+                        // Update the fromSlot to the new position
+                        draggedItem.fromSlot = slotIndex;
+                    }
+                }
+            });
+
+            slot.addEventListener('mouseup', (e) => {
+                if (isDragging) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Clean up
+                    if (draggedSlot) {
+                        draggedSlot.classList.remove('dragging');
+                    }
+                    document.querySelectorAll('.inventory-slot').forEach(slot => {
+                        slot.classList.remove('drag-over');
+                    });
+                    
+                    isDragging = false;
+                    draggedItem = null;
+                    draggedSlot = null;
+                }
+            });
+        }
+
+        // Setup drag and drop for all inventory slots
+        document.querySelectorAll('.inventory-slot').forEach(setupInventorySlot);
+
+        // Handle mouse move for dragging
         document.addEventListener('mousemove', (e) => {
-            if (inventoryContainer.style.display === 'block') {
+            if (isDragging) {
+                e.preventDefault();
                 e.stopPropagation();
             }
-        }, true);
+        });
+
+        // Handle mouse up for dropping
+        document.addEventListener('mouseup', (e) => {
+            if (isDragging) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Clean up
+                if (draggedSlot) {
+                    draggedSlot.classList.remove('dragging');
+                }
+                document.querySelectorAll('.inventory-slot').forEach(slot => {
+                    slot.classList.remove('drag-over');
+                });
+                
+                isDragging = false;
+                draggedItem = null;
+                draggedSlot = null;
+            }
+        });
+
+        // Prevent default behavior for drag events on inventory container
+        inventoryContainer.addEventListener('dragstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        inventoryContainer.addEventListener('drag', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        inventoryContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        // Add these styles to fix dragged item appearance
+        const style = document.createElement('style');
+        style.textContent = `
+            .inventory-slot .item {
+                pointer-events: none;
+            }
+            .dragged-item {
+                width: 48px !important;
+                height: 48px !important;
+                background-size: contain !important;
+                background-repeat: no-repeat !important;
+                background-position: center !important;
+                pointer-events: none !important;
+                position: fixed !important;
+                z-index: 1001 !important;
+                transform: translate(-50%, -50%) !important;
+                opacity: 0.8 !important;
+            }
+        `;
+        document.head.appendChild(style);
 
         // Update inventory panel
         hytopia.onData(data => {
@@ -841,42 +977,8 @@
 
         // Remove click handlers from hotbar slots and make them non-interactive
         document.querySelectorAll('.hotbar-slot').forEach((slot) => {
-            slot.style.cursor = 'default'; // Remove pointer cursor
-            // Remove any existing click listeners
+            slot.style.cursor = 'default';
             slot.replaceWith(slot.cloneNode(true));
-        });
-
-        // Handle 'E' key for inventory
-        document.addEventListener('keydown', (event) => {
-            console.log('Key pressed:', event.key); // Debug log
-            
-            // Handle 'E' key for inventory
-            if (event.key.toLowerCase() === 'e') {
-                console.log('[UI] E key pressed');
-                // Send toggle request to server and let server handle the state
-                hytopia.sendData({
-                    inventoryToggle: true
-                });
-                // Don't modify UI state here - wait for server response
-                return;
-            }
-            
-            // Check if the key is a number between 1 and 5
-            const key = parseInt(event.key);
-            if (key >= 1 && key <= 5) {
-                // Don't process hotbar selection if inventory is open
-                if (inventoryContainer.style.display === 'block') {
-                    return;
-                }
-                // Convert to 0-based index
-                selectHotbarSlot(key - 1);
-            }
-            // Check for 'Q' key press
-            else if (event.key.toLowerCase() === 'q') {
-                const data = { action: 'dropItem' };
-                console.log('Q key pressed, sending data:', data);
-                hytopia.sendData(data);
-            }
         });
     </script>
 </body>
