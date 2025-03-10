@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .skills-panel {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: linear-gradient(to bottom, rgba(40, 40, 40, 0.95), rgba(25, 25, 25, 0.95));
+            border: 3px solid #8B4513;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7),
+                        inset 0 0 30px rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            padding: 20px;
+            width: 250px;
+            color: #ffffff;
+        }
+
+        .panel-title {
+            text-align: center;
+            font-size: 20px;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            margin-bottom: 15px;
+            border-bottom: 2px solid #8B4513;
+            padding-bottom: 10px;
+            font-weight: bold;
+        }
+      
+        .skill-row {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+            padding: 8px 12px;
+            background: rgba(139, 69, 19, 0.2);
+            border: 1px solid rgba(139, 69, 19, 0.4);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+      
+        .skill-row:hover {
+            background: rgba(139, 69, 19, 0.3);
+            transform: translateX(-5px);
+            box-shadow: 0 0 15px rgba(139, 69, 19, 0.3);
+        }
+      
+        .skill-row::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.1),
+                transparent
+            );
+            transition: 0.5s;
+        }
+      
+        .skill-row:hover::before {
+            left: 100%;
+        }
+      
+        .skill-icon {
+            width: 40px;
+            height: 40px;
+            margin-right: 15px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
+            border: 2px solid #8B4513;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+      
+        .skill-name {
+            flex: 1;
+            color: #ffffff;
+            font-size: 16px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            letter-spacing: 0.5px;
+        }
+      
+        .skill-level {
+            font-weight: bold;
+            font-size: 18px;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            padding: 4px 12px;
+            background: rgba(139, 69, 19, 0.3);
+            border: 1px solid rgba(139, 69, 19, 0.4);
+            border-radius: 6px;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .craft-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            background: linear-gradient(to bottom, #8B4513, #6B3410);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .craft-button:hover {
+            background: linear-gradient(to bottom, #9B5523, #7B4420);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.4);
+        }
+
+        .craft-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .hotkey-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+      
+        .iron-icon {
+            background-image: url('https://www.canteach.ca/minecraft-pe/images/iron_ingot.gif');
+        }
+        
+        .gold-icon {
+            background-image: url('https://www.canteach.ca/minecraft-pe/images/gold_ingot.gif');
+        }
+
+        .decoration {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .decoration-top-left {
+            top: 10px;
+            left: 10px;
+            background-image: url('https://i.imgur.com/example1.png');
+        }
+
+        .decoration-top-right {
+            top: 10px;
+            right: 10px;
+            background-image: url('https://i.imgur.com/example2.png');
+        }
+
+        .sword-diamond-icon {
+            background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_sword.gif');
+        }
+
+        .sword-stone-icon {
+            background-image: url('https://www.canteach.ca/minecraft-pe/images/stone_sword.gif');
+        }
+
+        .paper-icon {
+            background-image: url('https://www.canteach.ca/minecraft-pe/images/paper.gif');
+        }
+
+        .bread-icon {
+            background-image: url('https://www.canteach.ca/minecraft-pe/images/bread.gif');
+        }
+
+        .book-icon {
+            background-image: url('https://www.canteach.ca/minecraft-pe/images/book.gif');
+        }
+
+        .clock-icon {
+            background-image: url('https://www.canteach.ca/minecraft-pe/images/clock.gif');
+        }
+
+        .generator-text {
+            text-align: center;
+            font-family: 'Roboto', sans-serif;
+            position: relative;
+        }
+
+        .gold-text {
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .iron-text {
+            color: #C0C0C0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .arrow {
+            font-size: 24px;
+            margin-top: 5px;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .counter {
+            font-size: 32px;
+            margin-top: 5px;
+            height: 40px;
+            line-height: 40px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .hotbar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 4px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 4px;
+            border-radius: 4px;
+            border: 2px solid #8B4513;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .hotbar-slot {
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid #8B4513;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.2s ease;
+            pointer-events: none; /* Disable all mouse interactions */
+        }
+
+        /* Remove hover effect */
+        .hotbar-slot:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .hotbar-slot.selected {
+            border-color: #FFD700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .hotbar-slot .item-count {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            color: white;
+            font-size: 12px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .hotbar-slot .item-icon {
+            width: 32px;
+            height: 32px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .crosshair {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9999;
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Top line */
+        .crosshair::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 6px;
+            background: white;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Bottom line */
+        .crosshair::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 6px;
+            background: white;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Left line */
+        .crosshair .line-left {
+            position: absolute;
+            height: 2px;
+            width: 6px;
+            background: white;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Right line */
+        .crosshair .line-right {
+            position: absolute;
+            height: 2px;
+            width: 6px;
+            background: white;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Health and Mana bar styles */
+        .health-bar {
+            position: fixed;
+            bottom: 90px;
+            left: calc(50% - 148px);
+            width: 142px;
+            height: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #000;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .health-bar-fill {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, #ff3333, #ff6666);
+            transition: width 0.3s ease-out;
+        }
+
+        .health-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 10px;
+            line-height: 12px;
+            font-weight: normal;
+            pointer-events: none;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+        }
+
+        .mana-bar {
+            position: fixed;
+            bottom: 90px;
+            left: calc(50% + 6px);
+            width: 142px;
+            height: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #000;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .mana-bar-fill {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, #3333ff, #6666ff);
+            transition: width 0.3s ease-out;
+        }
+
+        .mana-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 10px;
+            line-height: 12px;
+            font-weight: normal;
+            pointer-events: none;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+        }
+
+        .item-name-display {
+            position: fixed;
+            bottom: 115px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 16px;
+            font-weight: normal;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transition: opacity 0.7s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .inventory-container {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 64px);
+            grid-template-rows: repeat(3, 64px);
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+
+        .inventory-hotbar {
+            display: grid;
+            grid-template-columns: repeat(5, 64px);
+            grid-template-rows: 64px;
+            gap: 4px;
+            margin-top: 8px;
+            border-top: 2px solid #8B4513;
+            padding-top: 8px;
+        }
+
+        .inventory-slot {
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .inventory-slot.hotbar-mirror {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid #8B4513;
+        }
+
+        .inventory-slot:hover {
+            border-color: #888;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .inventory-slot .item {
+            width: 48px;
+            height: 48px;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+    </style>
+</head>
+<body>
+    <div class="inventory-container" id="inventoryContainer">
+        <div class="inventory-grid" id="inventoryGrid"></div>
+        <div class="inventory-hotbar" id="inventoryHotbar"></div>
+    </div>
+
+    <div class="health-bar">
+        <div class="health-bar-fill"></div>
+        <div class="health-text">100/100</div>
+    </div>
+
+    <div class="mana-bar">
+        <div class="mana-bar-fill"></div>
+        <div class="mana-text">100/100</div>
+    </div>
+
+    <div class="item-name-display"></div>
+
+    <div class="crosshair">
+        <div class="line-left"></div>
+        <div class="line-right"></div>
+    </div>
+
+    <div class="skills-panel">
+        <div class="decoration decoration-top-left"></div>
+        <div class="decoration decoration-top-right"></div>
+        <div class="panel-title">Inventory</div>
+        <div class="skill-row">
+            <div class="skill-icon iron-icon"></div>
+            <div class="skill-name">Iron Ingots</div>
+            <div id="iron-count" class="skill-level">0</div>
+        </div>
+        <div class="skill-row">
+            <div class="skill-icon gold-icon"></div>
+            <div class="skill-name">Gold Ingots</div>
+            <div id="gold-count" class="skill-level">0</div>
+        </div>
+    </div>
+
+    <template id="gold-text-template">
+        <div class="generator-text gold-text">
+            <div class="title">GOLD GENERATOR</div>
+            <div class="counter"></div>
+            <div class="arrow">▼</div>
+        </div>
+    </template>
+
+    <template id="iron-text-template">
+        <div class="generator-text iron-text">
+            <div class="title">IRON GENERATOR</div>
+            <div class="counter"></div>
+            <div class="arrow">▼</div>
+        </div>
+    </template>
+
+    <div class="hotbar">
+        <div class="hotbar-slot selected">
+            <div class="item-icon"></div>
+        </div>
+        <div class="hotbar-slot">
+            <div class="item-icon"></div>
+        </div>
+        <div class="hotbar-slot">
+            <div class="item-icon"></div>
+        </div>
+        <div class="hotbar-slot">
+            <div class="item-icon"></div>
+        </div>
+        <div class="hotbar-slot">
+            <div class="item-icon"></div>
+        </div>
+    </div>
+
+    <script>
+        console.log('Script loaded');
+
+        hytopia.registerSceneUITemplate('gold-text', (id, onState) => {
+            const template = document.getElementById('gold-text-template');
+            const clone = template.content.cloneNode(true);
+            const counter = clone.querySelector('.counter');
+            
+            onState(state => {
+                counter.textContent = `${state.activeGoldCount || 0} / ${state.maxItems || 10}`;
+            });
+            
+            return clone;
+        });
+
+        hytopia.registerSceneUITemplate('iron-text', (id, onState) => {
+            const template = document.getElementById('iron-text-template');
+            const clone = template.content.cloneNode(true);
+            const counter = clone.querySelector('.counter');
+            
+            onState(state => {
+                counter.textContent = `${state.activeIronCount || 0} / ${state.maxItems || 10}`;
+            });
+            
+            return clone;
+        });
+
+        // Add inventory initialization before existing script
+        const inventoryContainer = document.getElementById('inventoryContainer');
+        const inventoryGrid = document.getElementById('inventoryGrid');
+
+        // Create inventory slots (3x5)
+        for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 5; col++) {
+                const slot = document.createElement('div');
+                slot.className = 'inventory-slot';
+                const slotIndex = (row * 5) + col + 5; // Start from slot 5
+                slot.dataset.slotIndex = slotIndex.toString();
+                slot.innerHTML = '<div class="item"></div>';
+                slot.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    hytopia.sendData({ 
+                        inventoryInteraction: true,
+                        slotClicked: slotIndex
+                    });
+                });
+                inventoryGrid.appendChild(slot);
+            }
+        }
+
+        // Create hotbar mirror slots (1x5)
+        const inventoryHotbar = document.getElementById('inventoryHotbar');
+        for (let i = 0; i < 5; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'inventory-slot hotbar-mirror';
+            slot.dataset.slotIndex = i.toString(); // Slots 0-4 are hotbar
+            slot.innerHTML = '<div class="item"></div>';
+            slot.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                hytopia.sendData({ 
+                    inventoryInteraction: true,
+                    slotClicked: i
+                });
+            });
+            inventoryHotbar.appendChild(slot);
+        }
+
+        // Prevent mouse events from affecting game camera
+        inventoryContainer.addEventListener('mousemove', (e) => {
+            e.stopPropagation();
+        });
+
+        // Only prevent clicks inside the inventory container
+        inventoryContainer.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        inventoryContainer.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        // Add document-level handlers to prevent pointer unlock when inventory is open
+        document.addEventListener('mousedown', (e) => {
+            if (inventoryContainer.style.display === 'block') {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true);
+
+        document.addEventListener('click', (e) => {
+            if (inventoryContainer.style.display === 'block') {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true);
+
+        document.addEventListener('mousemove', (e) => {
+            if (inventoryContainer.style.display === 'block') {
+                e.stopPropagation();
+            }
+        }, true);
+
+        // Update inventory panel
+        hytopia.onData(data => {
+            if (data.health) {
+                const healthBar = document.querySelector('.health-bar-fill');
+                const healthText = document.querySelector('.health-text');
+                
+                if (healthBar && healthText) {
+                    healthBar.style.width = `${data.health.percentage}%`;
+                    healthText.textContent = `${Math.round(data.health.current)}/${data.health.max}`;
+                }
+            }
+
+            if (data.mana) {
+                const manaBar = document.querySelector('.mana-bar-fill');
+                const manaText = document.querySelector('.mana-text');
+                
+                if (manaBar && manaText) {
+                    manaBar.style.width = `${data.mana.percentage}%`;
+                    manaText.textContent = `${Math.round(data.mana.current)}/${data.mana.max}`;
+                }
+            }
+
+            if (data.ironCount !== undefined) {
+                document.getElementById('iron-count').textContent = data.ironCount;
+            }
+            if (data.goldCount !== undefined) {
+                document.getElementById('gold-count').textContent = data.goldCount;
+            }
+
+            // Handle hotbar updates
+            if (data.hotbarUpdate) {
+                console.log('Received hotbar update:', data.hotbarUpdate);
+                const { slot, item } = data.hotbarUpdate;
+                const hotbarSlot = document.querySelector(`.hotbar-slot:nth-child(${slot + 1})`);
+                if (hotbarSlot) {
+                    const itemIcon = hotbarSlot.querySelector('.item-icon');
+                    
+                    // Remove any existing item icons
+                    itemIcon.className = 'item-icon';
+                    
+                    // Update icon based on item type
+                    if (item) {
+                        itemIcon.classList.add(`${item}-icon`);
+                        // Show item name if this is the selected slot
+                        if (hotbarSlot.classList.contains('selected')) {
+                            showItemName(item);
+                        }
+                    }
+                } else {
+                    console.log('Could not find hotbar slot:', slot + 1);
+                }
+            }
+
+            if (data.inventoryToggle) {
+                console.log('[UI] Received inventory toggle from server:', data.inventoryToggle);
+                const { isOpen } = data.inventoryToggle;
+                
+                // Always update UI based on server state
+                inventoryContainer.style.display = isOpen ? 'block' : 'none';
+                
+                // Toggle crosshair visibility
+                const crosshair = document.querySelector('.crosshair');
+                if (crosshair) {
+                    crosshair.style.display = isOpen ? 'none' : 'block';
+                }
+                
+                console.log('[UI] Updated inventory display to:', inventoryContainer.style.display);
+            }
+
+            // Update inventory slots when receiving updates
+            if (data.inventoryUpdate) {
+                const { slot, item } = data.inventoryUpdate;
+                const inventorySlot = document.querySelector(`[data-slot-index="${slot}"]`);
+                if (inventorySlot) {
+                    const itemDiv = inventorySlot.querySelector('.item');
+                    if (itemDiv) {
+                        // Remove existing classes
+                        itemDiv.className = 'item';
+                        // Add new item class if there is an item
+                        if (item) {
+                            itemDiv.classList.add(`${item}-icon`);
+                        }
+                    }
+                }
+            }
+        });
+
+        let currentDisplayTimeout;
+        let lastSelectedSlot = 0;
+
+        function showItemName(itemType) {
+            const display = document.querySelector('.item-name-display');
+            if (!display) return;
+
+            // Clear any existing timeout
+            if (currentDisplayTimeout) {
+                clearTimeout(currentDisplayTimeout);
+            }
+
+            // Convert item type to display name
+            const itemNames = {
+                'sword-diamond': 'Diamond Sword',
+                'sword-stone': 'Stone Sword',
+                'clock': 'Clock',
+                'paper': 'Paper',
+                'bread': 'Bread',
+                'book': 'Book'
+            };
+
+            const displayName = itemNames[itemType] || '';
+            display.textContent = displayName;
+            display.style.opacity = '1';
+
+            // Set new timeout
+            currentDisplayTimeout = setTimeout(() => {
+                display.style.opacity = '0';
+                currentDisplayTimeout = null;
+            }, 2000);
+        }
+
+        function selectHotbarSlot(index) {
+            // Don't do anything if clicking the same slot
+            if (index === lastSelectedSlot) {
+                return;
+            }
+
+            const selectedSlot = document.querySelector(`.hotbar-slot:nth-child(${index + 1})`);
+            
+            // Remove selected class from all slots
+            document.querySelectorAll('.hotbar-slot').forEach(s => s.classList.remove('selected'));
+            // Add selected class to clicked slot
+            selectedSlot.classList.add('selected');
+
+            // Get the item type from the selected slot
+            const itemIcon = selectedSlot.querySelector('.item-icon');
+            let itemType = null;
+            
+            // Check all possible item types
+            for (const className of itemIcon.classList) {
+                if (className.endsWith('-icon') && className !== 'item-icon') {
+                    itemType = className.replace('-icon', '');
+                    break;
+                }
+            }
+
+            // Show item name if there's an item and we actually switched slots
+            if (itemType) {
+                showItemName(itemType);
+            }
+
+            // Update last selected slot
+            lastSelectedSlot = index;
+
+            // Send the selected item to the server
+            hytopia.sendData({
+                hotbarSelect: {
+                    slot: index,
+                    item: itemType
+                }
+            });
+        }
+
+        // Remove click handlers from hotbar slots and make them non-interactive
+        document.querySelectorAll('.hotbar-slot').forEach((slot) => {
+            slot.style.cursor = 'default'; // Remove pointer cursor
+            // Remove any existing click listeners
+            slot.replaceWith(slot.cloneNode(true));
+        });
+
+        // Handle 'E' key for inventory
+        document.addEventListener('keydown', (event) => {
+            console.log('Key pressed:', event.key); // Debug log
+            
+            // Handle 'E' key for inventory
+            if (event.key.toLowerCase() === 'e') {
+                console.log('[UI] E key pressed');
+                // Send toggle request to server and let server handle the state
+                hytopia.sendData({
+                    inventoryToggle: true
+                });
+                // Don't modify UI state here - wait for server response
+                return;
+            }
+            
+            // Check if the key is a number between 1 and 5
+            const key = parseInt(event.key);
+            if (key >= 1 && key <= 5) {
+                // Don't process hotbar selection if inventory is open
+                if (inventoryContainer.style.display === 'block') {
+                    return;
+                }
+                // Convert to 0-based index
+                selectHotbarSlot(key - 1);
+            }
+            // Check for 'Q' key press
+            else if (event.key.toLowerCase() === 'q') {
+                const data = { action: 'dropItem' };
+                console.log('Q key pressed, sending data:', data);
+                hytopia.sendData(data);
+            }
+        });
+    </script>
+</body>
+</html> 
