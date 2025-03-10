@@ -9,8 +9,7 @@ startServer(world => {
         new PlayerManager(
             world,
             player,
-            gameManager.getPlayerHotbars(),
-            gameManager.getItemSpawner()
+            gameManager.getPlayerHotbars()
         );
         
         player.ui.sendData(gameManager.getGeneratorCounts());
