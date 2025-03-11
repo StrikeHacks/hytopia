@@ -48,44 +48,45 @@ export class PlayerManager {
             }
 
             // Handle inventory toggle request from UI
-            if (data.inventoryToggle !== undefined) {
-                console.log('[PlayerManager] Received inventory toggle request from UI');
+            if (data.inventoryToggle) {
+                console.log('[PlayerManager] Received inventory toggle request:', {
+                    data,
+                    currentState: this.isInventoryOpen
+                });
                 this.handleInventoryToggle();
             }
         });
     }
 
     private handleInventoryToggle(): void {
+        console.log('[PlayerManager] Starting inventory toggle handling');
         const now = Date.now();
+        
         if (now - this.lastInventoryToggle < this.TOGGLE_COOLDOWN) {
             console.log('[PlayerManager] Ignoring toggle request - cooldown active');
             return;
         }
+        
         this.lastInventoryToggle = now;
-
+        
         // Toggle inventory state
         this.isInventoryOpen = !this.isInventoryOpen;
-        console.log(`[PlayerManager] Inventory ${this.isInventoryOpen ? 'OPENED' : 'CLOSED'}`);
-
-        // First update pointer lock
-        this.player.ui.lockPointer(!this.isInventoryOpen);
+        console.log(`[PlayerManager] Inventory state changed to: ${this.isInventoryOpen ? 'OPEN' : 'CLOSED'}`);
         
-        // Then update UI visibility
-        this.player.ui.sendData({
+        // Send update to UI
+        const response = {
             inventoryToggle: {
                 isOpen: this.isInventoryOpen,
-                timestamp: now // Add timestamp to ensure UI recognizes this as a new state
+                timestamp: now
             }
-        });
+        };
+        console.log('[PlayerManager] Sending response to UI:', response);
+        this.player.ui.sendData(response);
     }
 
     private syncInventoryState(): void {
         console.log(`[PlayerManager] Syncing inventory state: ${this.isInventoryOpen}`);
         
-        // First update pointer lock
-        this.player.ui.lockPointer(!this.isInventoryOpen);
-        
-        // Then update UI visibility
         this.player.ui.sendData({
             inventoryToggle: {
                 isOpen: this.isInventoryOpen

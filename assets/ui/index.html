@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
         
@@ -8,133 +9,6 @@
             margin: 0;
             padding: 0;
             font-family: 'Roboto', sans-serif;
-        }
-
-        .skills-panel {
-            position: fixed;
-            top: 50%;
-            right: 20px;
-            transform: translateY(-50%);
-            background: linear-gradient(to bottom, rgba(40, 40, 40, 0.95), rgba(25, 25, 25, 0.95));
-            border: 3px solid #8B4513;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7),
-                        inset 0 0 30px rgba(0, 0, 0, 0.5);
-            border-radius: 15px;
-            padding: 20px;
-            width: 250px;
-            color: #ffffff;
-        }
-
-        .panel-title {
-            text-align: center;
-            font-size: 20px;
-            color: #ffffff;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-            margin-bottom: 15px;
-            border-bottom: 2px solid #8B4513;
-            padding-bottom: 10px;
-            font-weight: bold;
-        }
-      
-        .skill-row {
-            display: flex;
-            align-items: center;
-            margin: 12px 0;
-            padding: 8px 12px;
-            background: rgba(139, 69, 19, 0.2);
-            border: 1px solid rgba(139, 69, 19, 0.4);
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-      
-        .skill-row:hover {
-            background: rgba(139, 69, 19, 0.3);
-            transform: translateX(-5px);
-            box-shadow: 0 0 15px rgba(139, 69, 19, 0.3);
-        }
-      
-        .skill-row::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(255, 255, 255, 0.1),
-                transparent
-            );
-            transition: 0.5s;
-        }
-      
-        .skill-row:hover::before {
-            left: 100%;
-        }
-      
-        .skill-icon {
-            width: 40px;
-            height: 40px;
-            margin-right: 15px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
-            border: 2px solid #8B4513;
-            border-radius: 5px;
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-      
-        .skill-name {
-            flex: 1;
-            color: #ffffff;
-            font-size: 16px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-            letter-spacing: 0.5px;
-        }
-      
-        .skill-level {
-            font-weight: bold;
-            font-size: 18px;
-            color: #ffffff;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-            padding: 4px 12px;
-            background: rgba(139, 69, 19, 0.3);
-            border: 1px solid rgba(139, 69, 19, 0.4);
-            border-radius: 6px;
-            min-width: 40px;
-            text-align: center;
-        }
-
-        .craft-button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin-top: 15px;
-            background: linear-gradient(to bottom, #8B4513, #6B3410);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-        }
-
-        .craft-button:hover {
-            background: linear-gradient(to bottom, #9B5523, #7B4420);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.4);
-        }
-
-        .craft-button:disabled {
-            background: #666;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
 
         .hotkey-hint {
@@ -147,14 +21,6 @@
             border-radius: 8px;
             font-size: 14px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-      
-        .iron-icon {
-            background-image: url('https://www.canteach.ca/minecraft-pe/images/iron_ingot.gif');
-        }
-        
-        .gold-icon {
-            background-image: url('https://www.canteach.ca/minecraft-pe/images/gold_ingot.gif');
         }
 
         .decoration {
@@ -204,17 +70,23 @@
         .generator-text {
             text-align: center;
             font-family: 'Roboto', sans-serif;
-            position: relative;
+            position: fixed;
+            width: 200px;
+            pointer-events: none;
         }
 
         .gold-text {
             color: #FFD700;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            left: calc(50% + 200px);
+            top: 20px;
         }
 
         .iron-text {
             color: #C0C0C0;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            left: calc(50% - 400px);
+            top: 20px;
         }
 
         .title {
@@ -436,47 +308,228 @@
             letter-spacing: 0.5px;
         }
 
-        .inventory-container {
-            display: none;
+        .inventory-toggle {
             position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #8B4513;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .inventory-toggle::before {
+            content: '';
+            position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            background: #8B4513;
+            border-radius: 2px;
+            opacity: 0.8;
+            transition: all 0.2s ease;
+        }
+
+        .inventory-toggle:hover {
+            background: rgba(0, 0, 0, 0.9);
+            border-color: #A65D1E;
+        }
+
+        .inventory-toggle:hover::before {
+            opacity: 1;
+            background: #A65D1E;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .inventory-container {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
             background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
+            padding: 15px;
             border: 2px solid #8B4513;
             border-radius: 8px;
             z-index: 1000;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
 
-        .inventory-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 64px);
-            grid-template-rows: repeat(3, 64px);
+        .close-button {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            width: 24px;
+            height: 24px;
+            background: rgb(255, 0, 0);
+            border: 2px solid #8B4513;
+            border-radius: 4px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            pointer-events: auto;
+            user-select: none;
+            -webkit-user-select: none;
+            padding: 0;
+            margin: 0;
+            outline: none;
+        }
+
+        .close-button:hover {
+            background: rgb(200, 0, 0);
+            transform: scale(1.1);
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.7);
+        }
+
+        .close-button:active {
+            transform: scale(0.95);
+            background: rgb(180, 0, 0);
+        }
+
+        .armor-and-player {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #8B4513;
+        }
+
+        .armor-section {
+            display: flex;
             gap: 4px;
-            margin-bottom: 12px;
+        }
+
+        .armor-slots {
+            display: grid;
+            grid-template-areas: 
+                "helmet chest"
+                "legs boots";
+            grid-template-columns: 50px 50px;
+            grid-template-rows: 50px 50px;
+            gap: 4px;
+        }
+
+        .backpack-slot {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #8B4513;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 27px; /* Centers the backpack vertically with the armor grid */
+        }
+
+        .player-preview {
+            width: 104px;
+            height: 104px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .player-preview model-viewer {
+            width: 100%;
+            height: 100%;
+            --poster-color: transparent;
+            background-color: transparent;
+            animation: rotate 10s infinite linear;
+            opacity: 0;
+            transition: opacity 0.3s ease-in;
+        }
+
+        .player-preview model-viewer.loaded {
+            opacity: 1;
+        }
+
+        .armor-slot {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #8B4513;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .helmet-slot {
+            grid-area: helmet;
+        }
+
+        .chestplate-slot {
+            grid-area: chest;
+        }
+
+        .leggings-slot {
+            grid-area: legs;
+        }
+
+        .boots-slot {
+            grid-area: boots;
+        }
+
+        .armor-slot-icon {
+            width: 32px;
+            height: 32px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.3;
+        }
+
+        .inventory-grid {
+            clear: both;
+            display: grid;
+            grid-template-columns: repeat(5, 50px);
+            grid-template-rows: repeat(3, 50px);
+            gap: 4px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #8B4513;
         }
 
         .inventory-hotbar {
             display: grid;
-            grid-template-columns: repeat(5, 64px);
-            grid-template-rows: 64px;
+            grid-template-columns: repeat(5, 50px);
+            grid-template-rows: 50px;
             gap: 4px;
-            margin-top: 8px;
-            border-top: 2px solid #8B4513;
-            padding-top: 8px;
         }
 
         .inventory-slot {
-            width: 64px;
-            height: 64px;
+            width: 50px;
+            height: 50px;
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid #555;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            position: relative;
+        }
+
+        .inventory-slot .item-count {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            color: white;
+            font-size: 12px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
         }
 
         .inventory-slot.hotbar-mirror {
@@ -490,8 +543,8 @@
         }
 
         .inventory-slot .item {
-            width: 48px;
-            height: 48px;
+            width: 32px;
+            height: 32px;
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
@@ -499,7 +552,49 @@
     </style>
 </head>
 <body>
+    <div class="inventory-toggle" id="inventoryToggle"></div>
+    
     <div class="inventory-container" id="inventoryContainer">
+        <div class="close-button" id="closeInventory">X</div>
+        <div class="armor-and-player">
+            <div class="armor-section">
+                <div class="armor-slots">
+                    <div class="armor-slot helmet-slot">
+                        <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_helmet.gif')"></div>
+                    </div>
+                    <div class="armor-slot chestplate-slot">
+                        <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_chestplate.gif')"></div>
+                    </div>
+                    <div class="armor-slot leggings-slot">
+                        <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_leggings.gif')"></div>
+                    </div>
+                    <div class="armor-slot boots-slot">
+                        <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_boots.gif')"></div>
+                    </div>
+                </div>
+                <div class="backpack-slot">
+                    <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/chest.gif')"></div>
+                </div>
+            </div>
+            <div class="player-preview">
+                <model-viewer
+                    src="{{CDN_ASSETS_URL}}/models/players/player.gltf"
+                    auto-rotate
+                    camera-controls
+                    disable-zoom
+                    rotation-per-second="30deg"
+                    style="background-color: transparent;"
+                    camera-orbit="0deg 75deg 6m"
+                    min-camera-orbit="auto auto 6m"
+                    max-camera-orbit="auto auto 6m"
+                    field-of-view="25deg"
+                    poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                    reveal="auto"
+                    loading="eager"
+                    ar-status="not-presenting">
+                </model-viewer>
+            </div>
+        </div>
         <div class="inventory-grid" id="inventoryGrid"></div>
         <div class="inventory-hotbar" id="inventoryHotbar"></div>
     </div>
@@ -521,38 +616,6 @@
         <div class="line-right"></div>
     </div>
 
-    <div class="skills-panel">
-        <div class="decoration decoration-top-left"></div>
-        <div class="decoration decoration-top-right"></div>
-        <div class="panel-title">Inventory</div>
-        <div class="skill-row">
-            <div class="skill-icon iron-icon"></div>
-            <div class="skill-name">Iron Ingots</div>
-            <div id="iron-count" class="skill-level">0</div>
-        </div>
-        <div class="skill-row">
-            <div class="skill-icon gold-icon"></div>
-            <div class="skill-name">Gold Ingots</div>
-            <div id="gold-count" class="skill-level">0</div>
-        </div>
-    </div>
-
-    <template id="gold-text-template">
-        <div class="generator-text gold-text">
-            <div class="title">GOLD GENERATOR</div>
-            <div class="counter"></div>
-            <div class="arrow">▼</div>
-        </div>
-    </template>
-
-    <template id="iron-text-template">
-        <div class="generator-text iron-text">
-            <div class="title">IRON GENERATOR</div>
-            <div class="counter"></div>
-            <div class="arrow">▼</div>
-        </div>
-    </template>
-
     <div class="hotbar">
         <div class="hotbar-slot selected">
             <div class="item-icon"></div>
@@ -571,36 +634,98 @@
         </div>
     </div>
 
+    <!-- Add generator text elements -->
+    <div class="generator-text gold-text">
+        <div class="title">Gold Generator</div>
+        <div class="arrow">↓</div>
+        <div class="counter" id="goldCounter">0/10</div>
+    </div>
+
+    <div class="generator-text iron-text">
+        <div class="title">Iron Generator</div>
+        <div class="arrow">↓</div>
+        <div class="counter" id="ironCounter">0/20</div>
+    </div>
+
     <script>
         console.log('Script loaded');
 
-        hytopia.registerSceneUITemplate('gold-text', (id, onState) => {
-            const template = document.getElementById('gold-text-template');
-            const clone = template.content.cloneNode(true);
-            const counter = clone.querySelector('.counter');
-            
-            onState(state => {
-                counter.textContent = `${state.activeGoldCount || 0} / ${state.maxItems || 10}`;
-            });
-            
-            return clone;
-        });
-
-        hytopia.registerSceneUITemplate('iron-text', (id, onState) => {
-            const template = document.getElementById('iron-text-template');
-            const clone = template.content.cloneNode(true);
-            const counter = clone.querySelector('.counter');
-            
-            onState(state => {
-                counter.textContent = `${state.activeIronCount || 0} / ${state.maxItems || 10}`;
-            });
-            
-            return clone;
-        });
-
-        // Add inventory initialization before existing script
+        const inventoryToggle = document.getElementById('inventoryToggle');
         const inventoryContainer = document.getElementById('inventoryContainer');
         const inventoryGrid = document.getElementById('inventoryGrid');
+
+        // Handle inventory toggle click
+        inventoryToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            hytopia.sendData({
+                inventoryToggle: {
+                    action: 'toggle'
+                }
+            });
+        });
+
+        // Handle close button click
+        const closeInventory = document.getElementById('closeInventory');
+        console.log('[UI] Close button element:', closeInventory);
+
+        if (!closeInventory) {
+            console.error('[UI] Close button not found in DOM!');
+        } else {
+            console.log('[UI] Adding click listener to close button');
+            
+            closeInventory.addEventListener('click', (e) => {
+                console.log('[UI] CLOSE BUTTON CLICKED');
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Immediately hide the inventory container and show the toggle
+                inventoryContainer.style.display = 'none';
+                inventoryToggle.style.display = 'block';
+                
+                // Send toggle request to server to sync state
+                const data = {
+                    inventoryToggle: {
+                        action: 'toggle'
+                    }
+                };
+                
+                console.log('[UI] Sending data to server:', data);
+                hytopia.sendData(data);
+            });
+        }
+
+        // Handle 'E' key for inventory and 'Q' for dropping
+        document.addEventListener('keydown', (event) => {
+            // Handle 'E' key for inventory
+            if (event.key.toLowerCase() === 'e') {
+                console.log('[UI] E key pressed - toggling inventory');
+                hytopia.sendData({
+                    inventoryToggle: {
+                        action: 'toggle'
+                    }
+                });
+                return;
+            }
+            
+            // Handle 'Q' key for dropping items
+            if (event.key.toLowerCase() === 'q') {
+                console.log('[UI] Q key pressed - dropping item');
+                hytopia.sendData({
+                    dropItem: {
+                        action: 'drop',
+                        slot: lastSelectedSlot
+                    }
+                });
+                return;
+            }
+            
+            // Check if the key is a number between 1 and 5
+            const key = parseInt(event.key);
+            if (key >= 1 && key <= 5) {
+                selectHotbarSlot(key - 1);
+            }
+        });
 
         // Create inventory slots (3x5)
         for (let row = 0; row < 3; row++) {
@@ -640,12 +765,11 @@
             inventoryHotbar.appendChild(slot);
         }
 
-        // Prevent mouse events from affecting game camera
+        // Prevent mouse events from affecting game camera when inventory is open
         inventoryContainer.addEventListener('mousemove', (e) => {
             e.stopPropagation();
         });
 
-        // Only prevent clicks inside the inventory container
         inventoryContainer.addEventListener('mousedown', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -677,8 +801,26 @@
             }
         }, true);
 
-        // Update inventory panel
+        // Handle inventory toggle response from server
         hytopia.onData(data => {
+            console.log('[UI] Received data from server:', data);
+
+            // Handle inventory toggle
+            if (data.inventoryToggle) {
+                console.log('[UI] Processing inventory toggle:', data.inventoryToggle);
+                const { isOpen } = data.inventoryToggle;
+                
+                // Update UI visibility
+                inventoryContainer.style.display = isOpen ? 'block' : 'none';
+                inventoryToggle.style.display = isOpen ? 'none' : 'block';
+                
+                console.log('[UI] New display state:', {
+                    container: inventoryContainer.style.display,
+                    toggle: inventoryToggle.style.display,
+                    isOpen: isOpen
+                });
+            }
+
             if (data.health) {
                 const healthBar = document.querySelector('.health-bar-fill');
                 const healthText = document.querySelector('.health-text');
@@ -699,17 +841,10 @@
                 }
             }
 
-            if (data.ironCount !== undefined) {
-                document.getElementById('iron-count').textContent = data.ironCount;
-            }
-            if (data.goldCount !== undefined) {
-                document.getElementById('gold-count').textContent = data.goldCount;
-            }
-
             // Handle hotbar updates
             if (data.hotbarUpdate) {
                 console.log('Received hotbar update:', data.hotbarUpdate);
-                const { slot, item } = data.hotbarUpdate;
+                const { slot, item, count } = data.hotbarUpdate;
                 const hotbarSlot = document.querySelector(`.hotbar-slot:nth-child(${slot + 1})`);
                 if (hotbarSlot) {
                     const itemIcon = hotbarSlot.querySelector('.item-icon');
@@ -724,31 +859,30 @@
                         if (hotbarSlot.classList.contains('selected')) {
                             showItemName(item);
                         }
+
+                        // Update stack count
+                        let countDisplay = hotbarSlot.querySelector('.item-count');
+                        if (!countDisplay) {
+                            countDisplay = document.createElement('div');
+                            countDisplay.className = 'item-count';
+                            hotbarSlot.appendChild(countDisplay);
+                        }
+                        countDisplay.textContent = count > 1 ? count.toString() : '';
+                    } else {
+                        // Remove count display if no item
+                        const countDisplay = hotbarSlot.querySelector('.item-count');
+                        if (countDisplay) {
+                            countDisplay.remove();
+                        }
                     }
                 } else {
                     console.log('Could not find hotbar slot:', slot + 1);
                 }
             }
 
-            if (data.inventoryToggle) {
-                console.log('[UI] Received inventory toggle from server:', data.inventoryToggle);
-                const { isOpen } = data.inventoryToggle;
-                
-                // Always update UI based on server state
-                inventoryContainer.style.display = isOpen ? 'block' : 'none';
-                
-                // Toggle crosshair visibility
-                const crosshair = document.querySelector('.crosshair');
-                if (crosshair) {
-                    crosshair.style.display = isOpen ? 'none' : 'block';
-                }
-                
-                console.log('[UI] Updated inventory display to:', inventoryContainer.style.display);
-            }
-
             // Update inventory slots when receiving updates
             if (data.inventoryUpdate) {
-                const { slot, item } = data.inventoryUpdate;
+                const { slot, item, count } = data.inventoryUpdate;
                 const inventorySlot = document.querySelector(`[data-slot-index="${slot}"]`);
                 if (inventorySlot) {
                     const itemDiv = inventorySlot.querySelector('.item');
@@ -758,9 +892,30 @@
                         // Add new item class if there is an item
                         if (item) {
                             itemDiv.classList.add(`${item}-icon`);
+                            
+                            // Update stack count
+                            let countDisplay = inventorySlot.querySelector('.item-count');
+                            if (!countDisplay) {
+                                countDisplay = document.createElement('div');
+                                countDisplay.className = 'item-count';
+                                inventorySlot.appendChild(countDisplay);
+                            }
+                            countDisplay.textContent = count > 1 ? count.toString() : '';
+                        } else {
+                            // Remove count display if no item
+                            const countDisplay = inventorySlot.querySelector('.item-count');
+                            if (countDisplay) {
+                                countDisplay.remove();
+                            }
                         }
                     }
                 }
+            }
+
+            // Update generator counts
+            if (data.activeGoldCount !== undefined && data.activeIronCount !== undefined) {
+                document.getElementById('goldCounter').textContent = `${data.activeGoldCount}/10`;
+                document.getElementById('ironCounter').textContent = `${data.activeIronCount}/20`;
             }
         });
 
@@ -846,37 +1001,10 @@
             slot.replaceWith(slot.cloneNode(true));
         });
 
-        // Handle 'E' key for inventory
-        document.addEventListener('keydown', (event) => {
-            console.log('Key pressed:', event.key); // Debug log
-            
-            // Handle 'E' key for inventory
-            if (event.key.toLowerCase() === 'e') {
-                console.log('[UI] E key pressed');
-                // Send toggle request to server and let server handle the state
-                hytopia.sendData({
-                    inventoryToggle: true
-                });
-                // Don't modify UI state here - wait for server response
-                return;
-            }
-            
-            // Check if the key is a number between 1 and 5
-            const key = parseInt(event.key);
-            if (key >= 1 && key <= 5) {
-                // Don't process hotbar selection if inventory is open
-                if (inventoryContainer.style.display === 'block') {
-                    return;
-                }
-                // Convert to 0-based index
-                selectHotbarSlot(key - 1);
-            }
-            // Check for 'Q' key press
-            else if (event.key.toLowerCase() === 'q') {
-                const data = { action: 'dropItem' };
-                console.log('Q key pressed, sending data:', data);
-                hytopia.sendData(data);
-            }
+        // Add model-viewer load handler
+        const modelViewer = document.querySelector('model-viewer');
+        modelViewer.addEventListener('load', () => {
+            modelViewer.classList.add('loaded');
         });
     </script>
 </body>

@@ -1,19 +1,37 @@
 import { World, Entity, PlayerEntity, RigidBodyType, ColliderShape, BlockType, CollisionGroup } from 'hytopia';
 import { HotbarManager } from '../player/HotbarManager';
 
+export interface ItemProperties {
+    maxStackSize?: number;
+    isStackable?: boolean;
+}
+
 export abstract class BaseItem {
     protected entity: Entity | null = null;
     private isBeingPickedUp = false;
     private dropTimestamp = 0;
+    protected maxStackSize: number;
+    protected isStackable: boolean;
 
     constructor(
         protected world: World,
         protected position: { x: number; y: number; z: number },
         protected playerHotbars: Map<string, HotbarManager>,
         protected itemType: string,
-        protected modelUri: string
+        protected modelUri: string,
+        properties: ItemProperties = {}
     ) {
         console.log(`Creating ${itemType} at position:`, position);
+        this.maxStackSize = properties.maxStackSize || 1;
+        this.isStackable = properties.isStackable || false;
+    }
+
+    public getMaxStackSize(): number {
+        return this.maxStackSize;
+    }
+
+    public isItemStackable(): boolean {
+        return this.isStackable;
     }
 
     private canBePickedUp(): boolean {

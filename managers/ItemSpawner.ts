@@ -13,11 +13,17 @@ type ItemType = typeof SwordItem | typeof ClockItem | typeof PaperItem |
 
 const INITIAL_ITEMS = [
     { type: SwordItem, position: { x: 6, y: 3.7, z: 2 } },
+    { type: SwordItem, position: { x: 6, y: 3.7, z: 3 } },
     { type: ClockItem, position: { x: 8, y: 3.4, z: 2 } },
+    { type: ClockItem, position: { x: 8, y: 3.4, z: 3 } },
     { type: PaperItem, position: { x: 10, y: 3.4, z: 2 } },
+    { type: PaperItem, position: { x: 10, y: 3.4, z: 3 } },
     { type: BreadItem, position: { x: 12, y: 3.4, z: 2 } },
+    { type: BreadItem, position: { x: 12, y: 3.4, z: 3 } },
     { type: BookItem, position: { x: 14, y: 3.4, z: 2 } },
-    { type: StoneSwordItem, position: { x: 16, y: 3.7, z: 2 } }
+    { type: BookItem, position: { x: 14, y: 3.4, z: 3 } },
+    { type: StoneSwordItem, position: { x: 16, y: 3.7, z: 2 } },
+    { type: StoneSwordItem, position: { x: 16, y: 3.7, z: 3 } }
 ];
 
 const ITEM_CLASSES: Record<string, ItemType> = {
