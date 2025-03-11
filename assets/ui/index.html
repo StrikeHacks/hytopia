@@ -2,6 +2,7 @@
 <html>
 <head>
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
         
@@ -10,39 +11,7 @@
             padding: 0;
             font-family: 'Roboto', sans-serif;
         }
-
-        .hotkey-hint {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .decoration {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background-size: contain;
-            background-repeat: no-repeat;
-        }
-
-        .decoration-top-left {
-            top: 10px;
-            left: 10px;
-            background-image: url('https://i.imgur.com/example1.png');
-        }
-
-        .decoration-top-right {
-            top: 10px;
-            right: 10px;
-            background-image: url('https://i.imgur.com/example2.png');
-        }
-
+      
         .sword-diamond-icon {
             background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_sword.gif');
         }
@@ -70,23 +39,17 @@
         .generator-text {
             text-align: center;
             font-family: 'Roboto', sans-serif;
-            position: fixed;
-            width: 200px;
-            pointer-events: none;
+            position: relative;
         }
 
         .gold-text {
             color: #FFD700;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            left: calc(50% + 200px);
-            top: 20px;
         }
 
         .iron-text {
             color: #C0C0C0;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            left: calc(50% - 400px);
-            top: 20px;
         }
 
         .title {
@@ -139,13 +102,12 @@
             align-items: center;
             justify-content: center;
             position: relative;
+            cursor: pointer;
             transition: all 0.2s ease;
-            pointer-events: none; /* Disable all mouse interactions */
         }
 
-        /* Remove hover effect */
         .hotbar-slot:hover {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(139, 69, 19, 0.3);
         }
 
         .hotbar-slot.selected {
@@ -430,9 +392,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-top: 27px; /* Centers the backpack vertically with the armor grid */
+            margin-top: 27px;
         }
 
+        
         .player-preview {
             width: 104px;
             height: 104px;
@@ -440,6 +403,7 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            margin-left: 10px;
         }
 
         .player-preview model-viewer {
@@ -447,7 +411,6 @@
             height: 100%;
             --poster-color: transparent;
             background-color: transparent;
-            animation: rotate 10s infinite linear;
             opacity: 0;
             transition: opacity 0.3s ease-in;
         }
@@ -542,19 +505,100 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
-        .inventory-slot .item {
+        .inventory-slot .item-icon {
             width: 32px;
             height: 32px;
             background-size: contain;
-            background-position: center;
             background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        /* Add specific item icon classes */
+        .item-icon.sword-diamond {
+            background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_sword.gif');
+        }
+
+        .item-icon.sword-stone {
+            background-image: url('https://www.canteach.ca/minecraft-pe/images/stone_sword.gif');
+        }
+
+        .item-icon.paper {
+            background-image: url('https://www.canteach.ca/minecraft-pe/images/paper.gif');
+        }
+
+        .item-icon.bread {
+            background-image: url('https://www.canteach.ca/minecraft-pe/images/bread.gif');
+        }
+
+        .item-icon.book {
+            background-image: url('https://www.canteach.ca/minecraft-pe/images/book.gif');
+        }
+
+        .item-icon.clock {
+            background-image: url('https://www.canteach.ca/minecraft-pe/images/clock.gif');
+        }
+
+        @keyframes rotate {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
         }
     </style>
 </head>
 <body>
-    <div class="inventory-toggle" id="inventoryToggle"></div>
+    <div class="health-bar">
+        <div class="health-bar-fill"></div>
+        <div class="health-text">100/100</div>
+    </div>
+
+    <div class="mana-bar">
+        <div class="mana-bar-fill"></div>
+        <div class="mana-text">100/100</div>
+    </div>
+
+    <div class="item-name-display"></div>
+
+    <div class="crosshair">
+        <div class="line-left"></div>
+        <div class="line-right"></div>
+    </div>
+
+    <template id="gold-text-template">
+        <div class="generator-text gold-text">
+            <div class="title">GOLD GENERATOR</div>
+            <div class="counter"></div>
+            <div class="arrow">▼</div>
+        </div>
+    </template>
+
+    <template id="iron-text-template">
+        <div class="generator-text iron-text">
+            <div class="title">IRON GENERATOR</div>
+            <div class="counter"></div>
+            <div class="arrow">▼</div>
+        </div>
+    </template>
+
+    <div class="hotbar">
+        <div class="hotbar-slot selected">
+            <div class="item-icon"></div>
+        </div>
+        <div class="hotbar-slot">
+            <div class="item-icon"></div>
+        </div>
+        <div class="hotbar-slot">
+            <div class="item-icon"></div>
+        </div>
+        <div class="hotbar-slot">
+            <div class="item-icon"></div>
+        </div>
+        <div class="hotbar-slot">
+            <div class="item-icon"></div>
+        </div>
+    </div>
+
+    <div class="inventory-toggle" id="inventoryToggle" style="display: block;"></div>
     
-    <div class="inventory-container" id="inventoryContainer">
+    <div class="inventory-container" id="inventoryContainer" style="display: none;">
         <div class="close-button" id="closeInventory">X</div>
         <div class="armor-and-player">
             <div class="armor-section">
@@ -579,19 +623,14 @@
             <div class="player-preview">
                 <model-viewer
                     src="{{CDN_ASSETS_URL}}/models/players/player.gltf"
-                    auto-rotate
                     camera-controls
                     disable-zoom
-                    rotation-per-second="30deg"
                     style="background-color: transparent;"
-                    camera-orbit="0deg 75deg 6m"
-                    min-camera-orbit="auto auto 6m"
-                    max-camera-orbit="auto auto 6m"
-                    field-of-view="25deg"
-                    poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                    reveal="auto"
-                    loading="eager"
-                    ar-status="not-presenting">
+                    camera-orbit="180deg 90deg 10m"
+                    field-of-view="30deg"
+                    camera-target="0 1 0"
+                    poster=""
+                    loading="eager">
                 </model-viewer>
             </div>
         </div>
@@ -599,228 +638,105 @@
         <div class="inventory-hotbar" id="inventoryHotbar"></div>
     </div>
 
-    <div class="health-bar">
-        <div class="health-bar-fill"></div>
-        <div class="health-text">100/100</div>
-    </div>
-
-    <div class="mana-bar">
-        <div class="mana-bar-fill"></div>
-        <div class="mana-text">100/100</div>
-    </div>
-
-    <div class="item-name-display"></div>
-
-    <div class="crosshair">
-        <div class="line-left"></div>
-        <div class="line-right"></div>
-    </div>
-
-    <div class="hotbar">
-        <div class="hotbar-slot selected">
-            <div class="item-icon"></div>
-        </div>
-        <div class="hotbar-slot">
-            <div class="item-icon"></div>
-        </div>
-        <div class="hotbar-slot">
-            <div class="item-icon"></div>
-        </div>
-        <div class="hotbar-slot">
-            <div class="item-icon"></div>
-        </div>
-        <div class="hotbar-slot">
-            <div class="item-icon"></div>
-        </div>
-    </div>
-
-    <!-- Add generator text elements -->
-    <div class="generator-text gold-text">
-        <div class="title">Gold Generator</div>
-        <div class="arrow">↓</div>
-        <div class="counter" id="goldCounter">0/10</div>
-    </div>
-
-    <div class="generator-text iron-text">
-        <div class="title">Iron Generator</div>
-        <div class="arrow">↓</div>
-        <div class="counter" id="ironCounter">0/20</div>
-    </div>
-
     <script>
         console.log('Script loaded');
+        
+        // Track key state
+        let isKeyPressed = false;
 
-        const inventoryToggle = document.getElementById('inventoryToggle');
-        const inventoryContainer = document.getElementById('inventoryContainer');
-        const inventoryGrid = document.getElementById('inventoryGrid');
-
-        // Handle inventory toggle click
-        inventoryToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            hytopia.sendData({
-                inventoryToggle: {
-                    action: 'toggle'
-                }
-            });
-        });
-
-        // Handle close button click
-        const closeInventory = document.getElementById('closeInventory');
-        console.log('[UI] Close button element:', closeInventory);
-
-        if (!closeInventory) {
-            console.error('[UI] Close button not found in DOM!');
-        } else {
-            console.log('[UI] Adding click listener to close button');
-            
-            closeInventory.addEventListener('click', (e) => {
-                console.log('[UI] CLOSE BUTTON CLICKED');
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Immediately hide the inventory container and show the toggle
-                inventoryContainer.style.display = 'none';
-                inventoryToggle.style.display = 'block';
-                
-                // Send toggle request to server to sync state
-                const data = {
-                    inventoryToggle: {
-                        action: 'toggle'
-                    }
-                };
-                
-                console.log('[UI] Sending data to server:', data);
-                hytopia.sendData(data);
-            });
-        }
-
-        // Handle 'E' key for inventory and 'Q' for dropping
+        // Handle keydown
         document.addEventListener('keydown', (event) => {
-            // Handle 'E' key for inventory
-            if (event.key.toLowerCase() === 'e') {
-                console.log('[UI] E key pressed - toggling inventory');
+            // Only handle if it's the 'e' key and it wasn't already pressed
+            if (event.key.toLowerCase() === 'e' && !isKeyPressed) {
+                isKeyPressed = true;
+                console.log('[UI] E key pressed - sending toggle request');
                 hytopia.sendData({
                     inventoryToggle: {
                         action: 'toggle'
                     }
                 });
-                return;
             }
-            
-            // Handle 'Q' key for dropping items
-            if (event.key.toLowerCase() === 'q') {
-                console.log('[UI] Q key pressed - dropping item');
-                hytopia.sendData({
-                    dropItem: {
-                        action: 'drop',
-                        slot: lastSelectedSlot
-                    }
-                });
-                return;
-            }
-            
-            // Check if the key is a number between 1 and 5
-            const key = parseInt(event.key);
-            if (key >= 1 && key <= 5) {
-                selectHotbarSlot(key - 1);
+            // Prevent default behavior for 'e' key
+            if (event.key.toLowerCase() === 'e') {
+                event.preventDefault();
             }
         });
 
-        // Create inventory slots (3x5)
-        for (let row = 0; row < 3; row++) {
-            for (let col = 0; col < 5; col++) {
-                const slot = document.createElement('div');
-                slot.className = 'inventory-slot';
-                const slotIndex = (row * 5) + col + 5; // Start from slot 5
-                slot.dataset.slotIndex = slotIndex.toString();
-                slot.innerHTML = '<div class="item"></div>';
-                slot.addEventListener('mousedown', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    hytopia.sendData({ 
-                        inventoryInteraction: true,
-                        slotClicked: slotIndex
-                    });
-                });
-                inventoryGrid.appendChild(slot);
+        // Handle keyup
+        document.addEventListener('keyup', (event) => {
+            if (event.key.toLowerCase() === 'e') {
+                isKeyPressed = false;
             }
+        });
+
+        // Initialize inventory grid with 15 slots
+        const inventoryGrid = document.getElementById('inventoryGrid');
+        for (let i = 5; i < 20; i++) { // Start from 5 to account for hotbar slots
+            const slot = document.createElement('div');
+            slot.className = 'inventory-slot';
+            slot.dataset.slot = i.toString();
+            const itemIcon = document.createElement('div');
+            itemIcon.className = 'item-icon';
+            slot.appendChild(itemIcon);
+            inventoryGrid.appendChild(slot);
+
+            // Add click handler for inventory slots
+            slot.addEventListener('click', () => {
+                console.log(`[UI] Inventory slot ${i} clicked`);
+                hytopia.sendData({
+                    inventoryAction: {
+                        action: 'setItem',
+                        slot: i,
+                        item: null // For now, just clear the slot on click
+                    }
+                });
+            });
         }
 
-        // Create hotbar mirror slots (1x5)
+        // Initialize hotbar mirror with 5 slots
         const inventoryHotbar = document.getElementById('inventoryHotbar');
         for (let i = 0; i < 5; i++) {
             const slot = document.createElement('div');
             slot.className = 'inventory-slot hotbar-mirror';
-            slot.dataset.slotIndex = i.toString(); // Slots 0-4 are hotbar
-            slot.innerHTML = '<div class="item"></div>';
-            slot.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                hytopia.sendData({ 
-                    inventoryInteraction: true,
-                    slotClicked: i
-                });
-            });
+            slot.dataset.slot = i.toString();
+            const itemIcon = document.createElement('div');
+            itemIcon.className = 'item-icon';
+            slot.appendChild(itemIcon);
             inventoryHotbar.appendChild(slot);
+
+            // Add click handler for hotbar mirror slots
+            slot.addEventListener('click', () => {
+                console.log(`[UI] Hotbar mirror slot ${i} clicked`);
+                selectSlot(i);
+            });
         }
 
-        // Prevent mouse events from affecting game camera when inventory is open
-        inventoryContainer.addEventListener('mousemove', (e) => {
-            e.stopPropagation();
+        hytopia.registerSceneUITemplate('gold-text', (id, onState) => {
+            const template = document.getElementById('gold-text-template');
+            const clone = template.content.cloneNode(true);
+            const counter = clone.querySelector('.counter');
+            
+            onState(state => {
+                counter.textContent = `${state.activeGoldCount || 0} / ${state.maxItems || 10}`;
+            });
+            
+            return clone;
         });
 
-        inventoryContainer.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+        hytopia.registerSceneUITemplate('iron-text', (id, onState) => {
+            const template = document.getElementById('iron-text-template');
+            const clone = template.content.cloneNode(true);
+            const counter = clone.querySelector('.counter');
+            
+            onState(state => {
+                counter.textContent = `${state.activeIronCount || 0} / ${state.maxItems || 10}`;
+            });
+            
+            return clone;
         });
 
-        inventoryContainer.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        });
-
-        // Add document-level handlers to prevent pointer unlock when inventory is open
-        document.addEventListener('mousedown', (e) => {
-            if (inventoryContainer.style.display === 'block') {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        }, true);
-
-        document.addEventListener('click', (e) => {
-            if (inventoryContainer.style.display === 'block') {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        }, true);
-
-        document.addEventListener('mousemove', (e) => {
-            if (inventoryContainer.style.display === 'block') {
-                e.stopPropagation();
-            }
-        }, true);
-
-        // Handle inventory toggle response from server
+        // Update inventory panel
         hytopia.onData(data => {
-            console.log('[UI] Received data from server:', data);
-
-            // Handle inventory toggle
-            if (data.inventoryToggle) {
-                console.log('[UI] Processing inventory toggle:', data.inventoryToggle);
-                const { isOpen } = data.inventoryToggle;
-                
-                // Update UI visibility
-                inventoryContainer.style.display = isOpen ? 'block' : 'none';
-                inventoryToggle.style.display = isOpen ? 'none' : 'block';
-                
-                console.log('[UI] New display state:', {
-                    container: inventoryContainer.style.display,
-                    toggle: inventoryToggle.style.display,
-                    isOpen: isOpen
-                });
-            }
-
             if (data.health) {
                 const healthBar = document.querySelector('.health-bar-fill');
                 const healthText = document.querySelector('.health-text');
@@ -841,171 +757,122 @@
                 }
             }
 
+            // Handle inventory toggle response from server
+            if (data.inventoryToggle) {
+                const { isOpen } = data.inventoryToggle;
+                inventoryContainer.style.display = isOpen ? 'block' : 'none';
+                inventoryToggle.style.display = isOpen ? 'none' : 'block';
+            }
+
+            if (data.ironCount !== undefined) {
+                document.getElementById('iron-count').textContent = data.ironCount;
+            }
+            if (data.goldCount !== undefined) {
+                document.getElementById('gold-count').textContent = data.goldCount;
+            }
+
             // Handle hotbar updates
             if (data.hotbarUpdate) {
                 console.log('Received hotbar update:', data.hotbarUpdate);
-                const { slot, item, count } = data.hotbarUpdate;
-                const hotbarSlot = document.querySelector(`.hotbar-slot:nth-child(${slot + 1})`);
-                if (hotbarSlot) {
-                    const itemIcon = hotbarSlot.querySelector('.item-icon');
-                    
-                    // Remove any existing item icons
-                    itemIcon.className = 'item-icon';
-                    
-                    // Update icon based on item type
-                    if (item) {
-                        itemIcon.classList.add(`${item}-icon`);
-                        // Show item name if this is the selected slot
-                        if (hotbarSlot.classList.contains('selected')) {
-                            showItemName(item);
-                        }
-
-                        // Update stack count
-                        let countDisplay = hotbarSlot.querySelector('.item-count');
-                        if (!countDisplay) {
-                            countDisplay = document.createElement('div');
-                            countDisplay.className = 'item-count';
-                            hotbarSlot.appendChild(countDisplay);
-                        }
-                        countDisplay.textContent = count > 1 ? count.toString() : '';
-                    } else {
-                        // Remove count display if no item
-                        const countDisplay = hotbarSlot.querySelector('.item-count');
-                        if (countDisplay) {
-                            countDisplay.remove();
-                        }
-                    }
-                } else {
-                    console.log('Could not find hotbar slot:', slot + 1);
-                }
-            }
-
-            // Update inventory slots when receiving updates
-            if (data.inventoryUpdate) {
-                const { slot, item, count } = data.inventoryUpdate;
-                const inventorySlot = document.querySelector(`[data-slot-index="${slot}"]`);
+                const { slot, item } = data.hotbarUpdate;
+                
+                // Update inventory grid slot
+                const inventorySlot = document.querySelector(`.inventory-slot[data-slot="${slot}"]`);
                 if (inventorySlot) {
-                    const itemDiv = inventorySlot.querySelector('.item');
-                    if (itemDiv) {
-                        // Remove existing classes
-                        itemDiv.className = 'item';
-                        // Add new item class if there is an item
+                    const itemIcon = inventorySlot.querySelector('.item-icon');
+                    if (itemIcon) {
+                        // Remove any existing item icons
+                        itemIcon.className = 'item-icon';
+                        
+                        // Update icon based on item type
                         if (item) {
-                            itemDiv.classList.add(`${item}-icon`);
-                            
-                            // Update stack count
-                            let countDisplay = inventorySlot.querySelector('.item-count');
-                            if (!countDisplay) {
-                                countDisplay = document.createElement('div');
-                                countDisplay.className = 'item-count';
-                                inventorySlot.appendChild(countDisplay);
+                            itemIcon.classList.add(item);
+                        }
+                    }
+                }
+
+                // Update hotbar slot if it's one of the first 5 slots
+                if (slot < 5) {
+                    // Update main hotbar
+                    const hotbarSlot = document.querySelector(`.hotbar-slot:nth-child(${slot + 1})`);
+                    if (hotbarSlot) {
+                        const itemIcon = hotbarSlot.querySelector('.item-icon');
+                        if (itemIcon) {
+                            itemIcon.className = 'item-icon';
+                            if (item) {
+                                itemIcon.classList.add(item);
                             }
-                            countDisplay.textContent = count > 1 ? count.toString() : '';
-                        } else {
-                            // Remove count display if no item
-                            const countDisplay = inventorySlot.querySelector('.item-count');
-                            if (countDisplay) {
-                                countDisplay.remove();
+                        }
+                    }
+
+                    // Update hotbar mirror in inventory
+                    const hotbarMirrorSlot = document.querySelector(`.inventory-hotbar .inventory-slot[data-slot="${slot}"]`);
+                    if (hotbarMirrorSlot) {
+                        const mirrorItemIcon = hotbarMirrorSlot.querySelector('.item-icon');
+                        if (mirrorItemIcon) {
+                            mirrorItemIcon.className = 'item-icon';
+                            if (item) {
+                                mirrorItemIcon.classList.add(item);
                             }
                         }
                     }
                 }
             }
 
-            // Update generator counts
-            if (data.activeGoldCount !== undefined && data.activeIronCount !== undefined) {
-                document.getElementById('goldCounter').textContent = `${data.activeGoldCount}/10`;
-                document.getElementById('ironCounter').textContent = `${data.activeIronCount}/20`;
-            }
-        });
+            // Handle hotbar selection
+            if (data.hotbarSelect) {
+                const { selectedSlot } = data.hotbarSelect;
+                // Remove selected class from all slots
+                document.querySelectorAll('.hotbar-slot').forEach(s => s.classList.remove('selected'));
+                document.querySelectorAll('.inventory-slot').forEach(s => s.classList.remove('selected'));
+                
+                // Add selected class to the selected slots
+                const selectedHotbarSlot = document.querySelector(`.hotbar-slot:nth-child(${selectedSlot + 1})`);
+                if (selectedHotbarSlot) {
+                    selectedHotbarSlot.classList.add('selected');
+                }
 
-        let currentDisplayTimeout;
-        let lastSelectedSlot = 0;
+                const selectedInventorySlot = document.querySelector(`.inventory-slot[data-slot="${selectedSlot}"]`);
+                if (selectedInventorySlot) {
+                    selectedInventorySlot.classList.add('selected');
+                }
 
-        function showItemName(itemType) {
-            const display = document.querySelector('.item-name-display');
-            if (!display) return;
-
-            // Clear any existing timeout
-            if (currentDisplayTimeout) {
-                clearTimeout(currentDisplayTimeout);
-            }
-
-            // Convert item type to display name
-            const itemNames = {
-                'sword-diamond': 'Diamond Sword',
-                'sword-stone': 'Stone Sword',
-                'clock': 'Clock',
-                'paper': 'Paper',
-                'bread': 'Bread',
-                'book': 'Book'
-            };
-
-            const displayName = itemNames[itemType] || '';
-            display.textContent = displayName;
-            display.style.opacity = '1';
-
-            // Set new timeout
-            currentDisplayTimeout = setTimeout(() => {
-                display.style.opacity = '0';
-                currentDisplayTimeout = null;
-            }, 2000);
-        }
-
-        function selectHotbarSlot(index) {
-            // Don't do anything if clicking the same slot
-            if (index === lastSelectedSlot) {
-                return;
-            }
-
-            const selectedSlot = document.querySelector(`.hotbar-slot:nth-child(${index + 1})`);
-            
-            // Remove selected class from all slots
-            document.querySelectorAll('.hotbar-slot').forEach(s => s.classList.remove('selected'));
-            // Add selected class to clicked slot
-            selectedSlot.classList.add('selected');
-
-            // Get the item type from the selected slot
-            const itemIcon = selectedSlot.querySelector('.item-icon');
-            let itemType = null;
-            
-            // Check all possible item types
-            for (const className of itemIcon.classList) {
-                if (className.endsWith('-icon') && className !== 'item-icon') {
-                    itemType = className.replace('-icon', '');
-                    break;
+                const selectedMirrorSlot = document.querySelector(`.inventory-hotbar .inventory-slot[data-slot="${selectedSlot}"]`);
+                if (selectedMirrorSlot) {
+                    selectedMirrorSlot.classList.add('selected');
                 }
             }
 
-            // Show item name if there's an item and we actually switched slots
-            if (itemType) {
-                showItemName(itemType);
-            }
-
-            // Update last selected slot
-            lastSelectedSlot = index;
-
-            // Send the selected item to the server
-            hytopia.sendData({
-                hotbarSelect: {
-                    slot: index,
-                    item: itemType
+            // Handle inventory updates
+            if (data.inventoryUpdate) {
+                const { slot, item } = data.inventoryUpdate;
+                console.log('Received inventory update:', { slot, item });
+                
+                const inventorySlot = document.querySelector(`.inventory-slot[data-slot="${slot}"]`);
+                if (inventorySlot) {
+                    const itemIcon = inventorySlot.querySelector('.item-icon');
+                    if (itemIcon) {
+                        // Remove any existing item icons
+                        itemIcon.className = 'item-icon';
+                        
+                        // Update icon based on item type
+                        if (item) {
+                            itemIcon.classList.add(item);
+                        }
+                    }
                 }
-            });
-        }
-
-        // Remove click handlers from hotbar slots and make them non-interactive
-        document.querySelectorAll('.hotbar-slot').forEach((slot) => {
-            slot.style.cursor = 'default'; // Remove pointer cursor
-            // Remove any existing click listeners
-            slot.replaceWith(slot.cloneNode(true));
+            }
         });
 
-        // Add model-viewer load handler
+        // Handle model-viewer loading
         const modelViewer = document.querySelector('model-viewer');
         modelViewer.addEventListener('load', () => {
             modelViewer.classList.add('loaded');
         });
+
+        modelViewer.addEventListener('error', (error) => {
+            console.error('[UI] Error loading model:', error);
+        });
     </script>
 </body>
-</html> 
+</html>

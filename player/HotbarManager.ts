@@ -1,120 +1,118 @@
 import { PlayerEntity } from 'hytopia';
 import { EquipmentManager } from './EquipmentManager';
-import { InventoryManager } from './InventoryManager';
 
 export class HotbarManager {
+    private slots: (string | null)[] = Array(20).fill(null);
     private selectedSlot: number = 0;
     private equipmentManager: EquipmentManager;
-    private inventoryManager: InventoryManager;
 
     constructor(private playerEntity: PlayerEntity) {
         this.equipmentManager = new EquipmentManager(playerEntity);
-        this.inventoryManager = new InventoryManager(playerEntity);
+        console.log('HotbarManager initialized with 20 empty slots');
         
         // Send initial slot selection to UI
+        this.syncSlotState();
+    }
+
+    private syncSlotState() {
+        // Send current state to UI
         this.playerEntity.player.ui.sendData({
             hotbarSelect: {
                 selectedSlot: this.selectedSlot
             }
         });
+
+        // Send all slot states
+        for (let i = 0; i < this.slots.length; i++) {
+            this.playerEntity.player.ui.sendData({
+                hotbarUpdate: {
+                    slot: i,
+                    item: this.slots[i]
+                }
+            });
+        }
     }
 
     public hasEmptySlot(): boolean {
-        return this.inventoryManager.hasEmptySlot();
+        return this.slots.some(slot => slot === null);
     }
 
     public addItem(itemType: string): boolean {
-        // Check if item is a sword (not stackable)
-        const isSword = itemType.includes('sword');
-        if (isSword) {
-            // For non-stackable items, only try empty slots
-            // Try hotbar slots first (0-4)
-            for (let i = 0; i < 5; i++) {
-                const slotContent = this.inventoryManager.getItem(i);
-                if (slotContent.itemType === null) {
-                    this.inventoryManager.setItem(i, itemType, 1);
-                    return true;
-                }
-            }
-            
-            // Then try inventory slots (5-19)
-            for (let i = 5; i < 20; i++) {
-                const slotContent = this.inventoryManager.getItem(i);
-                if (slotContent.itemType === null) {
-                    this.inventoryManager.setItem(i, itemType, 1);
-                    return true;
-                }
-            }
-            
+        // Check if there's an empty slot
+        if (!this.hasEmptySlot()) {
+            console.log('[Hotbar] No empty slots available');
             return false;
         }
 
-        // For stackable items, try to add to existing stacks first
-        // Try to add to existing stack in hotbar first (0-4)
-        for (let i = 0; i < 5; i++) {
-            const slotContent = this.inventoryManager.getItem(i);
-            if (slotContent.itemType === itemType) {
-                // Add to existing stack if not full
-                const maxStack = 64; // You might want to make this dynamic based on item type
-                if (slotContent.count < maxStack) {
-                    this.inventoryManager.setItem(i, itemType, slotContent.count + 1);
-                    return true;
-                }
-            }
+        // Find first empty slot
+        const emptySlotIndex = this.slots.findIndex(slot => slot === null);
+        
+        // Add item to first empty slot
+        this.setItem(emptySlotIndex, itemType);
+
+        // If this is the selected slot, equip it
+        if (emptySlotIndex === this.selectedSlot) {
+            this.equipmentManager.equipItem(itemType);
         }
 
-        // Then try empty hotbar slots (0-4)
-        for (let i = 0; i < 5; i++) {
-            const slotContent = this.inventoryManager.getItem(i);
-            if (slotContent.itemType === null) {
-                this.inventoryManager.setItem(i, itemType, 1);
-                return true;
-            }
+        return true;
+    }
+
+    public dropSelectedItem(): string | null {
+        console.log('Attempting to drop item from slot:', this.selectedSlot);
+        const itemType = this.slots[this.selectedSlot];
+        
+        if (!itemType) {
+            console.log('No item to drop - slot is empty');
+            return null;
         }
 
-        // Then try to add to existing stack in inventory (5-19)
-        for (let i = 5; i < 20; i++) {
-            const slotContent = this.inventoryManager.getItem(i);
-            if (slotContent.itemType === itemType) {
-                const maxStack = 64;
-                if (slotContent.count < maxStack) {
-                    this.inventoryManager.setItem(i, itemType, slotContent.count + 1);
-                    return true;
-                }
-            }
-        }
+        // Remove item from slot
+        this.slots[this.selectedSlot] = null;
+        
+        // Unequip if it was equipped
+        this.equipmentManager.unequipItem();
 
-        // Finally try empty inventory slots (5-19)
-        for (let i = 5; i < 20; i++) {
-            const slotContent = this.inventoryManager.getItem(i);
-            if (slotContent.itemType === null) {
-                this.inventoryManager.setItem(i, itemType, 1);
-                return true;
+        // Update UI
+        this.playerEntity.player.ui.sendData({
+            hotbarUpdate: {
+                slot: this.selectedSlot,
+                item: null
             }
-        }
+        });
 
-        console.log('[Hotbar] No empty slots or stackable space available');
-        return false;
+        return itemType;
     }
 
     public setItem(slot: number, itemType: string | null) {
-        this.inventoryManager.setItem(slot, itemType);
+        if (slot >= 0 && slot < this.slots.length) {
+            this.slots[slot] = itemType;
+            console.log(`[Hotbar] Slot ${slot} now contains: ${itemType || 'none'}`);
+
+            // Update UI
+            this.playerEntity.player.ui.sendData({
+                hotbarUpdate: {
+                    slot: slot,
+                    item: itemType
+                }
+            });
+        }
     }
 
     public selectSlot(slot: number) {
-        if (slot >= 0 && slot < 5 && slot !== this.selectedSlot) { // Only allow selecting hotbar slots
+        if (slot >= 0 && slot < this.slots.length && slot !== this.selectedSlot) {
             // Unequip current item
             this.equipmentManager.unequipItem();
             
             // Update selected slot
             this.selectedSlot = slot;
-            const slotContent = this.inventoryManager.getItem(slot);
-            console.log(`[Hotbar] Selected slot ${slot} (Item: ${slotContent.itemType || 'none'})`);
+            const item = this.slots[slot];
+            console.log(`[Hotbar] Selected slot ${slot} (Item: ${item || 'none'})`);
             
             // Equip new item if exists
-            if (slotContent.itemType) {
-                console.log(`[Hotbar] Equipping ${slotContent.itemType} from slot ${slot}`);
-                this.equipmentManager.equipItem(slotContent.itemType);
+            if (item) {
+                console.log(`[Hotbar] Equipping ${item} from slot ${slot}`);
+                this.equipmentManager.equipItem(item);
             }
 
             // Update UI about selection
@@ -131,24 +129,6 @@ export class HotbarManager {
     }
 
     public getItemInSlot(slot: number): string | null {
-        const slotContent = this.inventoryManager.getItem(slot);
-        return slotContent.itemType;
-    }
-
-    public dropSelectedItem(): string | null {
-        const slotContent = this.inventoryManager.getItem(this.selectedSlot);
-        const itemType = slotContent.itemType;
-        if (!itemType) return null;
-
-        // If stack has more than 1 item, decrease count
-        if (slotContent.count > 1) {
-            this.inventoryManager.setItem(this.selectedSlot, itemType, slotContent.count - 1);
-        } else {
-            // If last item in stack, clear slot
-            this.inventoryManager.setItem(this.selectedSlot, null, 0);
-            this.equipmentManager.unequipItem();
-        }
-
-        return itemType;
+        return this.slots[slot];
     }
 } 

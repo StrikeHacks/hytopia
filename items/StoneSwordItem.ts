@@ -10,17 +10,7 @@ export class StoneSwordItem extends BaseItem {
         position: { x: number; y: number; z: number },
         playerHotbars: Map<string, HotbarManager>
     ) {
-        super(
-            world,
-            position,
-            playerHotbars,
-            'sword-stone',
-            'models/items/sword-stone.gltf',
-            {
-                isStackable: false,
-                maxStackSize: 1
-            }
-        );
+        super(world, position, playerHotbars, StoneSwordItem.ITEM_TYPE, 'models/items/sword-stone.gltf');
     }
 
     protected getLogPrefix(): string {
