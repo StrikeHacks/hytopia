@@ -207,42 +207,27 @@ export class PlayerInventory {
         }, 200);
     }
 
-    public addItem(itemType: string): boolean {
-        // Cache NON_STACKABLE_TYPES.includes check result
-        const isNonStackable = NON_STACKABLE_TYPES.includes(itemType);
-        
-        // Try stacking first if item is stackable
-        if (!isNonStackable) {
-            // Check hotbar slots (0-4)
-            for (let i = 0; i < 5; i++) {
-                const slot = this.slots[i];
-                if (slot.type === itemType && slot.count < MAX_STACK_SIZE) {
-                    slot.count++;
+    public addItem(itemType: string): { success: boolean; addedToSlot?: number } {
+        // First try to stack with existing items
+        for (let i = 0; i < this.slots.length; i++) {
+            if (this.slots[i].type === itemType && !NON_STACKABLE_TYPES.includes(itemType)) {
+                if (this.slots[i].count < MAX_STACK_SIZE) {
+                    this.slots[i].count++;
                     this.updateSlotUI(i);
-                    return true;
-                }
-            }
-            
-            // Check inventory slots (5-19)
-            for (let i = 5; i < this.slots.length; i++) {
-                const slot = this.slots[i];
-                if (slot.type === itemType && slot.count < MAX_STACK_SIZE) {
-                    slot.count++;
-                    this.updateSlotUI(i);
-                    return true;
+                    return { success: true, addedToSlot: i };
                 }
             }
         }
 
-        // Find first empty slot (hotbar first)
+        // Then try to find an empty slot
         for (let i = 0; i < this.slots.length; i++) {
-            if (this.slots[i].type === null) {
+            if (!this.slots[i].type) {
                 this.slots[i] = { type: itemType, count: 1 };
                 this.updateSlotUI(i);
-                return true;
+                return { success: true, addedToSlot: i };
             }
         }
 
-        return false;
+        return { success: false };
     }
 } 

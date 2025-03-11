@@ -63,14 +63,17 @@ export abstract class BaseItem {
         if (!inventory.hasEmptySlot()) return;
 
         try {
-            // Add item to inventory first
-            const success = inventory.addItem(this.itemType);
+            // Get the selected slot before adding the item
+            const selectedSlot = inventory.getSelectedSlot();
+            const previousItemInSelectedSlot = inventory.getItem(selectedSlot);
             
-            if (success) {
-                // Only show item name and refresh if it was added to the selected slot
-                const selectedSlot = inventory.getSelectedSlot();
-                if (inventory.getItem(selectedSlot) === this.itemType) {
-                    // Show item name only when picked up into selected slot
+            // Add item to inventory and get the slot it was added to
+            const result = inventory.addItem(this.itemType);
+            
+            if (result.success && result.addedToSlot !== undefined) {
+                // Only show item name if it was added to the selected slot AND
+                // the slot was either empty or had a different item type
+                if (result.addedToSlot === selectedSlot && previousItemInSelectedSlot !== this.itemType) {
                     const formattedName = this.itemType
                         .split('-')
                         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
