@@ -1,16 +1,20 @@
-import { World, Entity, PlayerEntity } from 'hytopia';
-import { HotbarManager } from '../player/HotbarManager';
+import { World } from 'hytopia';
 import { BaseItem } from './BaseItem';
+import { PlayerInventory } from '../player/PlayerInventory';
 
 export class SwordItem extends BaseItem {
-    private static readonly ITEM_TYPE = 'sword-diamond';
-
     constructor(
-        world: World, 
+        world: World,
         position: { x: number; y: number; z: number },
-        playerHotbars: Map<string, HotbarManager>
+        playerInventories: Map<string, PlayerInventory>
     ) {
-        super(world, position, playerHotbars, SwordItem.ITEM_TYPE, 'models/items/sword-diamond.gltf');
+        super(
+            world,
+            position,
+            playerInventories,
+            'sword-diamond',
+            'models/items/sword-diamond.gltf'
+        );
     }
 
     protected getLogPrefix(): string {

@@ -1,5 +1,5 @@
 import { World, Entity, PlayerEntity, RigidBodyType, ColliderShape, BlockType, CollisionGroup } from 'hytopia';
-import { HotbarManager } from '../player/HotbarManager';
+import { PlayerInventory } from '../player/PlayerInventory';
 
 export abstract class BaseItem {
     protected entity: Entity | null = null;
@@ -9,7 +9,7 @@ export abstract class BaseItem {
     constructor(
         protected world: World,
         protected position: { x: number; y: number; z: number },
-        protected playerHotbars: Map<string, HotbarManager>,
+        protected playerInventories: Map<string, PlayerInventory>,
         protected itemType: string,
         protected modelUri: string
     ) {
@@ -51,15 +51,25 @@ export abstract class BaseItem {
         
         if (!this.canBePickedUp()) return;
 
-        const hotbarManager = this.playerHotbars.get(String(other.player.id));
-        if (!hotbarManager?.hasEmptySlot()) return;
+        const inventory = this.playerInventories.get(String(other.player.id));
+        if (!inventory) {
+            console.log('[BaseItem] No inventory found for player');
+            return;
+        }
+
+        if (!inventory.hasEmptySlot()) {
+            console.log('[BaseItem] No empty slots available in inventory');
+            return;
+        }
 
         this.isBeingPickedUp = true;
 
-        if (hotbarManager.addItem(this.itemType)) {
+        if (inventory.addItem(this.itemType)) {
+            console.log(`[BaseItem] Successfully added ${this.itemType} to inventory`);
             this.entity.despawn();
             this.entity = null;
         } else {
+            console.log(`[BaseItem] Failed to add ${this.itemType} to inventory`);
             this.isBeingPickedUp = false;
         }
     }

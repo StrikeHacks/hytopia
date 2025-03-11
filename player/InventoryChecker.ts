@@ -1,22 +1,22 @@
-import { HotbarManager } from './HotbarManager';
+import { PlayerInventory } from './PlayerInventory';
 
 export class InventoryChecker {
     /**
-     * Strictly checks if there is space available in the hotbar
+     * Strictly checks if there is space available in the inventory
      * @returns true ONLY if there is 100% certainly a free slot
      */
-    public static canPickupItem(hotbarManager: HotbarManager | undefined): boolean {
-        // First verify we have a valid hotbar manager
-        if (!hotbarManager) {
-            console.log('[InventoryChecker] No hotbar manager available');
+    public static canPickupItem(inventory: PlayerInventory | undefined): boolean {
+        // First verify we have a valid inventory
+        if (!inventory) {
+            console.log('[InventoryChecker] No inventory available');
             return false;
         }
 
         // Check if there is at least one empty slot
-        const hasSpace = hotbarManager.hasEmptySlot();
+        const hasSpace = inventory.hasEmptySlot();
         
         if (!hasSpace) {
-            console.log('[InventoryChecker] NO SPACE AVAILABLE IN HOTBAR - ALL 5 SLOTS ARE FILLED');
+            console.log('[InventoryChecker] NO SPACE AVAILABLE IN INVENTORY - ALL SLOTS ARE FILLED');
             console.log('[InventoryChecker] Cannot pick up item - it will remain in the world');
         }
 

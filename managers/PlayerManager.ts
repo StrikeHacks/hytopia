@@ -88,6 +88,7 @@ export class PlayerManager {
 
     private setupInventory(): void {
         this.playerInventory = new PlayerInventory(this.playerEntity, this.hotbarManager);
+        this.itemSpawner.registerPlayerInventory(this.player.id, this.playerInventory);
     }
 
     private setupUI(): void {
@@ -95,8 +96,7 @@ export class PlayerManager {
 
         this.player.ui.on(PlayerUIEvent.DATA, (data: any) => {
             if (data.hotbarSelect) {
-                const { slot, item } = data.hotbarSelect;
-                this.hotbarManager.setItem(slot, item);
+                const { slot } = data.hotbarSelect;
                 this.hotbarManager.selectSlot(slot);
             }
         });

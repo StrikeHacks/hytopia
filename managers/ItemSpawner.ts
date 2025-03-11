@@ -1,5 +1,6 @@
 import { World, PlayerEntity } from 'hytopia';
 import { HotbarManager } from '../player/HotbarManager';
+import { PlayerInventory } from '../player/PlayerInventory';
 import { SwordItem } from '../items/SwordItem';
 import { ClockItem } from '../items/ClockItem';
 import { PaperItem } from '../items/PaperItem';
@@ -30,6 +31,8 @@ const ITEM_CLASSES: Record<string, ItemType> = {
 };
 
 export class ItemSpawner {
+    private playerInventories: Map<string, PlayerInventory> = new Map();
+
     constructor(
         private world: World,
         private playerHotbars: Map<string, HotbarManager>
@@ -37,24 +40,29 @@ export class ItemSpawner {
 
     public spawnInitialItems(): void {
         INITIAL_ITEMS.forEach(({ type: ItemType, position }) => {
-            const item = new ItemType(this.world, position, this.playerHotbars);
+            const item = new ItemType(this.world, position, this.playerInventories);
             item.spawn();
         });
     }
 
     public handleItemDrop(playerEntity: PlayerEntity): void {
         const hotbarManager = this.playerHotbars.get(String(playerEntity.player.id));
-        if (!hotbarManager) return;
+        const inventory = this.playerInventories.get(String(playerEntity.player.id));
+        if (!hotbarManager || !inventory) return;
 
-        const droppedItemType = hotbarManager.dropSelectedItem();
-        if (!droppedItemType) return;
+        const selectedSlot = hotbarManager.getSelectedSlot();
+        const itemType = inventory.getItem(selectedSlot);
+        if (!itemType) return;
+
+        // Clear the slot in inventory
+        inventory.setItem(selectedSlot, null);
 
         const dropPosition = this.calculateDropPosition(playerEntity);
         const direction = this.calculateDropDirection(playerEntity);
 
-        const ItemClass = ITEM_CLASSES[droppedItemType];
+        const ItemClass = ITEM_CLASSES[itemType];
         if (ItemClass) {
-            const droppedItem = new ItemClass(this.world, dropPosition, this.playerHotbars);
+            const droppedItem = new ItemClass(this.world, dropPosition, this.playerInventories);
             droppedItem.spawn();
             droppedItem.drop(dropPosition, direction);
         }
@@ -78,5 +86,9 @@ export class ItemSpawner {
             y: 0.2,
             z: -Math.cos(angle)
         };
+    }
+
+    public registerPlayerInventory(playerId: string, inventory: PlayerInventory): void {
+        this.playerInventories.set(playerId, inventory);
     }
 } 
