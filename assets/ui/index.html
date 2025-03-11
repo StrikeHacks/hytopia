@@ -118,10 +118,12 @@
         .hotbar-slot .item-count {
             position: absolute;
             bottom: 2px;
-            right: 2px;
+            right: 4px;
             color: white;
-            font-size: 12px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+            pointer-events: none;
         }
 
         .hotbar-slot .item-icon {
@@ -491,10 +493,12 @@
         .inventory-slot .item-count {
             position: absolute;
             bottom: 2px;
-            right: 2px;
+            right: 4px;
             color: white;
-            font-size: 12px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+            pointer-events: none;
         }
 
         .inventory-slot.hotbar-mirror {
@@ -649,88 +653,71 @@
         // Store inventory state
         const inventoryState = new Map();
 
-        
+        // Initialize the hotbar
+        const hotbar = document.querySelector('.hotbar');
+        hotbar.innerHTML = ''; // Clear existing slots
+        for (let i = 0; i < 5; i++) {
+            const slot = document.createElement('div');
+            slot.className = i === 0 ? 'hotbar-slot selected' : 'hotbar-slot';
+            const itemIcon = document.createElement('div');
+            itemIcon.className = 'item-icon';
+            const itemCount = document.createElement('div');
+            itemCount.className = 'item-count';
+            slot.appendChild(itemIcon);
+            slot.appendChild(itemCount);
+            hotbar.appendChild(slot);
+        }
 
         // Function to update inventory slot with item
-        function updateInventorySlot(slot, item) {
-            console.log(`[Inventory] ${item || 'Empty item'} picked up into array slot ${slot}`);
-            inventoryState.set(slot, item);
+        function updateInventorySlot(slot, item, count = 1) {
+            // Update internal state
+            inventoryState.set(slot, { type: item, count });
             
             // Update inventory slot
             const inventorySlot = document.querySelector(`.inventory-slot[data-slot="${slot}"]`);
-            if (!inventorySlot) {
-                console.log(`[Inventory] Could not find slot element for slot ${slot}`);
-            }
             if (inventorySlot) {
                 const itemIcon = inventorySlot.querySelector('.item-icon');
-                if (!itemIcon) {
-                    console.log(`[Inventory] Could not find item icon for slot ${slot}`);
-                }
+                const itemCountElement = inventorySlot.querySelector('.item-count');
+                
                 if (itemIcon) {
                     itemIcon.className = 'item-icon';
                     if (item) {
                         itemIcon.classList.add(item);
-                        console.log(`[Inventory] Added item class ${item} to slot ${slot}`);
                     }
+                }
+                
+                if (itemCountElement) {
+                    itemCountElement.textContent = item && count > 1 ? count.toString() : '';
                 }
             }
 
             // Update hotbar slot if it's in the hotbar range
             if (slot < 5) {
                 const hotbarSlot = document.querySelector(`.hotbar-slot:nth-child(${slot + 1})`);
-                if (!hotbarSlot) {
-                    console.log(`[Inventory] Could not find hotbar slot for slot ${slot}`);
-                }
                 if (hotbarSlot) {
                     const itemIcon = hotbarSlot.querySelector('.item-icon');
-                    if (!itemIcon) {
-                        console.log(`[Inventory] Could not find hotbar item icon for slot ${slot}`);
-                    }
+                    const itemCountElement = hotbarSlot.querySelector('.item-count');
+                    
                     if (itemIcon) {
                         itemIcon.className = 'item-icon';
                         if (item) {
                             itemIcon.classList.add(item);
-                            console.log(`[Inventory] Added item class ${item} to hotbar slot ${slot}`);
                         }
+                    }
+                    
+                    if (itemCountElement) {
+                        itemCountElement.textContent = item && count > 1 ? count.toString() : '';
                     }
                 }
             }
-
-            logInventoryState();
         }
 
         // Function to reapply inventory state
         function reapplyInventoryState() {
             console.log('[Inventory] Reapplying inventory state...');
-            // Update all inventory slots
             inventoryState.forEach((item, slot) => {
-                // Update inventory slot
-                const inventorySlot = document.querySelector(`.inventory-slot[data-slot="${slot}"]`);
-                if (inventorySlot) {
-                    const itemIcon = inventorySlot.querySelector('.item-icon');
-                    if (itemIcon) {
-                        itemIcon.className = 'item-icon';
-                        if (item) {
-                            itemIcon.classList.add(item);
-                        }
-                    }
-                }
-
-                // Update hotbar slot if it's in the hotbar range
-                if (slot < 5) {
-                    const hotbarSlot = document.querySelector(`.hotbar-slot:nth-child(${slot + 1})`);
-                    if (hotbarSlot) {
-                        const itemIcon = hotbarSlot.querySelector('.item-icon');
-                        if (itemIcon) {
-                            itemIcon.className = 'item-icon';
-                            if (item) {
-                                itemIcon.classList.add(item);
-                            }
-                        }
-                    }
-                }
+                updateInventorySlot(slot, item.type, item.count);
             });
-            logInventoryState();
         }
 
         // Handle keydown
@@ -766,7 +753,10 @@
             slot.dataset.slot = i.toString();
             const itemIcon = document.createElement('div');
             itemIcon.className = 'item-icon';
+            const itemCount = document.createElement('div');
+            itemCount.className = 'item-count';
             slot.appendChild(itemIcon);
+            slot.appendChild(itemCount);
             inventoryGrid.appendChild(slot);
 
             // Add click handler for inventory slots
@@ -790,7 +780,10 @@
             slot.dataset.slot = i.toString();
             const itemIcon = document.createElement('div');
             itemIcon.className = 'item-icon';
+            const itemCount = document.createElement('div');
+            itemCount.className = 'item-count';
             slot.appendChild(itemIcon);
+            slot.appendChild(itemCount);
             inventoryHotbar.appendChild(slot);
 
             // Add click handler for hotbar mirror slots
@@ -866,11 +859,35 @@
                 document.getElementById('gold-count').textContent = data.goldCount;
             }
 
+            // Handle inventory updates
+            if (data.inventoryUpdate) {
+                if (Array.isArray(data.inventoryUpdate)) {
+                    // Handle batch updates
+                    data.inventoryUpdate.forEach(update => {
+                        updateInventorySlot(update.slot, update.item, update.count);
+                    });
+                } else {
+                    // Handle single update
+                    updateInventorySlot(data.inventoryUpdate.slot, data.inventoryUpdate.item, data.inventoryUpdate.count);
+                }
+            }
+
+            // Handle showing item name on pickup
+            if (data.showItemName) {
+                showItemName(data.showItemName.name);
+            }
+
             // Handle hotbar updates
             if (data.hotbarUpdate) {
-                console.log('[Hotbar] Received update:', data.hotbarUpdate);
-                const { slot, item } = data.hotbarUpdate;
-                updateInventorySlot(slot, item);
+                if (Array.isArray(data.hotbarUpdate)) {
+                    // Handle batch updates
+                    data.hotbarUpdate.forEach(update => {
+                        updateInventorySlot(update.slot, update.item, update.count);
+                    });
+                } else {
+                    // Handle single update
+                    updateInventorySlot(data.hotbarUpdate.slot, data.hotbarUpdate.item, data.hotbarUpdate.count);
+                }
             }
 
             // Handle hotbar selection
@@ -906,13 +923,6 @@
                 if (selectedMirrorSlot) {
                     selectedMirrorSlot.classList.add('selected');
                 }
-            }
-
-            // Handle inventory updates
-            if (data.inventoryUpdate) {
-                console.log('[Inventory] Received update:', data.inventoryUpdate);
-                const { slot, item } = data.inventoryUpdate;
-                updateInventorySlot(slot, item);
             }
         });
 

@@ -1,10 +1,11 @@
 import { World, Entity, PlayerEntity, RigidBodyType, ColliderShape, BlockType, CollisionGroup } from 'hytopia';
-import { PlayerInventory } from '../player/PlayerInventory';
+import type { PlayerInventory } from '../player/PlayerInventory';
 
 export abstract class BaseItem {
     protected entity: Entity | null = null;
     private isBeingPickedUp = false;
     private dropTimestamp = 0;
+    private itemCount = 1;  // Default to 1 item per entity
 
     constructor(
         protected world: World,
@@ -17,76 +18,90 @@ export abstract class BaseItem {
     }
 
     private canBePickedUp(): boolean {
-        return Date.now() - this.dropTimestamp >= 500;
+        return Date.now() - this.dropTimestamp >= 400;
     }
 
     private createPickupCollider(isSensor: boolean = true) {
+        // Cache collision groups for better performance
+        const collisionGroups = {
+            belongsTo: [CollisionGroup.ENTITY],
+            collidesWith: [CollisionGroup.ENTITY, CollisionGroup.PLAYER]
+        };
+
         return {
             shape: ColliderShape.BLOCK,
             halfExtents: { x: 0.2, y: 0.2, z: 0.2 },
             isSensor,
-            collisionGroups: {
-                belongsTo: [CollisionGroup.ENTITY],
-                collidesWith: [CollisionGroup.ENTITY, CollisionGroup.PLAYER]
-            },
+            collisionGroups,
             onCollision: this.handlePickupCollision.bind(this)
         };
     }
 
     private createGroundCollider(height: number) {
+        // Cache collision groups for better performance
+        const collisionGroups = {
+            belongsTo: [CollisionGroup.ENTITY],
+            collidesWith: [CollisionGroup.BLOCK]
+        };
+
         return {
             shape: ColliderShape.BLOCK,
             halfExtents: { x: 0.1, y: height, z: 0.1 },
             isSensor: false,
-            collisionGroups: {
-                belongsTo: [CollisionGroup.ENTITY],
-                collidesWith: [CollisionGroup.BLOCK]
-            },
+            collisionGroups,
             onCollision: this.handleGroundCollision.bind(this)
         };
     }
 
     private handlePickupCollision(other: BlockType | Entity, started: boolean) {
-        if (!started || !(other instanceof PlayerEntity) || this.isBeingPickedUp || !this.entity) return;
-        
+        if (!started || !(other instanceof PlayerEntity) || !this.entity) return;
         if (!this.canBePickedUp()) return;
 
         const inventory = this.playerInventories.get(String(other.player.id));
-        if (!inventory) {
-            console.log('[BaseItem] No inventory found for player');
-            return;
-        }
+        if (!inventory) return;
 
-        if (!inventory.hasEmptySlot()) {
-            console.log('[BaseItem] No empty slots available in inventory');
-            return;
-        }
+        if (!inventory.hasEmptySlot()) return;
 
-        this.isBeingPickedUp = true;
+        try {
+            // Add item to inventory first
+            const success = inventory.addItem(this.itemType);
+            
+            if (success) {
+                // Only show item name and refresh if it was added to the selected slot
+                const selectedSlot = inventory.getSelectedSlot();
+                if (inventory.getItem(selectedSlot) === this.itemType) {
+                    // Show item name only when picked up into selected slot
+                    const formattedName = this.itemType
+                        .split('-')
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(' ');
+                    
+                    other.player.ui.sendData({
+                        showItemName: {
+                            name: formattedName
+                        }
+                    });
 
-        if (inventory.addItem(this.itemType)) {
-            console.log(`[BaseItem] Successfully added ${this.itemType} to inventory`);
-            this.entity.despawn();
-            this.entity = null;
-        } else {
-            console.log(`[BaseItem] Failed to add ${this.itemType} to inventory`);
-            this.isBeingPickedUp = false;
+                    // Re-select the slot to trigger a refresh
+                    inventory.selectSlot(selectedSlot);
+                }
+                
+                // Only despawn after successful inventory update
+                this.entity.despawn();
+                this.entity = null;
+            }
+        } catch (error) {
+            console.error('[BaseItem] Error during pickup:', error);
         }
     }
 
     private handleGroundCollision(other: BlockType | Entity, started: boolean) {
-        if (other instanceof PlayerEntity) return;
-        
-        if (started && this.entity) {
-            this.entity.setLinearVelocity({ x: 0, y: 0, z: 0 });
-        }
+        if (!started || other instanceof PlayerEntity || !this.entity) return;
+        this.entity.setLinearVelocity({ x: 0, y: 0, z: 0 });
     }
 
     public spawn(): void {
-        if (this.entity) {
-            console.log(`${this.itemType} already spawned`);
-            return;
-        }
+        if (this.entity) return;
         
         const isSword = this.itemType.includes('sword');
         const physicsColliderHeight = isSword ? 0.5 : 0.3;
@@ -114,10 +129,7 @@ export abstract class BaseItem {
     }
 
     public drop(fromPosition: { x: number; y: number; z: number }, direction: { x: number; y: number; z: number }): void {
-        if (!this.entity || !this.world) {
-            console.log('Cannot drop - entity or world is null');
-            return;
-        }
+        if (!this.entity || !this.world) return;
 
         this.entity.despawn();
         this.dropTimestamp = Date.now();
@@ -128,6 +140,19 @@ export abstract class BaseItem {
         const horizontalForce = isSword ? 0.6 : 0.4;
         const verticalForce = isSword ? 0.15 : 0.1;
         
+        // Cache collision groups and other repeated values
+        const dropPos = {
+            x: fromPosition.x + direction.x * 0.3,
+            y: fromPosition.y + spawnHeight,
+            z: fromPosition.z + direction.z * 0.3
+        };
+
+        const impulse = {
+            x: direction.x * horizontalForce,
+            y: verticalForce,
+            z: direction.z * horizontalForce
+        };
+
         this.entity = new Entity({
             name: this.itemType,
             modelUri: this.modelUri,
@@ -143,22 +168,9 @@ export abstract class BaseItem {
             }
         });
 
-        const dropPos = {
-            x: fromPosition.x + direction.x * 0.3,
-            y: fromPosition.y + spawnHeight,
-            z: fromPosition.z + direction.z * 0.3
-        };
-
         this.entity.spawn(this.world, dropPos);
-
-        setTimeout(() => {
-            if (this.entity) {
-                this.entity.applyImpulse({
-                    x: direction.x * horizontalForce,
-                    y: verticalForce,
-                    z: direction.z * horizontalForce
-                });
-            }
-        }, 0);
+        
+        // Apply impulse immediately instead of using setTimeout
+        this.entity.applyImpulse(impulse);
     }
 } 

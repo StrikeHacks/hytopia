@@ -1,18 +1,28 @@
 import { PlayerEntity } from 'hytopia';
 import { EquipmentManager } from './EquipmentManager';
+import { MAX_STACK_SIZE, NON_STACKABLE_TYPES } from '../types/items';
+import type { ItemSlot } from '../types/items';
 
 export class PlayerInventory {
-    private slots: (string | null)[] = Array(20).fill(null);
+    private slots: ItemSlot[] = Array(20).fill(null).map(() => ({ type: null, count: 0 }));
     private selectedSlot: number = 0;
     private equipmentManager: EquipmentManager;
     private isProcessingToggle: boolean = false;
     private isInventoryOpen: boolean = false;
+    private refreshTimeout: ReturnType<typeof setTimeout> | null = null;
+    private lastFullRefreshTime = 0;
+    private pendingUpdates = new Set<number>();
+    private batchUpdateTimeout: ReturnType<typeof setTimeout> | null = null;
+    private pendingBatchUpdates: { [key: string]: any[] } = {
+        inventoryUpdate: [],
+        hotbarUpdate: []
+    };
 
     constructor(
         private playerEntity: PlayerEntity
     ) {
         this.equipmentManager = new EquipmentManager(playerEntity);
-        console.log('[PlayerInventory] Initialized with 20 slots (0-19)');
+        console.log('[PlayerInventory] Initialized');
     }
 
     public getSelectedSlot(): number {
@@ -20,110 +30,219 @@ export class PlayerInventory {
     }
 
     public selectSlot(slot: number): void {
-        if (slot >= 0 && slot < 5) {
-            // Unequip current item
-            this.equipmentManager.unequipItem();
-            
-            // Update selected slot
-            this.selectedSlot = slot;
-            
-            // Update UI about selection
-            this.playerEntity.player.ui.sendData({
-                hotbarSelect: {
-                    selectedSlot: slot
-                }
-            });
+        if (slot < 0 || slot >= this.slots.length) return;
 
-            // Equip new item if there is one
-            const item = this.getItem(slot);
+        // Unequip current item if any
+        const currentItem = this.slots[this.selectedSlot];
+        if (currentItem.type) {
+            console.log(`[PlayerInventory] Unequipping ${currentItem.type}`);
+            this.equipmentManager.unequipItem();
+        }
+
+        this.selectedSlot = slot;
+        console.log(`[PlayerInventory] Selected slot ${slot}`);
+
+        // Equip new item if any
+        const newItem = this.slots[slot];
+        if (newItem.type) {
+            console.log(`[PlayerInventory] Equipping ${newItem.type}`);
+            this.equipmentManager.equipItem(newItem.type);
+        }
+
+        // Update UI
+        this.playerEntity.player.ui.sendData({
+            hotbarSelect: {
+                selectedSlot: slot
+            }
+        });
+    }
+
+    public hasEmptySlot(): boolean {
+        return this.slots.some(slot => slot.type === null || 
+            (slot.type && !NON_STACKABLE_TYPES.includes(slot.type) && slot.count < MAX_STACK_SIZE));
+    }
+
+    public getItem(slot: number): string | null {
+        if (slot < 0 || slot >= this.slots.length) return null;
+        return this.slots[slot].type;
+    }
+
+    public getItemCount(slot: number): number {
+        if (slot < 0 || slot >= this.slots.length) return 0;
+        return this.slots[slot].count;
+    }
+
+    public setItem(slot: number, item: string | null, count: number = 1): void {
+        if (slot < 0 || slot >= this.slots.length) return;
+
+        console.log(`[PlayerInventory] Setting slot ${slot} to ${item} (count: ${count})`);
+        
+        const oldItem = this.slots[slot].type;
+        this.slots[slot] = { type: item, count };
+
+        // If this is the selected hotbar slot, handle equipment changes
+        if (slot < 5 && slot === this.selectedSlot) {
+            if (oldItem) {
+                this.equipmentManager.unequipItem();
+            }
             if (item) {
                 this.equipmentManager.equipItem(item);
             }
         }
+
+        this.updateSlotUI(slot);
     }
 
-    public hasEmptySlot(): boolean {
-        return this.slots.some(slot => slot === null);
-    }
-
-    public getItem(slot: number): string | null {
-        if (slot >= 0 && slot < this.slots.length) {
-            return this.slots[slot];
-        }
-        return null;
-    }
-
-    public setItem(slot: number, item: string | null): void {
-        if (slot >= 0 && slot < this.slots.length) {
-            const oldItem = this.slots[slot];
-            this.slots[slot] = item;
-
-            // Update UI
-            this.playerEntity.player.ui.sendData({
-                inventoryUpdate: {
-                    slot,
-                    item
-                }
+    private updateSlotUI(slot: number): void {
+        const item = this.slots[slot];
+        
+        // Add to batch updates
+        if (slot < 5) {
+            this.pendingBatchUpdates.hotbarUpdate.push({
+                slot,
+                item: item.type,
+                count: item.count
             });
+        }
+        this.pendingBatchUpdates.inventoryUpdate.push({
+            slot,
+            item: item.type,
+            count: item.count
+        });
 
-            // If this is a hotbar slot, handle equipment
-            if (slot < 5 && slot === this.selectedSlot) {
-                if (item) {
-                    this.equipmentManager.equipItem(item);
-                } else {
-                    this.equipmentManager.unequipItem();
-                }
-            }
+        // Schedule batch update
+        this.scheduleBatchUpdate();
+    }
 
-            console.log(`[PlayerInventory] Set slot ${slot} to ${item}`);
+    private scheduleBatchUpdate(): void {
+        if (this.batchUpdateTimeout) return;
+
+        this.batchUpdateTimeout = setTimeout(() => {
+            this.sendBatchUpdate();
+        }, 16); // Roughly one frame at 60fps
+    }
+
+    private sendBatchUpdate(): void {
+        if (this.pendingBatchUpdates.inventoryUpdate.length === 0) return;
+
+        // Send all updates in one batch
+        this.playerEntity.player.ui.sendData(this.pendingBatchUpdates);
+
+        // Reset batch updates
+        this.pendingBatchUpdates = {
+            inventoryUpdate: [],
+            hotbarUpdate: []
+        };
+        this.batchUpdateTimeout = null;
+
+        // Check if we need a full refresh
+        const now = Date.now();
+        if (now - this.lastFullRefreshTime > 1000) {
+            this.lastFullRefreshTime = now;
+            this.forceRefreshAllSlots();
         }
     }
 
-    public addItem(item: string): boolean {
-        const emptySlot = this.slots.findIndex(slot => slot === null);
-        if (emptySlot !== -1) {
-            this.setItem(emptySlot, item);
-            return true;
-        }
-        return false;
+    private forceRefreshAllSlots(): void {
+        type UpdateItem = { slot: number; item: string | null; count: number; };
+        const inventoryUpdates: UpdateItem[] = [];
+        const hotbarUpdates: UpdateItem[] = [];
+
+        this.slots.forEach((item, slot) => {
+            if (slot < 5) {
+                hotbarUpdates.push({
+                    slot,
+                    item: item.type,
+                    count: item.count
+                });
+            }
+            inventoryUpdates.push({
+                slot,
+                item: item.type,
+                count: item.count
+            });
+        });
+
+        this.playerEntity.player.ui.sendData({
+            inventoryUpdate: inventoryUpdates,
+            hotbarUpdate: hotbarUpdates
+        });
     }
 
     public handleInventoryToggle(): void {
-        if (this.isProcessingToggle) {
-            console.log('[PlayerInventory] Already processing toggle, ignoring request');
-            return;
-        }
+        if (this.isProcessingToggle) return;
         
         this.isProcessingToggle = true;
         this.isInventoryOpen = !this.isInventoryOpen;
-        console.log(`[PlayerInventory] ${this.isInventoryOpen ? 'Opening' : 'Closing'} inventory`);
         
-        this.playerEntity.player.ui.sendData({
+        const updates = {
             inventoryToggle: {
                 isOpen: this.isInventoryOpen
-            }
-        });
+            },
+            inventoryUpdate: [] as any[],
+            hotbarUpdate: [] as any[]
+        };
 
-        // If opening inventory, sync all slots
+        // If opening inventory, include all slot states
         if (this.isInventoryOpen) {
-            console.log('[PlayerInventory] Syncing inventory state to UI');
-            this.syncInventoryToUI();
+            this.slots.forEach((item, slot) => {
+                const update = {
+                    slot,
+                    item: item.type,
+                    count: item.count
+                };
+                
+                if (slot < 5) {
+                    updates.hotbarUpdate.push(update);
+                }
+                updates.inventoryUpdate.push(update);
+            });
         }
+
+        // Send all updates in one batch
+        this.playerEntity.player.ui.sendData(updates);
         
         setTimeout(() => {
             this.isProcessingToggle = false;
         }, 200);
     }
 
-    private syncInventoryToUI(): void {
-        // Sync all slots to UI
-        this.slots.forEach((item, slot) => {
-            this.playerEntity.player.ui.sendData({
-                inventoryUpdate: {
-                    slot,
-                    item
+    public addItem(itemType: string): boolean {
+        // Cache NON_STACKABLE_TYPES.includes check result
+        const isNonStackable = NON_STACKABLE_TYPES.includes(itemType);
+        
+        // Try stacking first if item is stackable
+        if (!isNonStackable) {
+            // Check hotbar slots (0-4)
+            for (let i = 0; i < 5; i++) {
+                const slot = this.slots[i];
+                if (slot.type === itemType && slot.count < MAX_STACK_SIZE) {
+                    slot.count++;
+                    this.updateSlotUI(i);
+                    return true;
                 }
-            });
-        });
+            }
+            
+            // Check inventory slots (5-19)
+            for (let i = 5; i < this.slots.length; i++) {
+                const slot = this.slots[i];
+                if (slot.type === itemType && slot.count < MAX_STACK_SIZE) {
+                    slot.count++;
+                    this.updateSlotUI(i);
+                    return true;
+                }
+            }
+        }
+
+        // Find first empty slot (hotbar first)
+        for (let i = 0; i < this.slots.length; i++) {
+            if (this.slots[i].type === null) {
+                this.slots[i] = { type: itemType, count: 1 };
+                this.updateSlotUI(i);
+                return true;
+            }
+        }
+
+        return false;
     }
 } 

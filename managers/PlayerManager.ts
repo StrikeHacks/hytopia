@@ -9,6 +9,7 @@ export class PlayerManager {
     private playerEntity!: PlayerEntity;
     private playerInventory!: PlayerInventory;
     private isEPressed: boolean = false;
+    private isQPressed: boolean = false;
 
     constructor(
         private world: World,
@@ -100,15 +101,23 @@ export class PlayerManager {
             // Handle hotbar selection (1-5)
             for (let i = 1; i <= 5; i++) {
                 if (input[i.toString()]) {
-                    console.log(`[PlayerManager] Number ${i} pressed - selecting hotbar slot ${i-1}`);
-                    this.playerInventory.selectSlot(i - 1);
+                    const slotIndex = i - 1;
+                    // Only select if it's not already the current slot
+                    if (this.playerInventory.getSelectedSlot() !== slotIndex) {
+                        console.log(`[PlayerManager] Number ${i} pressed - selecting hotbar slot ${slotIndex}`);
+                        this.playerInventory.selectSlot(slotIndex);
+                    }
                 }
             }
 
-            // Handle item dropping (Q)
-            if (input['q']) {
-                console.log('[PlayerManager] Q key pressed, dropping item');
-                this.itemSpawner.handleItemDrop(playerEntity);
+            // Handle item dropping (Q) - only trigger on key down
+            if (input['q'] && !this.isQPressed) {
+                const isShiftHeld = input['sh'];
+                console.log('[PlayerManager] Q key pressed - dropping item. Shift held:', isShiftHeld);
+                this.isQPressed = true;
+                this.itemSpawner.handleItemDrop(playerEntity, isShiftHeld);
+            } else if (!input['q']) {
+                this.isQPressed = false;
             }
 
             // Handle inventory toggle (E) - only trigger on key down

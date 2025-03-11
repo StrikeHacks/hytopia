@@ -2,7 +2,9 @@ import { World } from 'hytopia';
 import { BaseItem } from './BaseItem';
 import { PlayerInventory } from '../player/PlayerInventory';
 
-export class SwordItem extends BaseItem {
+export class DiamondSwordItem extends BaseItem {
+    private static readonly ITEM_TYPE = 'sword-diamond';
+
     constructor(
         world: World,
         position: { x: number; y: number; z: number },
@@ -11,13 +13,13 @@ export class SwordItem extends BaseItem {
         super(
             world,
             position,
-            playerInventories as any,
-            'sword-diamond',
+            playerInventories,
+            DiamondSwordItem.ITEM_TYPE,
             'models/items/sword-diamond.gltf'
         );
     }
 
     protected getLogPrefix(): string {
-        return '[SwordItem]';
+        return '[DiamondSwordItem]';
     }
 } 
