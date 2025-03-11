@@ -2,12 +2,12 @@ import { World } from 'hytopia';
 import { IronGenerator } from '../generators/IronGenerator';
 import { GoldGenerator } from '../generators/GoldGenerator';
 import { ironConfig, goldConfig } from '../config/generators';
-import { HotbarManager } from '../player/HotbarManager';
+import { PlayerInventory } from '../player/PlayerInventory';
 import worldMap from '../assets/terrain1.json';
 import { ItemSpawner } from './ItemSpawner';
 
 export class GameManager {
-    private playerHotbars: Map<string, HotbarManager> = new Map();
+    private playerInventories: Map<string, PlayerInventory> = new Map();
     private ironGenerator!: IronGenerator;
     private goldGenerator!: GoldGenerator;
     private itemSpawner: ItemSpawner;
@@ -15,7 +15,7 @@ export class GameManager {
     constructor(private world: World) {
         this.setupWorld();
         this.setupGenerators();
-        this.itemSpawner = new ItemSpawner(world, this.playerHotbars);
+        this.itemSpawner = new ItemSpawner(world, this.playerInventories);
         this.spawnInitialItems();
     }
 
@@ -39,8 +39,8 @@ export class GameManager {
         this.itemSpawner.spawnInitialItems();
     }
 
-    public getPlayerHotbars(): Map<string, HotbarManager> {
-        return this.playerHotbars;
+    public getPlayerInventories(): Map<string, PlayerInventory> {
+        return this.playerInventories;
     }
 
     public getItemSpawner(): ItemSpawner {
@@ -55,6 +55,6 @@ export class GameManager {
     }
 
     public cleanup(playerId: string): void {
-        this.playerHotbars.delete(playerId);
+        this.playerInventories.delete(playerId);
     }
 } 

@@ -1,12 +1,10 @@
 import { World, PlayerEntity, PlayerCameraMode, PlayerUIEvent } from 'hytopia';
-import { HotbarManager } from '../player/HotbarManager';
 import { ItemSpawner } from './ItemSpawner';
 import { PlayerHealth } from '../player/PlayerHealth';
 import { PlayerInventory } from '../player/PlayerInventory';
 import type { HealthChangeEvent } from '../player/PlayerHealth';
 
 export class PlayerManager {
-    private hotbarManager!: HotbarManager;
     private playerHealth!: PlayerHealth;
     private playerEntity!: PlayerEntity;
     private playerInventory!: PlayerInventory;
@@ -15,12 +13,11 @@ export class PlayerManager {
     constructor(
         private world: World,
         private player: any,
-        private playerHotbars: Map<string, HotbarManager>,
+        private playerInventories: Map<string, PlayerInventory>,
         private itemSpawner: ItemSpawner
     ) {
         this.playerEntity = this.createPlayerEntity();
         this.setupHealth();
-        this.setupHotbar(this.playerEntity);
         this.setupInventory();
         this.setupUI();
         this.setupInputHandling(this.playerEntity);
@@ -81,13 +78,9 @@ export class PlayerManager {
         this.playerEntity.setPosition({ x: 5, y: 10, z: 5 });
     }
 
-    private setupHotbar(playerEntity: PlayerEntity): void {
-        this.hotbarManager = new HotbarManager(playerEntity);
-        this.playerHotbars.set(this.player.id, this.hotbarManager);
-    }
-
     private setupInventory(): void {
-        this.playerInventory = new PlayerInventory(this.playerEntity, this.hotbarManager);
+        this.playerInventory = new PlayerInventory(this.playerEntity);
+        this.playerInventories.set(this.player.id, this.playerInventory);
         this.itemSpawner.registerPlayerInventory(this.player.id, this.playerInventory);
     }
 
@@ -97,7 +90,7 @@ export class PlayerManager {
         this.player.ui.on(PlayerUIEvent.DATA, (data: any) => {
             if (data.hotbarSelect) {
                 const { slot } = data.hotbarSelect;
-                this.hotbarManager.selectSlot(slot);
+                this.playerInventory.selectSlot(slot);
             }
         });
     }
@@ -108,7 +101,7 @@ export class PlayerManager {
             for (let i = 1; i <= 5; i++) {
                 if (input[i.toString()]) {
                     console.log(`[PlayerManager] Number ${i} pressed - selecting hotbar slot ${i-1}`);
-                    this.hotbarManager.selectSlot(i - 1);
+                    this.playerInventory.selectSlot(i - 1);
                 }
             }
 

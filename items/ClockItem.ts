@@ -1,5 +1,5 @@
 import { World } from 'hytopia';
-import { HotbarManager } from '../player/HotbarManager';
+import { PlayerInventory } from '../player/PlayerInventory';
 import { BaseItem } from './BaseItem';
 
 export class ClockItem extends BaseItem {
@@ -8,9 +8,9 @@ export class ClockItem extends BaseItem {
     constructor(
         world: World, 
         position: { x: number; y: number; z: number },
-        playerHotbars: Map<string, HotbarManager>
+        playerInventories: Map<string, PlayerInventory>
     ) {
-        super(world, position, playerHotbars, ClockItem.ITEM_TYPE, 'models/items/clock.gltf');
+        super(world, position, playerInventories, ClockItem.ITEM_TYPE, 'models/items/clock.gltf');
     }
 
     protected getLogPrefix(): string {

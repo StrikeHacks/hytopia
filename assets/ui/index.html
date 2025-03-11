@@ -649,18 +649,7 @@
         // Store inventory state
         const inventoryState = new Map();
 
-        // Function to log inventory state
-        function logInventoryState() {
-            console.log('\n=== CURRENT INVENTORY STATE ===');
-            const stateArray = Array(20).fill(null);
-            inventoryState.forEach((item, slot) => {
-                stateArray[slot] = item;
-            });
-            stateArray.forEach((item, index) => {
-                console.log(`Slot ${index}: ${item || 'empty'}`);
-            });
-            console.log('============================\n');
-        }
+        
 
         // Function to update inventory slot with item
         function updateInventorySlot(slot, item) {

@@ -9,7 +9,7 @@ startServer(world => {
         new PlayerManager(
             world,
             player,
-            gameManager.getPlayerHotbars(),
+            gameManager.getPlayerInventories(),
             gameManager.getItemSpawner()
         );
         

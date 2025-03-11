@@ -11,7 +11,7 @@ export class SwordItem extends BaseItem {
         super(
             world,
             position,
-            playerInventories,
+            playerInventories as any,
             'sword-diamond',
             'models/items/sword-diamond.gltf'
         );

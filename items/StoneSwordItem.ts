@@ -1,5 +1,5 @@
-import { World, Entity, PlayerEntity } from 'hytopia';
-import { HotbarManager } from '../player/HotbarManager';
+import { World } from 'hytopia';
+import { PlayerInventory } from '../player/PlayerInventory';
 import { BaseItem } from './BaseItem';
 
 export class StoneSwordItem extends BaseItem {
@@ -8,9 +8,9 @@ export class StoneSwordItem extends BaseItem {
     constructor(
         world: World, 
         position: { x: number; y: number; z: number },
-        playerHotbars: Map<string, HotbarManager>
+        playerInventories: Map<string, PlayerInventory>
     ) {
-        super(world, position, playerHotbars, StoneSwordItem.ITEM_TYPE, 'models/items/sword-stone.gltf');
+        super(world, position, playerInventories, StoneSwordItem.ITEM_TYPE, 'models/items/sword-stone.gltf');
     }
 
     protected getLogPrefix(): string {

@@ -1,5 +1,4 @@
 import { World, PlayerEntity } from 'hytopia';
-import { HotbarManager } from '../player/HotbarManager';
 import { PlayerInventory } from '../player/PlayerInventory';
 import { SwordItem } from '../items/SwordItem';
 import { ClockItem } from '../items/ClockItem';
@@ -31,11 +30,9 @@ const ITEM_CLASSES: Record<string, ItemType> = {
 };
 
 export class ItemSpawner {
-    private playerInventories: Map<string, PlayerInventory> = new Map();
-
     constructor(
         private world: World,
-        private playerHotbars: Map<string, HotbarManager>
+        private playerInventories: Map<string, PlayerInventory>
     ) {}
 
     public spawnInitialItems(): void {
@@ -46,11 +43,10 @@ export class ItemSpawner {
     }
 
     public handleItemDrop(playerEntity: PlayerEntity): void {
-        const hotbarManager = this.playerHotbars.get(String(playerEntity.player.id));
         const inventory = this.playerInventories.get(String(playerEntity.player.id));
-        if (!hotbarManager || !inventory) return;
+        if (!inventory) return;
 
-        const selectedSlot = hotbarManager.getSelectedSlot();
+        const selectedSlot = inventory.getSelectedSlot();
         const itemType = inventory.getItem(selectedSlot);
         if (!itemType) return;
 
