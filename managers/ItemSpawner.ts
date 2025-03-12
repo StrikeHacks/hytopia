@@ -59,8 +59,6 @@ const INITIAL_ITEMS = [
     { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
     { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
     { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
 
     { type: 'clock', position: { x: 8, y: 3.4, z: -1 } },
     { type: 'clock', position: { x: 8, y: 3.4, z: -2 } },
@@ -82,7 +80,6 @@ const INITIAL_ITEMS = [
     { type: 'clock', position: { x: 8, y: 3.4, z: -18 } },
     { type: 'clock', position: { x: 8, y: 3.4, z: -19 } },
     
-
     { type: 'paper', position: { x: 10, y: 3.4, z: 2 } },
     { type: 'paper', position: { x: 10, y: 3.4, z: 1 } },
     { type: 'paper', position: { x: 10, y: 3.4, z: 0 } },
@@ -106,12 +103,14 @@ const INITIAL_ITEMS = [
     { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -4 } },
     { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -5 } },
     { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -6 } },
-    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -7 } },
-
-
+    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -7 } }
 ];
 
 export class ItemSpawner {
+    private activeItems: Map<string, BaseItem[]> = new Map();
+    private readonly DROP_COOLDOWN = 200; // ms
+    private lastDropTime = 0;
+
     constructor(
         private world: World,
         private playerInventories: Map<string, PlayerInventory>
@@ -119,15 +118,21 @@ export class ItemSpawner {
 
     public spawnInitialItems(): void {
         INITIAL_ITEMS.forEach(({ type, position }) => {
-            // Create item directly using BaseItem
             const item = new BaseItem(this.world, position, this.playerInventories, type);
             item.spawn();
+            const items = this.activeItems.get(type) || [];
+            items.push(item);
+            this.activeItems.set(type, items);
         });
     }
 
     public handleItemDrop(playerEntity: PlayerEntity, isShiftHeld: boolean): void {
-        console.log('[ItemSpawner] Starting item drop. Shift held:', isShiftHeld);
-        
+        const now = Date.now();
+        if (now - this.lastDropTime < this.DROP_COOLDOWN) {
+            return;
+        }
+        this.lastDropTime = now;
+
         const inventory = this.playerInventories.get(String(playerEntity.player.id));
         if (!inventory) {
             console.log('[ItemSpawner] No inventory found for player');
@@ -137,31 +142,26 @@ export class ItemSpawner {
         const selectedSlot = inventory.getSelectedSlot();
         const itemType = inventory.getItem(selectedSlot);
         if (!itemType) {
-            console.log('[ItemSpawner] No item in selected slot:', selectedSlot);
             return;
         }
 
         const itemCount = inventory.getItemCount(selectedSlot);
-        console.log('[ItemSpawner] Current item count:', itemCount);
         if (itemCount <= 0) {
-            console.log('[ItemSpawner] Item count is 0 or negative');
             return;
         }
 
-        // Drop either the entire stack or just one item
         const dropCount = isShiftHeld ? itemCount : 1;
         const newCount = itemCount - dropCount;
-        console.log('[ItemSpawner] Dropping', dropCount, 'items. New count will be:', newCount);
         
         inventory.setItem(selectedSlot, newCount > 0 ? itemType : null, newCount);
 
         const dropPosition = this.calculateDropPosition(playerEntity);
         const direction = this.calculateDropDirection(playerEntity);
 
-        // Spawn all dropped items with slight position variations
         try {
-            getItemConfig(itemType); // Verify item exists
-            console.log('[ItemSpawner] Spawning', dropCount, 'items of type:', itemType);
+            getItemConfig(itemType);
+            const items = this.activeItems.get(itemType) || [];
+            
             for (let i = 0; i < dropCount; i++) {
                 const offsetPosition = {
                     x: dropPosition.x + (Math.random() * 0.2 - 0.1),
@@ -172,9 +172,12 @@ export class ItemSpawner {
                 const droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType);
                 droppedItem.spawn();
                 droppedItem.drop(offsetPosition, direction);
+                items.push(droppedItem);
             }
+            
+            this.activeItems.set(itemType, items);
         } catch (e) {
-            console.log('[ItemSpawner] No config found for type:', itemType);
+            console.error('[ItemSpawner] Error dropping item:', e);
         }
     }
 
@@ -200,5 +203,12 @@ export class ItemSpawner {
 
     public registerPlayerInventory(playerId: string, inventory: PlayerInventory): void {
         this.playerInventories.set(playerId, inventory);
+    }
+
+    public cleanup(): void {
+        this.activeItems.forEach(items => {
+            items.forEach(item => item.despawn());
+        });
+        this.activeItems.clear();
     }
 } 

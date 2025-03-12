@@ -9,14 +9,10 @@ export class PlayerInventory {
     private equipmentManager: EquipmentManager;
     private isProcessingToggle: boolean = false;
     private isInventoryOpen: boolean = false;
-    private refreshTimeout: ReturnType<typeof setTimeout> | null = null;
-    private lastFullRefreshTime = 0;
-    private pendingUpdates = new Set<number>();
     private batchUpdateTimeout: ReturnType<typeof setTimeout> | null = null;
-    private pendingBatchUpdates: { [key: string]: any[] } = {
-        inventoryUpdate: [],
-        hotbarUpdate: []
-    };
+    private lastUpdateTime: number = 0;
+    private readonly UPDATE_THROTTLE = 50; // Minimum time between updates in ms
+    private pendingUpdates = new Map<number, { type: string | null; count: number }>();
 
     constructor(
         private playerEntity: PlayerEntity
@@ -24,19 +20,26 @@ export class PlayerInventory {
         this.equipmentManager = new EquipmentManager(playerEntity);
         console.log('[PlayerInventory] Initialized');
 
-        // Listen for getItemName requests
+        // Listen for getItemName requests with debounce
+        let nameRequestTimeout: ReturnType<typeof setTimeout> | null = null;
         this.playerEntity.player.ui.on('data', (data: any) => {
-            if (data.getItemName && data.getItemName.type) {
-                try {
-                    const config = getItemConfig(data.getItemName.type);
-                    this.playerEntity.player.ui.sendData({
-                        showItemName: {
-                            name: config.displayName || data.getItemName.type
-                        }
-                    });
-                } catch (error) {
-                    console.error('[PlayerInventory] Error getting item name:', error);
+            if (data.getItemName?.type) {
+                if (nameRequestTimeout) {
+                    clearTimeout(nameRequestTimeout);
                 }
+                nameRequestTimeout = setTimeout(() => {
+                    try {
+                        const config = getItemConfig(data.getItemName.type);
+                        this.playerEntity.player.ui.sendData({
+                            showItemName: {
+                                name: config.displayName || data.getItemName.type
+                            }
+                        });
+                    } catch (error) {
+                        console.error('[PlayerInventory] Error getting item name:', error);
+                    }
+                    nameRequestTimeout = null;
+                }, 50);
             }
         });
     }
@@ -132,78 +135,49 @@ export class PlayerInventory {
 
     private updateSlotUI(slot: number): void {
         const item = this.slots[slot];
-        
-        // Add to batch updates
-        if (slot < 5) {
-            this.pendingBatchUpdates.hotbarUpdate.push({
-                slot,
-                item: item.type,
-                count: item.count
-            });
-        }
-        this.pendingBatchUpdates.inventoryUpdate.push({
-            slot,
-            item: item.type,
-            count: item.count
-        });
-
-        // Schedule batch update
+        this.pendingUpdates.set(slot, { type: item.type, count: item.count });
         this.scheduleBatchUpdate();
     }
 
     private scheduleBatchUpdate(): void {
         if (this.batchUpdateTimeout) return;
 
-        this.batchUpdateTimeout = setTimeout(() => {
-            this.sendBatchUpdate();
-        }, 16); // Roughly one frame at 60fps
-    }
-
-    private sendBatchUpdate(): void {
-        if (this.pendingBatchUpdates.inventoryUpdate.length === 0) return;
-
-        // Send all updates in one batch
-        this.playerEntity.player.ui.sendData(this.pendingBatchUpdates);
-
-        // Reset batch updates
-        this.pendingBatchUpdates = {
-            inventoryUpdate: [],
-            hotbarUpdate: []
-        };
-        this.batchUpdateTimeout = null;
-
-        // Check if we need a full refresh
         const now = Date.now();
-        if (now - this.lastFullRefreshTime > 1000) {
-            this.lastFullRefreshTime = now;
-            this.forceRefreshAllSlots();
+        const timeSinceLastUpdate = now - this.lastUpdateTime;
+        
+        if (timeSinceLastUpdate < this.UPDATE_THROTTLE) {
+            // Schedule update after throttle time
+            this.batchUpdateTimeout = setTimeout(() => {
+                this.sendBatchUpdate();
+            }, this.UPDATE_THROTTLE - timeSinceLastUpdate);
+        } else {
+            // Update immediately
+            this.sendBatchUpdate();
         }
     }
 
-    private forceRefreshAllSlots(): void {
-        type UpdateItem = { slot: number; item: string | null; count: number; };
-        const inventoryUpdates: UpdateItem[] = [];
-        const hotbarUpdates: UpdateItem[] = [];
+    private sendBatchUpdate(): void {
+        if (this.pendingUpdates.size === 0) return;
 
-        this.slots.forEach((item, slot) => {
+        const inventoryUpdates: any[] = [];
+        const hotbarUpdates: any[] = [];
+
+        this.pendingUpdates.forEach((item, slot) => {
+            const update = { slot, item: item.type, count: item.count };
+            inventoryUpdates.push(update);
             if (slot < 5) {
-                hotbarUpdates.push({
-                    slot,
-                    item: item.type,
-                    count: item.count
-                });
+                hotbarUpdates.push(update);
             }
-            inventoryUpdates.push({
-                slot,
-                item: item.type,
-                count: item.count
-            });
         });
 
         this.playerEntity.player.ui.sendData({
             inventoryUpdate: inventoryUpdates,
             hotbarUpdate: hotbarUpdates
         });
+
+        this.pendingUpdates.clear();
+        this.batchUpdateTimeout = null;
+        this.lastUpdateTime = Date.now();
     }
 
     public handleInventoryToggle(): void {
@@ -212,32 +186,27 @@ export class PlayerInventory {
         this.isProcessingToggle = true;
         this.isInventoryOpen = !this.isInventoryOpen;
         
-        const updates = {
-            inventoryToggle: {
-                isOpen: this.isInventoryOpen
-            },
-            inventoryUpdate: [] as any[],
-            hotbarUpdate: [] as any[]
-        };
-
-        // If opening inventory, include all slot states
         if (this.isInventoryOpen) {
-            this.slots.forEach((item, slot) => {
-                const update = {
+            // Send all slot states at once
+            const updates = {
+                inventoryToggle: { isOpen: true },
+                inventoryUpdate: this.slots.map((item, slot) => ({
                     slot,
                     item: item.type,
                     count: item.count
-                };
-                
-                if (slot < 5) {
-                    updates.hotbarUpdate.push(update);
-                }
-                updates.inventoryUpdate.push(update);
+                })),
+                hotbarUpdate: this.slots.slice(0, 5).map((item, slot) => ({
+                    slot,
+                    item: item.type,
+                    count: item.count
+                }))
+            };
+            this.playerEntity.player.ui.sendData(updates);
+        } else {
+            this.playerEntity.player.ui.sendData({
+                inventoryToggle: { isOpen: false }
             });
         }
-
-        // Send all updates in one batch
-        this.playerEntity.player.ui.sendData(updates);
         
         setTimeout(() => {
             this.isProcessingToggle = false;

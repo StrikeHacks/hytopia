@@ -171,4 +171,11 @@ export class BaseItem {
         this.entity.spawn(this.world, dropPos);
         this.entity.applyImpulse(impulse);
     }
+
+    public despawn(): void {
+        if (this.entity) {
+            this.entity.despawn();
+            this.entity = null;
+        }
+    }
 } 
