@@ -97,12 +97,14 @@ export class PlayerManager {
     }
 
     private setupInputHandling(playerEntity: PlayerEntity): void {
+        // Enable debug raycasting for development
+        this.world.simulation.enableDebugRaycasting(true);
+
         playerEntity.controller?.on('tickWithPlayerInput', ({ input }) => {
             // Handle hotbar selection (1-5)
             for (let i = 1; i <= 5; i++) {
                 if (input[i.toString()]) {
                     const slotIndex = i - 1;
-                    // Only select if it's not already the current slot
                     if (this.playerInventory.getSelectedSlot() !== slotIndex) {
                         console.log(`[PlayerManager] Number ${i} pressed - selecting hotbar slot ${slotIndex}`);
                         this.playerInventory.selectSlot(slotIndex);
@@ -127,6 +129,48 @@ export class PlayerManager {
                 this.playerInventory.handleInventoryToggle();
             } else if (!input['e']) {
                 this.isEPressed = false;
+            }
+
+            // Handle log breaking with shears
+            if (input['ml']) { // Left mouse button clicked
+                const selectedSlot = this.playerInventory.getSelectedSlot();
+                const heldItem = this.playerInventory.getItem(selectedSlot);
+                
+                console.log('[PlayerManager] Left click with item:', heldItem);
+                
+                // Check if player is holding shears
+                if (heldItem === 'shears') {
+                    console.log('[PlayerManager] Player is holding shears, performing raycast');
+                    // Calculate camera position by adding offset to player position
+                    const origin = {
+                        x: playerEntity.position.x,
+                        y: playerEntity.position.y + 0.8, // Camera offset height
+                        z: playerEntity.position.z
+                    };
+                    const direction = playerEntity.player.camera.facingDirection;
+                    const length = 3; // Maximum reach distance
+                    
+                    const raycastResult = this.world.simulation.raycast(origin, direction, length, {
+                        filterExcludeRigidBody: playerEntity.rawRigidBody
+                    });
+
+                    if (raycastResult?.hitBlock) {
+                        const blockTypeId = this.world.chunkLattice.getBlockId(raycastResult.hitBlock.globalCoordinate);
+                        console.log('[PlayerManager] Raycast hit block with ID:', blockTypeId);
+                        
+                        // Check if the block is a log (ID 23)
+                        if (blockTypeId === 23) {
+                            console.log('[PlayerManager] Hit a log block! Breaking it...');
+                            // Play chopping animation
+                            playerEntity.startModelOneshotAnimations(['attack']);
+                            
+                            // Break the block (set to air, ID 0)
+                            this.world.chunkLattice.setBlock(raycastResult.hitBlock.globalCoordinate, 0);
+                        }
+                    } else {
+                        console.log('[PlayerManager] Raycast did not hit any block');
+                    }
+                }
             }
         });
     }

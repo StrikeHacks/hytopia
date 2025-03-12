@@ -106,6 +106,20 @@ export const itemConfigs = {
             y: HEAVY_COLLIDER_HEIGHT,
             z: 0.2
         }
+    },
+    'shears': {
+        type: 'shears',
+        modelUri: 'models/items/.optimized/shears/shears.gltf',
+        displayName: 'Axe',
+        category: 'tools',
+        maxStackSize: 1,
+        scale: 0.5,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.2,
+            y: HEAVY_COLLIDER_HEIGHT,
+            z: 0.2
+        }
     }
 } as const;
 

@@ -3,7 +3,7 @@ import { IronGenerator } from '../generators/IronGenerator';
 import { GoldGenerator } from '../generators/GoldGenerator';
 import { ironConfig, goldConfig } from '../config/generators';
 import { PlayerInventory } from '../player/PlayerInventory';
-import worldMap from '../assets/terrain1.json';
+import worldMap from '../assets/terrain.json';
 import { ItemSpawner } from './ItemSpawner';
 
 export class GameManager {
