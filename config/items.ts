@@ -5,8 +5,8 @@ export const DEFAULT_ITEM_SCALE = 0.5;
 export const DEFAULT_COLLIDER_SIZE = { x: 0.2, y: 0.2, z: 0.2 };
 export const DEFAULT_DROP_FORCE = { horizontal: 0.4, vertical: 0.1 };
 export const PICKUP_COOLDOWN = 500; // ms
-export const SWORD_DROP_FORCE = { horizontal: 0.6, vertical: 0.15 };
-export const SWORD_COLLIDER_HEIGHT = 0.5;
+export const HEAVY_DROP_FORCE = { horizontal: 1, vertical: 0.15 };
+export const HEAVY_COLLIDER_HEIGHT = 0.55;
 export const MAX_STACK_SIZE = 64;
 
 // Item properties configuration
@@ -18,10 +18,10 @@ export const itemConfigs = {
         category: 'weapons',
         maxStackSize: 1,
         scale: 0.5,
-        dropForce: SWORD_DROP_FORCE,
+        dropForce: HEAVY_DROP_FORCE,
         colliderSize: {
             x: 0.2,
-            y: SWORD_COLLIDER_HEIGHT,
+            y: HEAVY_COLLIDER_HEIGHT,
             z: 0.2
         }
     },
@@ -32,10 +32,10 @@ export const itemConfigs = {
         category: 'weapons',
         maxStackSize: 1,
         scale: 0.5,
-        dropForce: SWORD_DROP_FORCE,
+        dropForce: HEAVY_DROP_FORCE,
         colliderSize: {
             x: 0.2,
-            y: SWORD_COLLIDER_HEIGHT,
+            y: HEAVY_COLLIDER_HEIGHT,
             z: 0.2
         }
     },
@@ -46,10 +46,10 @@ export const itemConfigs = {
         category: 'weapons',
         maxStackSize: 1,
         scale: 0.5,
-        dropForce: SWORD_DROP_FORCE,
+        dropForce: HEAVY_DROP_FORCE,
         colliderSize: {
             x: 0.2,
-            y: SWORD_COLLIDER_HEIGHT,
+            y: HEAVY_COLLIDER_HEIGHT,
             z: 0.2
         }
     },
@@ -100,10 +100,10 @@ export const itemConfigs = {
         category: 'tools',
         maxStackSize: 1,
         scale: 0.5,
-        dropForce: SWORD_DROP_FORCE,
+        dropForce: HEAVY_DROP_FORCE,
         colliderSize: {
             x: 0.2,
-            y: SWORD_COLLIDER_HEIGHT,
+            y: HEAVY_COLLIDER_HEIGHT,
             z: 0.2
         }
     }
