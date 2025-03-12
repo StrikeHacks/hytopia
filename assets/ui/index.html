@@ -20,6 +20,14 @@
             background-image: url('https://www.canteach.ca/minecraft-pe/images/stone_sword.gif');
         }
 
+        .sword-golden-icon {
+            background-image: url('https://www.canteach.ca/minecraft-pe/images/golden_sword.gif');
+        }
+
+        .fishing-rod-icon {
+            background-image: url('https://static.wikia.nocookie.net/minecraft_gamepedia/images/7/7f/Fishing_Rod_JE2_BE2.png');
+        }
+
         .paper-icon {
             background-image: url('https://www.canteach.ca/minecraft-pe/images/paper.gif');
         }
@@ -528,6 +536,14 @@
             background-image: url('https://www.canteach.ca/minecraft-pe/images/stone_sword.gif');
         }
 
+        .item-icon.sword-golden {
+            background-image: url('https://www.canteach.ca/minecraft-pe/images/golden_sword.gif');
+        }
+
+        .item-icon.fishing-rod {
+            background-image: url('https://static.wikia.nocookie.net/minecraft_gamepedia/images/7/7f/Fishing_Rod_JE2_BE2.png');
+        }
+
         .item-icon.paper {
             background-image: url('https://www.canteach.ca/minecraft-pe/images/paper.gif');
         }
@@ -909,7 +925,12 @@
                             .find(className => className !== 'item-icon');
                         
                         if (itemType) {
-                            showItemName(itemType);
+                            // Send request to server to get proper display name
+                            hytopia.sendData({
+                                getItemName: {
+                                    type: itemType
+                                }
+                            });
                         }
                     }
                 }
@@ -928,19 +949,15 @@
 
         // Add function to show item name
         let hideNameTimeout;
-        function showItemName(itemType) {
+        function showItemName(itemName) {
             const itemNameDisplay = document.querySelector('.item-name-display');
-            const formattedName = itemType
-                .split('-')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(' ');
             
             // Clear any existing timer
             if (hideNameTimeout) {
                 clearTimeout(hideNameTimeout);
             }
             
-            itemNameDisplay.textContent = formattedName;
+            itemNameDisplay.textContent = itemName;
             itemNameDisplay.style.opacity = '1';
             
             // Set new timer

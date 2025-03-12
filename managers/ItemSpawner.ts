@@ -1,45 +1,115 @@
 import { World, PlayerEntity } from 'hytopia';
 import type { PlayerInventory } from '../player/PlayerInventory';
-import { DiamondSwordItem } from '../items/DiamondSwordItem';
-import { ClockItem } from '../items/ClockItem';
-import { PaperItem } from '../items/PaperItem';
-import { BreadItem } from '../items/BreadItem';
-import { BookItem } from '../items/BookItem';
-import { StoneSwordItem } from '../items/StoneSwordItem';
 import { BaseItem } from '../items/BaseItem';
-import { NON_STACKABLE_TYPES } from '../types/items';
+import { itemConfigs, NON_STACKABLE_TYPES, getItemConfig } from '../config/items';
 
-type ItemType = typeof DiamondSwordItem | typeof ClockItem | typeof PaperItem | 
-                typeof BreadItem | typeof BookItem | typeof StoneSwordItem;
-
+// Define the initial items using item types directly from config
 const INITIAL_ITEMS = [
-    { type: DiamondSwordItem, position: { x: 6, y: 3.7, z: 2 } },
-    { type: DiamondSwordItem, position: { x: 6, y: 3.7, z: 1 } },
-    { type: DiamondSwordItem, position: { x: 6, y: 3.7, z: 0 } },
-    { type: ClockItem, position: { x: 8, y: 3.4, z: 2 } },
-    { type: ClockItem, position: { x: 8, y: 3.4, z: 1 } },
-    { type: ClockItem, position: { x: 8, y: 3.4, z: 0 } },
-    { type: PaperItem, position: { x: 10, y: 3.4, z: 2 } },
-    { type: PaperItem, position: { x: 10, y: 3.4, z: 1 } },
-    { type: PaperItem, position: { x: 10, y: 3.4, z: 0 } },
-    { type: BreadItem, position: { x: 12, y: 3.4, z: 2 } },
-    { type: BreadItem, position: { x: 12, y: 3.4, z: 1 } },
-    { type: BreadItem, position: { x: 12, y: 3.4, z: 0 } },
-    { type: BookItem, position: { x: 14, y: 3.4, z: 2 } },
-    { type: BookItem, position: { x: 14, y: 3.4, z: 1 } },
-    { type: StoneSwordItem, position: { x: 16, y: 3.7, z: 2 } },
-    { type: StoneSwordItem, position: { x: 16, y: 3.7, z: 1 } },
-    { type: StoneSwordItem, position: { x: 16, y: 3.7, z: 0 } }
-];
+    { type: 'sword-diamond', position: { x: 6, y: 3.7, z: 2 } },
+    { type: 'sword-diamond', position: { x: 6, y: 3.7, z: 1 } },
+    { type: 'sword-diamond', position: { x: 6, y: 3.7, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 2 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 1 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
 
-const ITEM_CLASSES: Record<string, ItemType> = {
-    'sword-diamond': DiamondSwordItem,
-    'clock': ClockItem,
-    'paper': PaperItem,
-    'bread': BreadItem,
-    'book': BookItem,
-    'sword-stone': StoneSwordItem
-};
+    { type: 'clock', position: { x: 8, y: 3.4, z: -1 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -2 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -3 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -4 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -5 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -6 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -7 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -8 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -9 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -10 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -11 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -12 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -13 } },  
+    { type: 'clock', position: { x: 8, y: 3.4, z: -14 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -15 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -16 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -17 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -18 } },
+    { type: 'clock', position: { x: 8, y: 3.4, z: -19 } },
+    
+
+    { type: 'paper', position: { x: 10, y: 3.4, z: 2 } },
+    { type: 'paper', position: { x: 10, y: 3.4, z: 1 } },
+    { type: 'paper', position: { x: 10, y: 3.4, z: 0 } },
+    { type: 'bread', position: { x: 12, y: 3.4, z: 2 } },
+    { type: 'bread', position: { x: 12, y: 3.4, z: 1 } },
+    { type: 'bread', position: { x: 12, y: 3.4, z: 0 } },
+    { type: 'book', position: { x: 14, y: 3.4, z: 2 } },
+    { type: 'book', position: { x: 14, y: 3.4, z: 1 } },
+    { type: 'sword-stone', position: { x: 16, y: 3.7, z: 2 } },
+    { type: 'sword-stone', position: { x: 16, y: 3.7, z: 1 } },
+    { type: 'sword-stone', position: { x: 16, y: 3.7, z: 0 } },
+    { type: 'sword-golden', position: { x: 18, y: 3.7, z: 2 } },
+    { type: 'sword-golden', position: { x: 18, y: 3.7, z: 1 } },
+    { type: 'sword-golden', position: { x: 18, y: 3.7, z: 0 } },
+    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: 2 } },
+    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: 1 } },
+    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: 0 } },
+    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -1 } },
+    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -2 } },
+    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -3 } },
+    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -4 } },
+    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -5 } },
+    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -6 } },
+    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -7 } },
+
+
+];
 
 export class ItemSpawner {
     constructor(
@@ -48,8 +118,9 @@ export class ItemSpawner {
     ) {}
 
     public spawnInitialItems(): void {
-        INITIAL_ITEMS.forEach(({ type: ItemType, position }) => {
-            const item = new ItemType(this.world, position, this.playerInventories);
+        INITIAL_ITEMS.forEach(({ type, position }) => {
+            // Create item directly using BaseItem
+            const item = new BaseItem(this.world, position, this.playerInventories, type);
             item.spawn();
         });
     }
@@ -88,8 +159,8 @@ export class ItemSpawner {
         const direction = this.calculateDropDirection(playerEntity);
 
         // Spawn all dropped items with slight position variations
-        const ItemClass = ITEM_CLASSES[itemType];
-        if (ItemClass) {
+        try {
+            getItemConfig(itemType); // Verify item exists
             console.log('[ItemSpawner] Spawning', dropCount, 'items of type:', itemType);
             for (let i = 0; i < dropCount; i++) {
                 const offsetPosition = {
@@ -98,12 +169,12 @@ export class ItemSpawner {
                     z: dropPosition.z + (Math.random() * 0.2 - 0.1)
                 };
 
-                const droppedItem = new ItemClass(this.world, offsetPosition, this.playerInventories);
+                const droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType);
                 droppedItem.spawn();
                 droppedItem.drop(offsetPosition, direction);
             }
-        } else {
-            console.log('[ItemSpawner] No ItemClass found for type:', itemType);
+        } catch (e) {
+            console.log('[ItemSpawner] No config found for type:', itemType);
         }
     }
 

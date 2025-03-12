@@ -1,27 +1,17 @@
 import type { World, Entity } from 'hytopia';
 import type { PlayerInventory } from '../player/PlayerInventory';
 
-export const MAX_STACK_SIZE = 64;
-
-export const NON_STACKABLE_TYPES = [
-    'sword-diamond',
-    'sword-stone'
-    // Add other tools/armor here
-];
+export interface Position3D {
+    x: number;
+    y: number;
+    z: number;
+}
 
 export interface ItemConfig {
     maxItems: number;
     spawnInterval: number;
-    spawnPosition: {
-        x: number;
-        y: number;
-        z: number;
-    };
-    uiPosition: {
-        x: number;
-        y: number;
-        z: number;
-    };
+    spawnPosition: Position3D;
+    uiPosition: Position3D;
 }
 
 export interface ItemSlot {
@@ -44,6 +34,9 @@ export interface ItemGenerator {
 export interface ItemProperties {
     readonly type: string;
     readonly modelUri: string;
+    readonly displayName?: string;
+    readonly category: string;
+    readonly maxStackSize: number;
     readonly scale?: number;
     readonly dropForce?: {
         horizontal: number;
@@ -56,26 +49,11 @@ export interface ItemProperties {
     };
 }
 
-export interface Position3D {
-    x: number;
-    y: number;
-    z: number;
-}
-
 export interface ItemBehavior {
     spawn(): void;
     drop(fromPosition: Position3D, direction: Position3D): void;
     despawn(): void;
 }
-
-export type ItemConstructor = {
-    new (
-        world: World,
-        position: Position3D,
-        playerInventories: Map<string, PlayerInventory>
-    ): ItemBehavior;
-    readonly PROPERTIES: ItemProperties;
-};
 
 // Constants for item configuration
 export const DEFAULT_ITEM_SCALE = 0.5;

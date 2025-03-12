@@ -1,6 +1,6 @@
 import { PlayerEntity } from 'hytopia';
 import { EquipmentManager } from './EquipmentManager';
-import { MAX_STACK_SIZE, NON_STACKABLE_TYPES } from '../types/items';
+import { NON_STACKABLE_TYPES, getItemConfig } from '../config/items';
 import type { ItemSlot } from '../types/items';
 
 export class PlayerInventory {
@@ -23,6 +23,22 @@ export class PlayerInventory {
     ) {
         this.equipmentManager = new EquipmentManager(playerEntity);
         console.log('[PlayerInventory] Initialized');
+
+        // Listen for getItemName requests
+        this.playerEntity.player.ui.on('data', (data: any) => {
+            if (data.getItemName && data.getItemName.type) {
+                try {
+                    const config = getItemConfig(data.getItemName.type);
+                    this.playerEntity.player.ui.sendData({
+                        showItemName: {
+                            name: config.displayName || data.getItemName.type
+                        }
+                    });
+                } catch (error) {
+                    console.error('[PlayerInventory] Error getting item name:', error);
+                }
+            }
+        });
     }
 
     public getSelectedSlot(): number {
@@ -47,6 +63,18 @@ export class PlayerInventory {
         if (newItem.type) {
             console.log(`[PlayerInventory] Equipping ${newItem.type}`);
             this.equipmentManager.equipItem(newItem.type);
+            
+            // Send display name for the new item
+            try {
+                const config = getItemConfig(newItem.type);
+                this.playerEntity.player.ui.sendData({
+                    showItemName: {
+                        name: config.displayName || newItem.type
+                    }
+                });
+            } catch (error) {
+                console.error('[PlayerInventory] Error getting item name:', error);
+            }
         }
 
         // Update UI
@@ -58,8 +86,17 @@ export class PlayerInventory {
     }
 
     public hasEmptySlot(): boolean {
-        return this.slots.some(slot => slot.type === null || 
-            (slot.type && !NON_STACKABLE_TYPES.includes(slot.type) && slot.count < MAX_STACK_SIZE));
+        return this.slots.some(slot => {
+            if (slot.type === null) return true;
+            if (slot.type) {
+                const isStackable = !NON_STACKABLE_TYPES.includes(slot.type as (typeof NON_STACKABLE_TYPES)[number]);
+                if (isStackable) {
+                    const config = getItemConfig(slot.type);
+                    return slot.count < config.maxStackSize;
+                }
+            }
+            return false;
+        });
     }
 
     public getItem(slot: number): string | null {
@@ -208,10 +245,13 @@ export class PlayerInventory {
     }
 
     public addItem(itemType: string): { success: boolean; addedToSlot?: number } {
+        const itemConfig = getItemConfig(itemType);
+        
         // First try to stack with existing items
         for (let i = 0; i < this.slots.length; i++) {
-            if (this.slots[i].type === itemType && !NON_STACKABLE_TYPES.includes(itemType)) {
-                if (this.slots[i].count < MAX_STACK_SIZE) {
+            const isStackable = !NON_STACKABLE_TYPES.includes(itemType as (typeof NON_STACKABLE_TYPES)[number]);
+            if (this.slots[i].type === itemType && isStackable) {
+                if (this.slots[i].count < itemConfig.maxStackSize) {
                     this.slots[i].count++;
                     this.updateSlotUI(i);
                     return { success: true, addedToSlot: i };

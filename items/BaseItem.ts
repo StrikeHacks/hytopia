@@ -1,19 +1,20 @@
 import { World, Entity, PlayerEntity, RigidBodyType, ColliderShape, BlockType, CollisionGroup } from 'hytopia';
 import type { PlayerInventory } from '../player/PlayerInventory';
+import { getItemConfig } from '../config/items';
 
-export abstract class BaseItem {
+export class BaseItem {
     protected entity: Entity | null = null;
     private isBeingPickedUp = false;
     private dropTimestamp = 0;
-    private itemCount = 1;  // Default to 1 item per entity
+    private itemConfig;
 
     constructor(
         protected world: World,
         protected position: { x: number; y: number; z: number },
         protected playerInventories: Map<string, PlayerInventory>,
-        protected itemType: string,
-        protected modelUri: string
+        protected itemType: string
     ) {
+        this.itemConfig = getItemConfig(itemType);
         console.log(`Creating ${itemType} at position:`, position);
     }
 
@@ -22,15 +23,16 @@ export abstract class BaseItem {
     }
 
     private createPickupCollider(isSensor: boolean = true) {
-        // Cache collision groups for better performance
         const collisionGroups = {
             belongsTo: [CollisionGroup.ENTITY],
             collidesWith: [CollisionGroup.ENTITY, CollisionGroup.PLAYER]
         };
 
+        const size = this.itemConfig.colliderSize || { x: 0.2, y: 0.2, z: 0.2 };
+
         return {
             shape: ColliderShape.BLOCK,
-            halfExtents: { x: 0.2, y: 0.2, z: 0.2 },
+            halfExtents: size,
             isSensor,
             collisionGroups,
             onCollision: this.handlePickupCollision.bind(this)
@@ -38,7 +40,6 @@ export abstract class BaseItem {
     }
 
     private createGroundCollider(height: number) {
-        // Cache collision groups for better performance
         const collisionGroups = {
             belongsTo: [CollisionGroup.ENTITY],
             collidesWith: [CollisionGroup.BLOCK]
@@ -74,14 +75,14 @@ export abstract class BaseItem {
                 // Only show item name if it was added to the selected slot AND
                 // the slot was either empty or had a different item type
                 if (result.addedToSlot === selectedSlot && previousItemInSelectedSlot !== this.itemType) {
-                    const formattedName = this.itemType
+                    const displayName = this.itemConfig.displayName || this.itemType
                         .split('-')
                         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                         .join(' ');
                     
                     other.player.ui.sendData({
                         showItemName: {
-                            name: formattedName
+                            name: displayName
                         }
                     });
 
@@ -111,8 +112,8 @@ export abstract class BaseItem {
         
         this.entity = new Entity({
             name: this.itemType,
-            modelUri: this.modelUri,
-            modelScale: 0.5,
+            modelUri: this.itemConfig.modelUri,
+            modelScale: this.itemConfig.scale || 0.5,
             rigidBodyOptions: {
                 type: RigidBodyType.KINEMATIC_VELOCITY,
                 colliders: [
@@ -137,43 +138,37 @@ export abstract class BaseItem {
         this.entity.despawn();
         this.dropTimestamp = Date.now();
         
-        const isSword = this.itemType.includes('sword');
-        const spawnHeight = isSword ? 0.5 : 0.3;
-        const physicsColliderHeight = isSword ? 0.5 : 0.3;
-        const horizontalForce = isSword ? 0.6 : 0.4;
-        const verticalForce = isSword ? 0.15 : 0.1;
+        const dropForce = this.itemConfig.dropForce || { horizontal: 0.4, vertical: 0.1 };
+        const colliderSize = this.itemConfig.colliderSize || { x: 0.2, y: 0.2, z: 0.2 };
         
-        // Cache collision groups and other repeated values
         const dropPos = {
             x: fromPosition.x + direction.x * 0.3,
-            y: fromPosition.y + spawnHeight,
+            y: fromPosition.y + colliderSize.y,
             z: fromPosition.z + direction.z * 0.3
         };
 
         const impulse = {
-            x: direction.x * horizontalForce,
-            y: verticalForce,
-            z: direction.z * horizontalForce
+            x: direction.x * dropForce.horizontal,
+            y: dropForce.vertical,
+            z: direction.z * dropForce.horizontal
         };
 
         this.entity = new Entity({
             name: this.itemType,
-            modelUri: this.modelUri,
-            modelScale: 0.5,
+            modelUri: this.itemConfig.modelUri,
+            modelScale: this.itemConfig.scale || 0.5,
             rigidBodyOptions: {
                 type: RigidBodyType.DYNAMIC,
                 enabledRotations: { x: false, y: true, z: false },
                 linearDamping: 0.8,
                 colliders: [
                     this.createPickupCollider(),
-                    this.createGroundCollider(physicsColliderHeight)
+                    this.createGroundCollider(colliderSize.y)
                 ]
             }
         });
 
         this.entity.spawn(this.world, dropPos);
-        
-        // Apply impulse immediately instead of using setTimeout
         this.entity.applyImpulse(impulse);
     }
 } 
