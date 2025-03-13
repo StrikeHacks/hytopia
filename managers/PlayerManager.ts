@@ -2,12 +2,14 @@ import { World, PlayerEntity, PlayerCameraMode, PlayerUIEvent } from 'hytopia';
 import { ItemSpawner } from './ItemSpawner';
 import { PlayerHealth } from '../player/PlayerHealth';
 import { PlayerInventory } from '../player/PlayerInventory';
+import { ToolManager } from './ToolManager';
 import type { HealthChangeEvent } from '../player/PlayerHealth';
 
 export class PlayerManager {
     private playerHealth!: PlayerHealth;
     private playerEntity!: PlayerEntity;
     private playerInventory!: PlayerInventory;
+    private toolManager!: ToolManager;
     private isEPressed: boolean = false;
     private isQPressed: boolean = false;
 
@@ -18,6 +20,7 @@ export class PlayerManager {
         private itemSpawner: ItemSpawner
     ) {
         this.playerEntity = this.createPlayerEntity();
+        this.toolManager = new ToolManager(world);
         this.setupHealth();
         this.setupInventory();
         this.setupUI();
@@ -138,55 +141,12 @@ export class PlayerManager {
                 
                 console.log('[PlayerManager] Left click with item:', heldItem);
                 
-                // Check if player is holding shears
-                if (heldItem === 'shears') {
-                    console.log('[PlayerManager] Player is holding shears, performing raycast');
-                    const direction = playerEntity.player.camera.facingDirection;
-                    
-                    // Simple raycast from camera position
-                    const origin = {
-                        x: playerEntity.position.x,
-                        y: playerEntity.position.y + playerEntity.player.camera.offset.y + 0.33,
-                        z: playerEntity.position.z
-                    };
-                    const length = 50;
-                    
-                    const raycastResult = this.world.simulation.raycast(origin, direction, length, {
-                        filterExcludeRigidBody: playerEntity.rawRigidBody
-                    });
-
-                    if (raycastResult?.hitBlock) {
-                        // Calculate distance to hit point
-                        const hitPos = raycastResult.hitBlock.globalCoordinate;
-                        const distance = Math.sqrt(
-                            Math.pow(hitPos.x - origin.x, 2) +
-                            Math.pow(hitPos.y - (origin.y - 0.8), 2) +
-                            Math.pow(hitPos.z - origin.z, 2)
-                        );
-
-                        console.log('[PlayerManager] Distance to block:', distance.toFixed(2), 'units');
-
-                        // Only allow mining if block is within range (less than or equal to 6 units)
-                        if (distance <= 4) {
-                            const blockTypeId = this.world.chunkLattice.getBlockId(raycastResult.hitBlock.globalCoordinate);
-                            console.log('[PlayerManager] Raycast hit block with ID:', blockTypeId);
-                            
-                            // Check if the block is a log (ID 23)
-                            if (blockTypeId === 23) {
-                                console.log('[PlayerManager] Hit a log block! Breaking it...');
-                                // Play chopping animation
-                                playerEntity.startModelOneshotAnimations(['attack']);
-                                
-                                // Break the block (set to air, ID 0)
-                                this.world.chunkLattice.setBlock(raycastResult.hitBlock.globalCoordinate, 0);
-                            }
-                        } else {
-                            console.log('[PlayerManager] Block too far to mine');
-                        }
-                    } else {
-                        console.log('[PlayerManager] Raycast did not hit any block');
-                    }
+                if (heldItem) {
+                    this.toolManager.startMining(playerEntity, heldItem);
                 }
+            } else {
+                // Stop mining when mouse button is released
+                this.toolManager.stopMining(this.player.id);
             }
         });
     }
