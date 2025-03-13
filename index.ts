@@ -10,7 +10,8 @@ startServer(world => {
             world,
             player,
             gameManager.getPlayerInventories(),
-            gameManager.getItemSpawner()
+            gameManager.getItemSpawner(),
+            gameManager
         );
         
         player.ui.sendData(gameManager.getGeneratorCounts());

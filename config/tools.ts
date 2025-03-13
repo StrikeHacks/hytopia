@@ -5,28 +5,24 @@ export const toolConfigs: Map<string, ToolConfig> = new Map([
     ['shears', {
         name: 'Shears',
         canBreak: [23], // Log blocks
-        breakDistance: 4,
         breakAnimation: 'attack',
         miningSpeed: 1.5 // Takes 1.5 seconds to break a log
     }],
     ['stone_axe', {
         name: 'Stone Axe',
         canBreak: [23], // Log blocks
-        breakDistance: 4,
         breakAnimation: 'attack',
         miningSpeed: 2.0 // Takes 2 seconds to break a log
     }],
     ['stone_pickaxe', {
         name: 'Stone Pickaxe',
         canBreak: [1, 2, 3], // Stone, dirt, grass
-        breakDistance: 4,
         breakAnimation: 'attack',
         miningSpeed: 2.5 // Takes 2.5 seconds to break stone
     }],
     ['iron_pickaxe', {
         name: 'Iron Pickaxe',
         canBreak: [1, 2, 3, 4], // Stone, dirt, grass, iron ore
-        breakDistance: 4,
         breakAnimation: 'attack',
         miningSpeed: 1.5 // Takes 1.5 seconds to break stone
     }]
@@ -62,6 +58,6 @@ export const blockConfigs: Map<number, BlockConfig> = new Map([
         id: 23,
         name: 'Log',
         hardness: 1,
-        drops: 'log'
+        drops: 'stick'
     }]
 ]); 

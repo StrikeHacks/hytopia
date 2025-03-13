@@ -7,6 +7,7 @@ export const DEFAULT_DROP_FORCE = { horizontal: 0.4, vertical: 0.1 };
 export const PICKUP_COOLDOWN = 500; // ms
 export const HEAVY_DROP_FORCE = { horizontal: 1, vertical: 0.15 };
 export const HEAVY_COLLIDER_HEIGHT = 0.55;
+export const MID_COLLIDER_HEIGHT = 0.4;
 export const MAX_STACK_SIZE = 64;
 
 // Item properties configuration
@@ -120,6 +121,20 @@ export const itemConfigs = {
             y: HEAVY_COLLIDER_HEIGHT,
             z: 0.2
         }
+    },
+    'stick': {
+        type: 'stick',
+        modelUri: 'models/items/stick.gltf',
+        displayName: 'Stick',
+        category: 'materials',
+        maxStackSize: 64,
+        scale: 0.5,
+        dropForce: DEFAULT_DROP_FORCE,
+        colliderSize: {
+            x: 0.3,
+            y: 0.37,
+            z: 0.3
+        }    
     }
 } as const;
 

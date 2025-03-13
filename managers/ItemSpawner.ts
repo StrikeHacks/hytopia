@@ -1,4 +1,4 @@
-import { World, PlayerEntity } from 'hytopia';
+import { World, PlayerEntity, Entity, RigidBodyType, ColliderShape, CollisionGroup } from 'hytopia';
 import type { PlayerInventory } from '../player/PlayerInventory';
 import { BaseItem } from '../items/BaseItem';
 import { itemConfigs, NON_STACKABLE_TYPES, getItemConfig } from '../config/items';
@@ -100,6 +100,46 @@ export class ItemSpawner {
             this.activeItems.set(itemType, items);
         } catch (e) {
             console.error('[ItemSpawner] Error dropping item:', e);
+        }
+    }
+
+    /**
+     * Handles drops from mining/chopping blocks with a different drop behavior
+     * @param itemType The type of item to drop
+     * @param position The position where the block was broken
+     */
+    public handleBlockDrop(itemType: string, position: { x: number; y: number; z: number }): void {
+        try {
+            // Position at the exact center of the block
+            const blockCenter = {
+                x: Math.floor(position.x) + 0.5,
+                y: Math.floor(position.y) + 0.5,
+                z: Math.floor(position.z) + 0.5
+            };
+            
+            console.log(`[ItemSpawner] Creating block drop for ${itemType} at position:`, blockCenter);
+            
+            // Generate a random direction for the drop
+            const randomAngle = Math.random() * Math.PI * 2;
+            const direction = {
+                x: Math.cos(randomAngle) * 1.5, // Much stronger horizontal component (more than doubled)
+                y: 0.3,                         // Slightly stronger upward component
+                z: Math.sin(randomAngle) * 1.5  // Much stronger horizontal component (more than doubled)
+            };
+            
+            // Create a new BaseItem and use the dropFromBlock method
+            const items = this.activeItems.get(itemType) || [];
+            const droppedItem = new BaseItem(this.world, blockCenter, this.playerInventories, itemType);
+            droppedItem.spawn();
+            droppedItem.dropFromBlock(blockCenter, direction);
+            
+            // Track the item
+            items.push(droppedItem);
+            this.activeItems.set(itemType, items);
+            
+            console.log(`[ItemSpawner] Spawned block drop ${itemType} with direction:`, direction);
+        } catch (error) {
+            console.error('[ItemSpawner] Error spawning block drop:', error);
         }
     }
 

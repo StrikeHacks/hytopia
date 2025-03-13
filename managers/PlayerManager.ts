@@ -3,6 +3,7 @@ import { ItemSpawner } from './ItemSpawner';
 import { PlayerHealth } from '../player/PlayerHealth';
 import { PlayerInventory } from '../player/PlayerInventory';
 import { ToolManager } from './ToolManager';
+import { GameManager } from './GameManager';
 import type { HealthChangeEvent } from '../player/PlayerHealth';
 
 export class PlayerManager {
@@ -12,15 +13,22 @@ export class PlayerManager {
     private toolManager!: ToolManager;
     private isEPressed: boolean = false;
     private isQPressed: boolean = false;
+    private isMining: boolean = false;
+    private isLeftMousePressed: boolean = false;
+    private leftMouseHoldStartTime: number = 0;
+    private leftMouseHoldDuration: number = 0;
+    private readonly LEFT_MOUSE_LOG_INTERVAL: number = 500; // Log elke 500ms
+    private lastLeftMouseLogTime: number = 0;
 
     constructor(
         private world: World,
         private player: any,
         private playerInventories: Map<string, PlayerInventory>,
-        private itemSpawner: ItemSpawner
+        private itemSpawner: ItemSpawner,
+        private gameManager: GameManager
     ) {
         this.playerEntity = this.createPlayerEntity();
-        this.toolManager = new ToolManager(world);
+        this.toolManager = gameManager.getToolManager();
         this.setupHealth();
         this.setupInventory();
         this.setupUI();
@@ -30,12 +38,20 @@ export class PlayerManager {
     }
 
     private createPlayerEntity(): PlayerEntity {
-        return new PlayerEntity({
+        const entity = new PlayerEntity({
             player: this.player,
             modelUri: 'models/players/player.gltf',
             modelLoopedAnimations: ['idle'],
             modelScale: 0.5,
         });
+        
+        // Voorkom automatische annulering van muisklikken
+        if (entity.controller) {
+            // Cast naar any omdat deze property niet in de type definities zit
+            (entity.controller as any).autoCancelMouseLeftClick = false;
+        }
+        
+        return entity;
     }
 
     private setupHealth(): void {
@@ -134,21 +150,85 @@ export class PlayerManager {
                 this.isEPressed = false;
             }
 
-            // Handle log breaking with shears
-            if (input['ml']) { // Left mouse button clicked
-                const selectedSlot = this.playerInventory.getSelectedSlot();
-                const heldItem = this.playerInventory.getItem(selectedSlot);
+            // Handle left mouse button (ml) press and hold
+            const isLeftMousePressed = input['ml'];
+            const now = Date.now();
+            
+            // Track mouse button state changes
+            if (isLeftMousePressed && !this.isLeftMousePressed) {
+                // Mouse button just pressed down
+                this.isLeftMousePressed = true;
+                this.leftMouseHoldStartTime = now;
+                console.log('Ingedrukt');
+            } else if (!isLeftMousePressed && this.isLeftMousePressed) {
+                // Mouse button just released
+                this.isLeftMousePressed = false;
+                console.log('Losgelaten');
                 
-                console.log('[PlayerManager] Left click with item:', heldItem);
+                // Stop mining when mouse is released
+                this.stopMining(playerEntity);
+            }
+            
+            // Update hold duration
+            if (this.isLeftMousePressed) {
+                this.leftMouseHoldDuration = now - this.leftMouseHoldStartTime;
                 
-                if (heldItem) {
-                    this.toolManager.startMining(playerEntity, heldItem);
-                }
-            } else {
-                // Stop mining when mouse button is released
-                this.toolManager.stopMining(this.player.id);
+                // Continuously check for blocks to mine while holding the button
+                this.checkForBlockToMine(playerEntity);
             }
         });
+    }
+    
+    private checkForBlockToMine(playerEntity: PlayerEntity): void {
+        const selectedSlot = this.playerInventory.getSelectedSlot();
+        const heldItem = this.playerInventory.getItem(selectedSlot);
+        
+        if (!heldItem) {
+            if (this.isMining) {
+                this.stopMining(playerEntity);
+            }
+            return;
+        }
+        
+        const direction = playerEntity.player.camera.facingDirection;
+        const origin = {
+            x: playerEntity.position.x,
+            y: playerEntity.position.y + playerEntity.player.camera.offset.y + 0.33,
+            z: playerEntity.position.z
+        };
+
+        const raycastResult = this.world.simulation.raycast(origin, direction, 50, {
+            filterExcludeRigidBody: playerEntity.rawRigidBody
+        });
+
+        if (raycastResult?.hitBlock) {
+            // If we're looking at a block, try to mine it
+            this.isMining = true; // Set mining state to true when we start mining
+            this.toolManager.startMining(playerEntity, heldItem);
+        } else if (this.isMining) {
+            // If we're no longer looking at a block but were mining, stop mining
+            this.stopMining(playerEntity);
+        }
+    }
+    
+    private startMining(playerEntity: PlayerEntity): void {
+        // This method is no longer needed as mining is handled in checkForBlockToMine
+        // Keeping it for backward compatibility
+        this.checkForBlockToMine(playerEntity);
+    }
+    
+    private stopMining(playerEntity: PlayerEntity): void {
+        if (this.isMining) {
+            this.isMining = false;
+            this.toolManager.stopMining(String(playerEntity.player.id));
+            
+            // Clear mining progress in UI
+            playerEntity.player.ui.sendData({
+                miningProgress: {
+                    progress: 0
+                }
+            });
+        }
     }
 
     private setupCamera(): void {
