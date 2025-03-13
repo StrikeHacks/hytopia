@@ -141,31 +141,47 @@ export class PlayerManager {
                 // Check if player is holding shears
                 if (heldItem === 'shears') {
                     console.log('[PlayerManager] Player is holding shears, performing raycast');
-                    // Calculate camera position by adding offset to player position
+                    const direction = playerEntity.player.camera.facingDirection;
+                    
+                    // Simple raycast from camera position
                     const origin = {
                         x: playerEntity.position.x,
-                        y: playerEntity.position.y + 0.8, // Camera offset height
+                        y: playerEntity.position.y + playerEntity.player.camera.offset.y + 0.33,
                         z: playerEntity.position.z
                     };
-                    const direction = playerEntity.player.camera.facingDirection;
-                    const length = 3; // Maximum reach distance
+                    const length = 50;
                     
                     const raycastResult = this.world.simulation.raycast(origin, direction, length, {
                         filterExcludeRigidBody: playerEntity.rawRigidBody
                     });
 
                     if (raycastResult?.hitBlock) {
-                        const blockTypeId = this.world.chunkLattice.getBlockId(raycastResult.hitBlock.globalCoordinate);
-                        console.log('[PlayerManager] Raycast hit block with ID:', blockTypeId);
-                        
-                        // Check if the block is a log (ID 23)
-                        if (blockTypeId === 23) {
-                            console.log('[PlayerManager] Hit a log block! Breaking it...');
-                            // Play chopping animation
-                            playerEntity.startModelOneshotAnimations(['attack']);
+                        // Calculate distance to hit point
+                        const hitPos = raycastResult.hitBlock.globalCoordinate;
+                        const distance = Math.sqrt(
+                            Math.pow(hitPos.x - origin.x, 2) +
+                            Math.pow(hitPos.y - (origin.y - 0.8), 2) +
+                            Math.pow(hitPos.z - origin.z, 2)
+                        );
+
+                        console.log('[PlayerManager] Distance to block:', distance.toFixed(2), 'units');
+
+                        // Only allow mining if block is within range (less than or equal to 6 units)
+                        if (distance <= 4) {
+                            const blockTypeId = this.world.chunkLattice.getBlockId(raycastResult.hitBlock.globalCoordinate);
+                            console.log('[PlayerManager] Raycast hit block with ID:', blockTypeId);
                             
-                            // Break the block (set to air, ID 0)
-                            this.world.chunkLattice.setBlock(raycastResult.hitBlock.globalCoordinate, 0);
+                            // Check if the block is a log (ID 23)
+                            if (blockTypeId === 23) {
+                                console.log('[PlayerManager] Hit a log block! Breaking it...');
+                                // Play chopping animation
+                                playerEntity.startModelOneshotAnimations(['attack']);
+                                
+                                // Break the block (set to air, ID 0)
+                                this.world.chunkLattice.setBlock(raycastResult.hitBlock.globalCoordinate, 0);
+                            }
+                        } else {
+                            console.log('[PlayerManager] Block too far to mine');
                         }
                     } else {
                         console.log('[PlayerManager] Raycast did not hit any block');
@@ -177,7 +193,7 @@ export class PlayerManager {
 
     private setupCamera(): void {
         this.player.camera.setMode(PlayerCameraMode.FIRST_PERSON);
-        this.player.camera.setOffset({ x: 0, y: 0.8, z: 0 });
+        this.player.camera.setOffset({ x: 0, y: 0.5, z: 0 });
         this.player.camera.setModelHiddenNodes(['head', 'neck']);
         this.player.camera.setForwardOffset(0.3);
     }
