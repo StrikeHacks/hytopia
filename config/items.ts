@@ -135,6 +135,35 @@ export const itemConfigs = {
             y: 0.37,
             z: 0.3
         }    
+    },
+    'iron-ingot': {
+        type: 'iron-ingot',
+        modelUri: 'models/items/iron-ingot.gltf',
+        displayName: 'Iron Ingot',
+        category: 'materials',
+        maxStackSize: 64,
+        scale: 0.5,
+        dropForce: DEFAULT_DROP_FORCE,
+        colliderSize: {
+            x: 0.3,
+            y: 0.37,
+            z: 0.3
+        },
+        imageUrl: 'https://static.vecteezy.com/system/resources/thumbnails/019/527/051/small_2x/an-8-bit-retro-styled-pixel-art-illustration-of-an-iron-bar-ingot-free-png.png'
+    },
+    'cookie': {
+        type: 'cookie',
+        modelUri: 'models/items/cookie.gltf',
+        displayName: 'Stone Pickaxe',
+        category: 'tools',
+        maxStackSize: 1,
+        scale: 0.5,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.2,
+            y: HEAVY_COLLIDER_HEIGHT,
+            z: 0.2
+        }
     }
 } as const;
 

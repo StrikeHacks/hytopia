@@ -40,6 +40,14 @@ export class ToolManager {
         private itemSpawner: ItemSpawner
     ) {
         this.playerInventories = playerInventories;
+        this.logToolConfigs();
+    }
+
+    private logToolConfigs(): void {
+        console.log('[ToolManager] Loaded tool configurations:');
+        this.toolConfigs.forEach((config, id) => {
+            console.log(`[ToolManager] Tool ID: ${id}, Name: ${config.name}, Can break: ${config.canBreak.join(', ')}`);
+        });
     }
 
     public registerTool(toolId: string, config: ToolConfig) {
@@ -51,9 +59,15 @@ export class ToolManager {
     }
 
     public canBreakBlock(toolId: string, blockId: number): boolean {
+        console.log(`[ToolManager] Checking if tool ${toolId} can break block ${blockId}`);
         const toolConfig = this.toolConfigs.get(toolId);
-        if (!toolConfig) return false;
-        return toolConfig.canBreak.includes(blockId);
+        if (!toolConfig) {
+            console.log(`[ToolManager] No tool config found for ${toolId}`);
+            return false;
+        }
+        const canBreak = toolConfig.canBreak.includes(blockId);
+        console.log(`[ToolManager] Tool ${toolId} ${canBreak ? 'can' : 'cannot'} break block ${blockId}`);
+        return canBreak;
     }
 
     public getBreakDistance(toolId: string): number {
@@ -68,7 +82,15 @@ export class ToolManager {
     public startMining(playerEntity: PlayerEntity, toolId: string): void {
         const playerId = String(playerEntity.player.id);
         const toolConfig = this.toolConfigs.get(toolId);
-        if (!toolConfig) return;
+        if (!toolConfig) {
+            console.log(`[ToolManager] No tool config found for ${toolId}`);
+            playerEntity.player.ui.sendData({
+                showItemName: {
+                    name: `Error: No tool config for ${toolId}`
+                }
+            });
+            return;
+        }
 
         const direction = playerEntity.player.camera.facingDirection;
         const origin = {
@@ -92,6 +114,15 @@ export class ToolManager {
             const breakDistance = 4; // Fixed break distance of 4
             if (distance <= breakDistance) {
                 const blockTypeId = this.world.chunkLattice.getBlockId(raycastResult.hitBlock.globalCoordinate);
+                console.log(`[ToolManager] Block at position ${JSON.stringify(raycastResult.hitBlock.globalCoordinate)} has ID ${blockTypeId}`);
+                
+                // Log block config if available
+                const blockConfig = this.blockConfigs.get(blockTypeId);
+                if (blockConfig) {
+                    console.log(`[ToolManager] Block config found: ${blockConfig.name} (ID: ${blockConfig.id})`);
+                } else {
+                    console.log(`[ToolManager] No block config found for ID ${blockTypeId}`);
+                }
                 
                 if (this.canBreakBlock(toolId, blockTypeId)) {
                     // Check if we're already mining this exact block
@@ -113,6 +144,7 @@ export class ToolManager {
                     
                     // Play mining animation if configured
                     if (toolConfig.breakAnimation) {
+                        // Speel de animatie één keer af bij het begin van het minen van een nieuw blok
                         playerEntity.startModelOneshotAnimations([toolConfig.breakAnimation]);
                     }
 
@@ -206,9 +238,17 @@ export class ToolManager {
         progress.progress += (timeDiff / (miningSpeed * blockHardness)) * 100;
         progress.lastUpdateTime = now;
 
-        // Play mining animation periodically
-        if (toolConfig.breakAnimation && progress.progress % 20 < 5) {
-            playerEntity.startModelOneshotAnimations([toolConfig.breakAnimation]);
+        // Play mining animation periodiek, maar veel minder frequent
+        // Alleen afspelen bij het begin (al gedaan) en halverwege (50%)
+        const previousProgress = progress.progress - ((timeDiff / (miningSpeed * blockHardness)) * 100);
+        if (toolConfig.breakAnimation) {
+            // Check of we de 50% mijlpaal hebben gepasseerd
+            const passedMilestone = (previousProgress < 50 && progress.progress >= 50);
+                
+            if (passedMilestone) {
+                // Speel de animatie af
+                playerEntity.startModelOneshotAnimations([toolConfig.breakAnimation]);
+            }
         }
 
         // Send progress to UI
@@ -297,6 +337,7 @@ export class ToolManager {
                         
                         // Play mining animation if configured
                         if (toolConfig.breakAnimation) {
+                            // Speel de animatie één keer af bij het begin van het minen van een nieuw blok
                             playerEntity.startModelOneshotAnimations([toolConfig.breakAnimation]);
                         }
                         

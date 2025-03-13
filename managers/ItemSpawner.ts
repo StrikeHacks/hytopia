@@ -25,7 +25,7 @@ const INITIAL_ITEMS = [
     { type: 'fishing-rod', position: { x: 20, y: 3.7, z: 2 } },
     { type: 'fishing-rod', position: { x: 20, y: 3.7, z: 1 } },
     { type: 'shears', position: { x: 4, y: 3.7, z: 2 } },
-   
+    { type: 'cookie', position: { x: 2, y: 3.7, z: 2 } },
 ];
 
 export class ItemSpawner {

@@ -183,6 +183,8 @@ export class PlayerManager {
         const selectedSlot = this.playerInventory.getSelectedSlot();
         const heldItem = this.playerInventory.getItem(selectedSlot);
         
+        console.log(`[PlayerManager] Checking for block to mine with item: ${heldItem}`);
+        
         if (!heldItem) {
             if (this.isMining) {
                 this.stopMining(playerEntity);
