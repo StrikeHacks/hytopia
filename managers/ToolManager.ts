@@ -30,7 +30,7 @@ export class ToolManager {
     private toolConfigs: Map<string, ToolConfig> = toolConfigs;
     private blockConfigs: Map<number, BlockConfig> = blockConfigs;
     private miningProgress: Map<string, MiningProgress> = new Map(); // playerId -> progress
-    private readonly MINING_INTERVAL = 200; // Update mining every 200ms (was 50ms)
+    private readonly MINING_INTERVAL = 200; // Update mining every 200ms
     private playerInventories: Map<string, PlayerInventory>;
 
     constructor(
@@ -39,14 +39,6 @@ export class ToolManager {
         private itemSpawner: ItemSpawner
     ) {
         this.playerInventories = playerInventories;
-        this.logToolConfigs();
-    }
-
-    private logToolConfigs(): void {
-        console.log('[ToolManager] Loaded tool configurations:');
-        this.toolConfigs.forEach((config, id) => {
-            console.log(`[ToolManager] Tool ID: ${id}, Name: ${config.name}, Can break: ${config.canBreak.join(', ')}`);
-        });
     }
 
     public registerTool(toolId: string, config: ToolConfig) {
@@ -58,14 +50,11 @@ export class ToolManager {
     }
 
     public canBreakBlock(toolId: string, blockId: number): boolean {
-        console.log(`[ToolManager] Checking if tool ${toolId} can break block ${blockId}`);
         const toolConfig = this.toolConfigs.get(toolId);
         if (!toolConfig) {
             return false;
         }
-        const canBreak = toolConfig.canBreak.includes(blockId);
-        console.log(`[ToolManager] Tool ${toolId} ${canBreak ? 'can' : 'cannot'} break block ${blockId}`);
-        return canBreak;
+        return toolConfig.canBreak.includes(blockId);
     }
 
     public getBreakDistance(toolId: string): number {
@@ -76,7 +65,6 @@ export class ToolManager {
         const playerId = String(playerEntity.player.id);
         const toolConfig = this.toolConfigs.get(toolId);
         if (!toolConfig) {
-            console.log(`[ToolManager] No tool config found for ${toolId}`);
             playerEntity.player.ui.sendData({
                 showItemName: {
                     name: `Error: No tool config for ${toolId}`
@@ -107,22 +95,11 @@ export class ToolManager {
             const breakDistance = 4; // Fixed break distance of 4
             if (distance <= breakDistance) {
                 const blockTypeId = this.world.chunkLattice.getBlockId(raycastResult.hitBlock.globalCoordinate);
-                console.log(`[ToolManager] Block at position ${JSON.stringify(raycastResult.hitBlock.globalCoordinate)} has ID ${blockTypeId}`);
-                
-                // Log block config if available
-                const blockConfig = this.blockConfigs.get(blockTypeId);
-                if (blockConfig) {
-                    console.log(`[ToolManager] Block config found: ${blockConfig.name} (ID: ${blockConfig.id})`);
-                } else {
-                    console.log(`[ToolManager] No block config found for ID ${blockTypeId}`);
-                }
                 
                 if (this.canBreakBlock(toolId, blockTypeId)) {
                     // Start continuous mining on this block
                     const blockConfig = this.blockConfigs.get(blockTypeId);
                     if (blockConfig) {
-                        console.log(`[ToolManager] Started mining ${blockConfig.name} with ${toolId}`);
-                        
                         // Initialize mining progress
                         const now = Date.now();
                         this.miningProgress.set(playerId, {
@@ -147,18 +124,12 @@ export class ToolManager {
                 }
             }
         }
-        
-        // If we get here, we didn't find a valid block to mine
-        console.log(`[ToolManager] No valid block found to mine`);
     }
 
     private handleBlockDrop(blockConfig: BlockConfig, blockPos: any): void {
         if (!blockConfig.drops) {
-            console.log(`[ToolManager] Block ${blockConfig.name} has no drops configured`);
             return;
         }
-        
-        console.log(`[ToolManager] Block ${blockConfig.name} dropped ${blockConfig.drops}`);
         
         // Create drop position at the center of where the block was
         const dropPosition = {
@@ -171,15 +142,13 @@ export class ToolManager {
             // Use the ItemSpawner to handle the block drop
             this.itemSpawner.handleBlockDrop(blockConfig.drops as string, dropPosition);
         } catch (error) {
-            console.error('[ToolManager] Error spawning dropped item:', error, 'Block config:', blockConfig);
+            console.error('[ToolManager] Error spawning dropped item:', error);
         }
     }
 
     public stopMining(playerId: string): void {
         const progress = this.miningProgress.get(playerId);
         if (progress) {
-            console.log(`[ToolManager] Stopped mining at ${progress.progress.toFixed(1)}% progress`);
-            
             // Simply remove the mining progress - the UI will be updated by the PlayerManager
             this.miningProgress.delete(playerId);
         }
@@ -204,8 +173,6 @@ export class ToolManager {
             const isStillLookingAtBlock = this.isPlayerLookingAtBlock(playerEntity, progress.blockPos);
             if (!isStillLookingAtBlock) {
                 // Player is no longer looking at the block
-                // We don't need to find the next block here - the PlayerManager will handle this
-                console.log(`[ToolManager] Player stopped looking at block, stopping current mining`);
                 this.stopMining(playerId);
                 return;
             }
@@ -227,19 +194,8 @@ export class ToolManager {
             }
         });
 
-        // Log progress at certain thresholds
-        if (progress.progress >= 25 && progress.progress < 26) {
-            console.log(`[ToolManager] Mining ${blockConfig.name}: 25% complete`);
-        } else if (progress.progress >= 50 && progress.progress < 51) {
-            console.log(`[ToolManager] Mining ${blockConfig.name}: 50% complete`);
-        } else if (progress.progress >= 75 && progress.progress < 76) {
-            console.log(`[ToolManager] Mining ${blockConfig.name}: 75% complete`);
-        }
-
         // Check if block is fully mined
         if (progress.progress >= 100) {
-            console.log(`[ToolManager] Mining ${blockConfig.name}: 100% complete - Block broken!`);
-            
             // Break the block
             this.world.chunkLattice.setBlock(progress.blockPos, 0);
 
@@ -257,9 +213,6 @@ export class ToolManager {
                     progress: 0
                 }
             });
-            
-            // We don't need to find the next block here - the PlayerManager will handle this
-            // on the next tick since it's continuously checking what block the player is looking at
         } else {
             // Schedule next mining update
             setTimeout(() => {
@@ -301,8 +254,6 @@ export class ToolManager {
                     // Found a new block to mine - start mining it
                     const blockConfig = this.blockConfigs.get(blockTypeId);
                     if (blockConfig) {
-                        console.log(`[ToolManager] Found next block to mine: ${blockConfig.name}`);
-                        
                         // Initialize mining progress for the new block
                         const playerId = String(playerEntity.player.id);
                         const now = Date.now();
@@ -325,10 +276,7 @@ export class ToolManager {
                         this.startContinuousMining(playerEntity, toolId);
                     }
                 } else {
-                    // Can't break this block with this tool
-                    console.log(`[ToolManager] Cannot break block ${blockTypeId} with tool ${toolId}`);
-                    
-                    // Set isMining to false in PlayerManager
+                    // Can't break this block with this tool - reset UI
                     const playerId = String(playerEntity.player.id);
                     playerEntity.player.ui.sendData({
                         miningProgress: {
@@ -336,13 +284,7 @@ export class ToolManager {
                         }
                     });
                 }
-            } else {
-                // Block is too far away
-                console.log(`[ToolManager] Block is too far away (${distance.toFixed(1)} > ${breakDistance})`);
             }
-        } else {
-            // No block hit by raycast
-            console.log(`[ToolManager] No block in sight to mine`);
         }
     }
 

@@ -14,8 +14,6 @@ export class EquipmentManager {
         const world = this.playerEntity.world;
         if (!world) return;
 
-        console.log('[EquipmentManager] Equipping item:', itemType);
-
         // Get the item configuration to access its hand offset
         const itemConfig = getItemConfig(itemType);
         
@@ -33,7 +31,6 @@ export class EquipmentManager {
 
         // Use the item-specific hand offset or the default if not specified
         const positionOffset = itemConfig.handOffset || DEFAULT_HAND_OFFSET;
-        console.log(`[EquipmentManager] Using hand offset for ${itemType}:`, positionOffset);
         
         this.equippedEntity.spawn(
             world,

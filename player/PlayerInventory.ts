@@ -18,7 +18,6 @@ export class PlayerInventory {
         private playerEntity: PlayerEntity
     ) {
         this.equipmentManager = new EquipmentManager(playerEntity);
-        console.log('[PlayerInventory] Initialized');
 
         // Listen for getItemName requests with debounce
         let nameRequestTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -54,17 +53,14 @@ export class PlayerInventory {
         // Unequip current item if any
         const currentItem = this.slots[this.selectedSlot];
         if (currentItem.type) {
-            console.log(`[PlayerInventory] Unequipping ${currentItem.type}`);
             this.equipmentManager.unequipItem();
         }
 
         this.selectedSlot = slot;
-        console.log(`[PlayerInventory] Selected slot ${slot}`);
 
         // Equip new item if any
         const newItem = this.slots[slot];
         if (newItem.type) {
-            console.log(`[PlayerInventory] Equipping ${newItem.type}`);
             this.equipmentManager.equipItem(newItem.type);
             
             // Send display name for the new item
@@ -114,8 +110,6 @@ export class PlayerInventory {
 
     public setItem(slot: number, item: string | null, count: number = 1): void {
         if (slot < 0 || slot >= this.slots.length) return;
-
-        console.log(`[PlayerInventory] Setting slot ${slot} to ${item} (count: ${count})`);
         
         const oldItem = this.slots[slot].type;
         this.slots[slot] = { type: item, count };

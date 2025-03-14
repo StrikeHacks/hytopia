@@ -35,6 +35,7 @@ export class PlayerManager {
     }
 
     private createPlayerEntity(): PlayerEntity {
+        // Create the player entity with only idle animation
         const entity = new PlayerEntity({
             player: this.player,
             modelUri: 'models/players/player.gltf',
@@ -42,10 +43,13 @@ export class PlayerManager {
             modelScale: 0.5,
         });
         
-        // Voorkom automatische annulering van muisklikken
+        // Disable automatic animations
         if (entity.controller) {
-            // Cast naar any omdat deze property niet in de type definities zit
+            // Disable automatic mouse click cancellation
             (entity.controller as any).autoCancelMouseLeftClick = false;
+            
+            // Disable automatic animation on left mouse click
+            (entity.controller as any).autoAnimateMouseLeftClick = false;
         }
         
         return entity;
@@ -66,22 +70,13 @@ export class PlayerManager {
 
     private onHealthChange(event: HealthChangeEvent): void {
         // Handle health change events
-        if (event.type === 'damage') {
-            console.log(`Player took ${-event.change} damage`);
-            if (this.playerHealth.getIsDead()) {
-                this.handlePlayerDeath();
-            }
-        } else if (event.type === 'heal') {
-            console.log(`Player healed for ${event.change}`);
+        if (event.type === 'damage' && this.playerHealth.getIsDead()) {
+            this.handlePlayerDeath();
         }
     }
 
     private handlePlayerDeath(): void {
-        console.log('Player died!');
-        // Add death handling logic here
-        // For example: respawn timer, death animation, etc.
-        
-        // Auto-revive after 3 seconds for now
+        // Auto-revive after 3 seconds
         setTimeout(() => {
             if (this.playerHealth.getIsDead()) {
                 this.playerHealth.revive();
@@ -126,7 +121,6 @@ export class PlayerManager {
                 if (input[i.toString()]) {
                     const slotIndex = i - 1;
                     if (this.playerInventory.getSelectedSlot() !== slotIndex) {
-                        console.log(`[PlayerManager] Number ${i} pressed - selecting hotbar slot ${slotIndex}`);
                         this.playerInventory.selectSlot(slotIndex);
                     }
                 }
@@ -135,7 +129,6 @@ export class PlayerManager {
             // Handle item dropping (Q) - only trigger on key down
             if (input['q'] && !this.isQPressed) {
                 const isShiftHeld = input['sh'];
-                console.log('[PlayerManager] Q key pressed - dropping item. Shift held:', isShiftHeld);
                 this.isQPressed = true;
                 this.itemSpawner.handleItemDrop(playerEntity, isShiftHeld);
             } else if (!input['q']) {
@@ -144,7 +137,6 @@ export class PlayerManager {
 
             // Handle inventory toggle (E) - only trigger on key down
             if (input['e'] && !this.isEPressed) {
-                console.log('[PlayerManager] E key pressed - toggling inventory');
                 this.isEPressed = true;
                 this.playerInventory.handleInventoryToggle();
             } else if (!input['e']) {
@@ -161,7 +153,6 @@ export class PlayerManager {
                 if (!this.isLeftMousePressed) {
                     // Just pressed down - start mining immediately
                     this.isLeftMousePressed = true;
-                    console.log('[PlayerManager] Mouse button pressed - starting mining');
                     this.tryMineCurrentBlock(playerEntity);
                     lastMiningCheckTime = now;
                 } else {
@@ -174,9 +165,6 @@ export class PlayerManager {
             } else if (!isLeftMousePressed && this.isLeftMousePressed) {
                 // Mouse button just released
                 this.isLeftMousePressed = false;
-                console.log('[PlayerManager] Mouse button released - stopping mining');
-                
-                // Stop mining when mouse is released
                 this.stopMining(playerEntity);
             }
         });
@@ -217,7 +205,6 @@ export class PlayerManager {
                     
                     if (!isSameBlock) {
                         // Looking at a different block - switch targets
-                        console.log('[PlayerManager] Looking at a new block while mining - switching targets');
                         this.stopMining(playerEntity);
                         this.startMiningOnce(playerEntity, heldItem);
                     }
@@ -239,11 +226,33 @@ export class PlayerManager {
     }
     
     private startMiningOnce(playerEntity: PlayerEntity, heldItem: string): void {
-        console.log(`[PlayerManager] Starting mining with item: ${heldItem}`);
-        
         // Start mining if we're looking at a block
         this.isMining = true;
+        
+        // Disable all animations during mining
+        this.disableMiningAnimations(playerEntity);
+        
         this.toolManager.startMining(playerEntity, heldItem);
+    }
+    
+    private disableMiningAnimations(playerEntity: PlayerEntity): void {
+        // Override the animation methods temporarily
+        const originalStartModelOneshotAnimations = playerEntity.startModelOneshotAnimations;
+        playerEntity.startModelOneshotAnimations = function(animations: string[]) {
+            // Block all animations during mining
+            return [];
+        };
+        
+        // Store the original method so we can restore it later
+        (playerEntity as any)._originalStartModelOneshotAnimations = originalStartModelOneshotAnimations;
+    }
+    
+    private restoreMiningAnimations(playerEntity: PlayerEntity): void {
+        // Restore the original animation method
+        if ((playerEntity as any)._originalStartModelOneshotAnimations) {
+            playerEntity.startModelOneshotAnimations = (playerEntity as any)._originalStartModelOneshotAnimations;
+            delete (playerEntity as any)._originalStartModelOneshotAnimations;
+        }
     }
     
     private getCurrentMiningBlockPos(playerEntity: PlayerEntity): any {
@@ -251,7 +260,6 @@ export class PlayerManager {
         const playerId = String(playerEntity.player.id);
         
         // Access the miningProgress map in the ToolManager
-        // Note: This is a bit of a hack, but it's the simplest way to get the current block position
         // @ts-ignore - Accessing private property
         const miningProgressMap = this.toolManager['miningProgress'];
         
@@ -280,14 +288,15 @@ export class PlayerManager {
             this.isMining = false;
             this.toolManager.stopMining(String(playerEntity.player.id));
             
+            // Restore animation methods
+            this.restoreMiningAnimations(playerEntity);
+            
             // Clear mining progress in UI
             playerEntity.player.ui.sendData({
                 miningProgress: {
                     progress: 0
                 }
             });
-            
-            console.log('[PlayerManager] Mining stopped');
         }
     }
 
