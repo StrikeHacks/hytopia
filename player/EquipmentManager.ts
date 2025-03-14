@@ -1,4 +1,5 @@
 import { PlayerEntity, Entity, RigidBodyType } from 'hytopia';
+import { getItemConfig, DEFAULT_HAND_OFFSET } from '../config/items';
 
 export class EquipmentManager {
     private currentItem: string | null = null;
@@ -15,6 +16,9 @@ export class EquipmentManager {
 
         console.log('[EquipmentManager] Equipping item:', itemType);
 
+        // Get the item configuration to access its hand offset
+        const itemConfig = getItemConfig(itemType);
+        
         // Create the equipped item
         this.equippedEntity = new Entity({
             name: itemType,
@@ -27,10 +31,13 @@ export class EquipmentManager {
             }
         });
 
-        // Spawn the item in the player's hand
+        // Use the item-specific hand offset or the default if not specified
+        const positionOffset = itemConfig.handOffset || DEFAULT_HAND_OFFSET;
+        console.log(`[EquipmentManager] Using hand offset for ${itemType}:`, positionOffset);
+        
         this.equippedEntity.spawn(
             world,
-            { x: 0, y: 0.3, z: 0.5 },
+            positionOffset, // Apply the item-specific position offset
             { x: -Math.PI / 3, y: 0, z: 0, w: 1 }
         );
         this.currentItem = itemType;

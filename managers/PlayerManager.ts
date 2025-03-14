@@ -16,9 +16,6 @@ export class PlayerManager {
     private isMining: boolean = false;
     private isLeftMousePressed: boolean = false;
     private leftMouseHoldStartTime: number = 0;
-    private leftMouseHoldDuration: number = 0;
-    private readonly LEFT_MOUSE_LOG_INTERVAL: number = 500; // Log elke 500ms
-    private lastLeftMouseLogTime: number = 0;
 
     constructor(
         private world: World,
@@ -119,6 +116,10 @@ export class PlayerManager {
         // Enable debug raycasting for development
         this.world.simulation.enableDebugRaycasting(true);
 
+        // Throttle variables for mining checks
+        let lastMiningCheckTime = 0;
+        const MINING_CHECK_THROTTLE = 250; // Only check for new blocks every 250ms
+
         playerEntity.controller?.on('tickWithPlayerInput', ({ input }) => {
             // Handle hotbar selection (1-5)
             for (let i = 1; i <= 5; i++) {
@@ -155,40 +156,37 @@ export class PlayerManager {
             const now = Date.now();
             
             // Track mouse button state changes
-            if (isLeftMousePressed && !this.isLeftMousePressed) {
-                // Mouse button just pressed down
-                this.isLeftMousePressed = true;
-                this.leftMouseHoldStartTime = now;
-                console.log('Ingedrukt');
+            if (isLeftMousePressed) {
+                // Mouse button is pressed
+                if (!this.isLeftMousePressed) {
+                    // Just pressed down - start mining immediately
+                    this.isLeftMousePressed = true;
+                    console.log('[PlayerManager] Mouse button pressed - starting mining');
+                    this.tryMineCurrentBlock(playerEntity);
+                    lastMiningCheckTime = now;
+                } else {
+                    // Mouse is still being held down - check for new blocks periodically
+                    if (now - lastMiningCheckTime >= MINING_CHECK_THROTTLE) {
+                        this.tryMineCurrentBlock(playerEntity);
+                        lastMiningCheckTime = now;
+                    }
+                }
             } else if (!isLeftMousePressed && this.isLeftMousePressed) {
                 // Mouse button just released
                 this.isLeftMousePressed = false;
-                console.log('Losgelaten');
+                console.log('[PlayerManager] Mouse button released - stopping mining');
                 
                 // Stop mining when mouse is released
                 this.stopMining(playerEntity);
             }
-            
-            // Update hold duration
-            if (this.isLeftMousePressed) {
-                this.leftMouseHoldDuration = now - this.leftMouseHoldStartTime;
-                
-                // Continuously check for blocks to mine while holding the button
-                this.checkForBlockToMine(playerEntity);
-            }
         });
     }
     
-    private checkForBlockToMine(playerEntity: PlayerEntity): void {
+    private tryMineCurrentBlock(playerEntity: PlayerEntity): void {
         const selectedSlot = this.playerInventory.getSelectedSlot();
         const heldItem = this.playerInventory.getItem(selectedSlot);
         
-        console.log(`[PlayerManager] Checking for block to mine with item: ${heldItem}`);
-        
         if (!heldItem) {
-            if (this.isMining) {
-                this.stopMining(playerEntity);
-            }
             return;
         }
         
@@ -204,19 +202,77 @@ export class PlayerManager {
         });
 
         if (raycastResult?.hitBlock) {
-            // If we're looking at a block, try to mine it
-            this.isMining = true; // Set mining state to true when we start mining
-            this.toolManager.startMining(playerEntity, heldItem);
-        } else if (this.isMining) {
-            // If we're no longer looking at a block but were mining, stop mining
-            this.stopMining(playerEntity);
+            const hitPos = raycastResult.hitBlock.globalCoordinate;
+            
+            // Check if we're already mining this block
+            if (this.isMining) {
+                const currentBlockPos = this.getCurrentMiningBlockPos(playerEntity);
+                
+                if (currentBlockPos) {
+                    // Check if we're looking at a different block
+                    const isSameBlock = 
+                        Math.floor(hitPos.x) === Math.floor(currentBlockPos.x) &&
+                        Math.floor(hitPos.y) === Math.floor(currentBlockPos.y) &&
+                        Math.floor(hitPos.z) === Math.floor(currentBlockPos.z);
+                    
+                    if (!isSameBlock) {
+                        // Looking at a different block - switch targets
+                        console.log('[PlayerManager] Looking at a new block while mining - switching targets');
+                        this.stopMining(playerEntity);
+                        this.startMiningOnce(playerEntity, heldItem);
+                    }
+                    // If same block, continue mining (handled by ToolManager)
+                } else {
+                    // No current mining progress, start mining this block
+                    this.startMiningOnce(playerEntity, heldItem);
+                }
+            } else {
+                // Not currently mining, start mining this block
+                this.startMiningOnce(playerEntity, heldItem);
+            }
+        } else {
+            // No block to mine, stop current mining if any
+            if (this.isMining) {
+                this.stopMining(playerEntity);
+            }
         }
     }
     
+    private startMiningOnce(playerEntity: PlayerEntity, heldItem: string): void {
+        console.log(`[PlayerManager] Starting mining with item: ${heldItem}`);
+        
+        // Start mining if we're looking at a block
+        this.isMining = true;
+        this.toolManager.startMining(playerEntity, heldItem);
+    }
+    
+    private getCurrentMiningBlockPos(playerEntity: PlayerEntity): any {
+        // This is a helper method to get the current block position being mined
+        const playerId = String(playerEntity.player.id);
+        
+        // Access the miningProgress map in the ToolManager
+        // Note: This is a bit of a hack, but it's the simplest way to get the current block position
+        // @ts-ignore - Accessing private property
+        const miningProgressMap = this.toolManager['miningProgress'];
+        
+        if (miningProgressMap && miningProgressMap instanceof Map) {
+            const progress = miningProgressMap.get(playerId);
+            if (progress) {
+                return progress.blockPos;
+            }
+        }
+        
+        return null;
+    }
+    
     private startMining(playerEntity: PlayerEntity): void {
-        // This method is no longer needed as mining is handled in checkForBlockToMine
-        // Keeping it for backward compatibility
-        this.checkForBlockToMine(playerEntity);
+        // This method is kept for backward compatibility
+        const selectedSlot = this.playerInventory.getSelectedSlot();
+        const heldItem = this.playerInventory.getItem(selectedSlot);
+        
+        if (heldItem) {
+            this.startMiningOnce(playerEntity, heldItem);
+        }
     }
     
     private stopMining(playerEntity: PlayerEntity): void {
@@ -230,11 +286,13 @@ export class PlayerManager {
                     progress: 0
                 }
             });
+            
+            console.log('[PlayerManager] Mining stopped');
         }
     }
 
     private setupCamera(): void {
-        this.player.camera.setMode(PlayerCameraMode.FIRST_PERSON);
+        this.player.camera.setMode(PlayerCameraMode.THIRD_PERSON);
         this.player.camera.setOffset({ x: 0, y: 0.5, z: 0 });
         this.player.camera.setModelHiddenNodes(['head', 'neck']);
         this.player.camera.setForwardOffset(0.3);

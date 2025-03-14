@@ -47,6 +47,11 @@ export interface ItemProperties {
         y: number;
         z: number;
     };
+    readonly handOffset?: {
+        x: number;
+        y: number;
+        z: number;
+    };
 }
 
 export interface ItemBehavior {

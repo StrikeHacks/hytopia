@@ -153,59 +153,21 @@ export class BaseItem {
             z: fromPosition.z + direction.z * 0.3
         };
 
-        const impulse = {
-            x: direction.x * dropForce.horizontal,
-            y: dropForce.vertical,
-            z: direction.z * dropForce.horizontal
+        // Calculate impulse based on direction magnitude
+        // This allows for stronger forces when dropping from blocks
+        const directionMagnitude = Math.sqrt(direction.x * direction.x + direction.z * direction.z);
+        const normalizedDirection = {
+            x: direction.x / (directionMagnitude || 1),
+            y: direction.y,
+            z: direction.z / (directionMagnitude || 1)
         };
-
-        this.entity = new Entity({
-            name: this.itemType,
-            modelUri: this.itemConfig.modelUri,
-            modelScale: this.itemConfig.scale || 0.5,
-            rigidBodyOptions: {
-                type: RigidBodyType.DYNAMIC,
-                enabledRotations: { x: false, y: true, z: false },
-                linearDamping: 0.8,
-                colliders: [
-                    this.createPickupCollider(),
-                    this.createGroundCollider(colliderSize.y)
-                ]
-            }
-        });
-
-        this.entity.spawn(this.world, dropPos);
-        this.entity.applyImpulse(impulse);
-    }
-
-    public dropFromBlock(position: { x: number; y: number; z: number }, direction: { x: number; y: number; z: number }): void {
-        if (!this.entity || !this.world) return;
-
-        this.entity.despawn();
-        this.droppedFromInventory = false; // No pickup delay for block drops
         
-        // Use stronger horizontal force for block drops
-        const dropForce = {
-            horizontal: 0.8,  // Stronger horizontal force (double the normal)
-            vertical: 0.1     // Same vertical force
-        };
-        const colliderSize = this.itemConfig.colliderSize || { x: 0.2, y: 0.2, z: 0.2 };
-        
-        // Position offset similar to regular drops
-        const dropPos = {
-            x: position.x + direction.x * 0.3,
-            y: position.y + colliderSize.y,
-            z: position.z + direction.z * 0.3
-        };
-
-        // Impulse calculation with stronger horizontal force
         const impulse = {
-            x: direction.x * dropForce.horizontal,
+            x: normalizedDirection.x * dropForce.horizontal * directionMagnitude,
             y: dropForce.vertical,
-            z: direction.z * dropForce.horizontal
+            z: normalizedDirection.z * dropForce.horizontal * directionMagnitude
         };
 
-        // Create entity with same physics as regular drops
         this.entity = new Entity({
             name: this.itemType,
             modelUri: this.itemConfig.modelUri,

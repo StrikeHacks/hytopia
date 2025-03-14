@@ -8,7 +8,6 @@ import { ItemSpawner } from './ItemSpawner';
 export interface ToolConfig {
     name: string;
     canBreak: number[];  // Array of block IDs this tool can break
-    breakAnimation?: string;  // Optional animation to play when breaking
     miningSpeed: number;  // How fast this tool mines blocks (in seconds)
 }
 
@@ -31,7 +30,7 @@ export class ToolManager {
     private toolConfigs: Map<string, ToolConfig> = toolConfigs;
     private blockConfigs: Map<number, BlockConfig> = blockConfigs;
     private miningProgress: Map<string, MiningProgress> = new Map(); // playerId -> progress
-    private readonly MINING_INTERVAL = 50; // Update mining every 50ms
+    private readonly MINING_INTERVAL = 200; // Update mining every 200ms (was 50ms)
     private playerInventories: Map<string, PlayerInventory>;
 
     constructor(
@@ -62,7 +61,6 @@ export class ToolManager {
         console.log(`[ToolManager] Checking if tool ${toolId} can break block ${blockId}`);
         const toolConfig = this.toolConfigs.get(toolId);
         if (!toolConfig) {
-            console.log(`[ToolManager] No tool config found for ${toolId}`);
             return false;
         }
         const canBreak = toolConfig.canBreak.includes(blockId);
@@ -72,11 +70,6 @@ export class ToolManager {
 
     public getBreakDistance(toolId: string): number {
         return 4; // Always return 4 as the break distance
-    }
-
-    public getBreakAnimation(toolId: string): string | undefined {
-        const toolConfig = this.toolConfigs.get(toolId);
-        return toolConfig?.breakAnimation;
     }
 
     public startMining(playerEntity: PlayerEntity, toolId: string): void {
@@ -125,29 +118,6 @@ export class ToolManager {
                 }
                 
                 if (this.canBreakBlock(toolId, blockTypeId)) {
-                    // Check if we're already mining this exact block
-                    const currentProgress = this.miningProgress.get(playerId);
-                    if (currentProgress) {
-                        const currentBlockPos = currentProgress.blockPos;
-                        const newBlockPos = raycastResult.hitBlock.globalCoordinate;
-                        
-                        // If we're already mining this exact block, just continue
-                        if (currentBlockPos.x === newBlockPos.x && 
-                            currentBlockPos.y === newBlockPos.y && 
-                            currentBlockPos.z === newBlockPos.z) {
-                            return;
-                        }
-                        
-                        // If we're mining a different block, stop mining the old one and start on the new one
-                        this.miningProgress.delete(playerId);
-                    }
-                    
-                    // Play mining animation if configured
-                    if (toolConfig.breakAnimation) {
-                        // Speel de animatie één keer af bij het begin van het minen van een nieuw blok
-                        playerEntity.startModelOneshotAnimations([toolConfig.breakAnimation]);
-                    }
-
                     // Start continuous mining on this block
                     const blockConfig = this.blockConfigs.get(blockTypeId);
                     if (blockConfig) {
@@ -172,10 +142,14 @@ export class ToolManager {
                         
                         // Start the continuous mining process
                         this.startContinuousMining(playerEntity, toolId);
+                        return;
                     }
                 }
             }
         }
+        
+        // If we get here, we didn't find a valid block to mine
+        console.log(`[ToolManager] No valid block found to mine`);
     }
 
     private handleBlockDrop(blockConfig: BlockConfig, blockPos: any): void {
@@ -220,16 +194,23 @@ export class ToolManager {
         const blockConfig = this.blockConfigs.get(progress.blockId);
         if (!toolConfig || !blockConfig) return;
 
-        // Check if player is still looking at the same block
-        const isStillLookingAtBlock = this.isPlayerLookingAtBlock(playerEntity, progress.blockPos);
-        if (!isStillLookingAtBlock) {
-            // Player is no longer looking at the block, stop mining
-            console.log(`[ToolManager] Player stopped looking at block, stopping mining`);
-            this.stopMining(playerId);
-            return;
+        // Check if player is still looking at the same block - but only every few updates
+        // to reduce the number of raycasts
+        const now = Date.now();
+        const timeSinceStart = now - progress.startTime;
+        const shouldCheckLooking = timeSinceStart % 500 < this.MINING_INTERVAL; // Check roughly every 500ms
+        
+        if (shouldCheckLooking) {
+            const isStillLookingAtBlock = this.isPlayerLookingAtBlock(playerEntity, progress.blockPos);
+            if (!isStillLookingAtBlock) {
+                // Player is no longer looking at the block
+                // We don't need to find the next block here - the PlayerManager will handle this
+                console.log(`[ToolManager] Player stopped looking at block, stopping current mining`);
+                this.stopMining(playerId);
+                return;
+            }
         }
 
-        const now = Date.now();
         const timeDiff = (now - progress.lastUpdateTime) / 1000; // Convert to seconds
         const miningSpeed = toolConfig.miningSpeed;
         const blockHardness = blockConfig.hardness;
@@ -237,19 +218,6 @@ export class ToolManager {
         // Calculate progress based on tool speed and block hardness
         progress.progress += (timeDiff / (miningSpeed * blockHardness)) * 100;
         progress.lastUpdateTime = now;
-
-        // Play mining animation periodiek, maar veel minder frequent
-        // Alleen afspelen bij het begin (al gedaan) en halverwege (50%)
-        const previousProgress = progress.progress - ((timeDiff / (miningSpeed * blockHardness)) * 100);
-        if (toolConfig.breakAnimation) {
-            // Check of we de 50% mijlpaal hebben gepasseerd
-            const passedMilestone = (previousProgress < 50 && progress.progress >= 50);
-                
-            if (passedMilestone) {
-                // Speel de animatie af
-                playerEntity.startModelOneshotAnimations([toolConfig.breakAnimation]);
-            }
-        }
 
         // Send progress to UI
         const progressValue = Math.min(100, progress.progress);
@@ -290,8 +258,8 @@ export class ToolManager {
                 }
             });
             
-            // Check for next block to mine (if player is still holding the button)
-            this.findAndMineNextBlock(playerEntity, toolId);
+            // We don't need to find the next block here - the PlayerManager will handle this
+            // on the next tick since it's continuously checking what block the player is looking at
         } else {
             // Schedule next mining update
             setTimeout(() => {
@@ -335,12 +303,6 @@ export class ToolManager {
                     if (blockConfig) {
                         console.log(`[ToolManager] Found next block to mine: ${blockConfig.name}`);
                         
-                        // Play mining animation if configured
-                        if (toolConfig.breakAnimation) {
-                            // Speel de animatie één keer af bij het begin van het minen van een nieuw blok
-                            playerEntity.startModelOneshotAnimations([toolConfig.breakAnimation]);
-                        }
-                        
                         // Initialize mining progress for the new block
                         const playerId = String(playerEntity.player.id);
                         const now = Date.now();
@@ -362,8 +324,25 @@ export class ToolManager {
                         // Start the continuous mining process for the new block
                         this.startContinuousMining(playerEntity, toolId);
                     }
+                } else {
+                    // Can't break this block with this tool
+                    console.log(`[ToolManager] Cannot break block ${blockTypeId} with tool ${toolId}`);
+                    
+                    // Set isMining to false in PlayerManager
+                    const playerId = String(playerEntity.player.id);
+                    playerEntity.player.ui.sendData({
+                        miningProgress: {
+                            progress: 0
+                        }
+                    });
                 }
+            } else {
+                // Block is too far away
+                console.log(`[ToolManager] Block is too far away (${distance.toFixed(1)} > ${breakDistance})`);
             }
+        } else {
+            // No block hit by raycast
+            console.log(`[ToolManager] No block in sight to mine`);
         }
     }
 
@@ -375,6 +354,24 @@ export class ToolManager {
             y: playerEntity.position.y + playerEntity.player.camera.offset.y + 0.33,
             z: playerEntity.position.z
         };
+
+        // Calculate the distance to the block center
+        const blockCenter = {
+            x: Math.floor(blockPos.x) + 0.5,
+            y: Math.floor(blockPos.y) + 0.5,
+            z: Math.floor(blockPos.z) + 0.5
+        };
+        
+        const distance = Math.sqrt(
+            Math.pow(blockCenter.x - origin.x, 2) +
+            Math.pow(blockCenter.y - origin.y, 2) +
+            Math.pow(blockCenter.z - origin.z, 2)
+        );
+        
+        // If the block is too far away, don't even bother with a raycast
+        if (distance > 5) {
+            return false;
+        }
 
         const raycastResult = this.world.simulation.raycast(origin, direction, 50, {
             filterExcludeRigidBody: playerEntity.rawRigidBody

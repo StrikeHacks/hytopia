@@ -24,8 +24,8 @@ const INITIAL_ITEMS = [
     { type: 'sword-golden', position: { x: 18, y: 3.7, z: 0 } },
     { type: 'fishing-rod', position: { x: 20, y: 3.7, z: 2 } },
     { type: 'fishing-rod', position: { x: 20, y: 3.7, z: 1 } },
-    { type: 'shears', position: { x: 4, y: 3.7, z: 2 } },
-    { type: 'cookie', position: { x: 2, y: 3.7, z: 2 } },
+    { type: 'axe-stone', position: { x: 4, y: 3.7, z: 2 } },
+    { type: 'pickaxe-stone', position: { x: 2, y: 3.7, z: 2 } },
 ];
 
 export class ItemSpawner {
@@ -122,16 +122,19 @@ export class ItemSpawner {
             // Generate a random direction for the drop
             const randomAngle = Math.random() * Math.PI * 2;
             const direction = {
-                x: Math.cos(randomAngle) * 1.5, // Much stronger horizontal component (more than doubled)
+                x: Math.cos(randomAngle) * 1.5, // Much stronger horizontal component
                 y: 0.3,                         // Slightly stronger upward component
-                z: Math.sin(randomAngle) * 1.5  // Much stronger horizontal component (more than doubled)
+                z: Math.sin(randomAngle) * 1.5  // Much stronger horizontal component
             };
             
-            // Create a new BaseItem and use the dropFromBlock method
+            // Create a new BaseItem and use the regular drop method
+            // This ensures consistent behavior when dropping from inventory later
             const items = this.activeItems.get(itemType) || [];
             const droppedItem = new BaseItem(this.world, blockCenter, this.playerInventories, itemType);
             droppedItem.spawn();
-            droppedItem.dropFromBlock(blockCenter, direction);
+            
+            // Use the regular drop method but with our custom direction
+            droppedItem.drop(blockCenter, direction);
             
             // Track the item
             items.push(droppedItem);
