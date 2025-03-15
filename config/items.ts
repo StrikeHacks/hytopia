@@ -2,15 +2,17 @@ import type { Position3D } from '../types/items';
 
 // Default values for item properties
 export const DEFAULT_ITEM_SCALE = 0.5;
-export const DEFAULT_COLLIDER_SIZE = { x: 0.2, y: 0.2, z: 0.2 };
-export const DEFAULT_DROP_FORCE = { horizontal: 0.4, vertical: 0.1 };
 export const PICKUP_COOLDOWN = 500; // ms
+export const MAX_STACK_SIZE = 64;
+
+
+export const DEFAULT_DROP_FORCE = { horizontal: 0.4, vertical: 0.1 };
 export const HEAVY_DROP_FORCE = { horizontal: 1, vertical: 0.15 };
 export const GIGA_DROP_FORCE = { horizontal: 1.5, vertical: 0.2 };
 
+export const DEFAULT_COLLIDER_SIZE = { x: 0.2, y: 0.2, z: 0.2 };
 export const HEAVY_COLLIDER_HEIGHT = 0.55;
 export const MID_COLLIDER_HEIGHT = 0.4;
-export const MAX_STACK_SIZE = 64;
 
 // Default hand offset for items
 export const DEFAULT_HAND_OFFSET = { x: 0.0, y: 0.07, z: 0.3 };
@@ -40,7 +42,8 @@ export const itemConfigs = {
             z: 0.2
         },
         handOffset: WEAPONS_HAND_OFFSET,
-        handRotation: DEFAULT_HAND_ROTATION
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'https://www.canteach.ca/minecraft-pe/images/diamond_sword.gif'
     },
     'sword-stone': {
         type: 'sword-stone',
@@ -56,7 +59,8 @@ export const itemConfigs = {
             z: 0.2
         },
         handOffset: WEAPONS_HAND_OFFSET,
-        handRotation: DEFAULT_HAND_ROTATION
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'https://www.canteach.ca/minecraft-pe/images/stone_sword.gif'
     },
     'sword-golden': {
         type: 'sword-golden',
@@ -72,7 +76,9 @@ export const itemConfigs = {
             z: 0.2
         },
         handOffset: WEAPONS_HAND_OFFSET,
-        handRotation: DEFAULT_HAND_ROTATION
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'https://www.canteach.ca/minecraft-pe/images/golden_sword.gif'
+
     },
     'clock': {
         type: 'clock',
@@ -84,7 +90,8 @@ export const itemConfigs = {
         dropForce: DEFAULT_DROP_FORCE,
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
-        handRotation: DEFAULT_HAND_ROTATION
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'https://www.canteach.ca/minecraft-pe/images/clock.gif'
     },
     'paper': {
         type: 'paper',
@@ -96,7 +103,8 @@ export const itemConfigs = {
         dropForce: DEFAULT_DROP_FORCE,
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
-        handRotation: DEFAULT_HAND_ROTATION
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'https://www.canteach.ca/minecraft-pe/images/paper.gif'
     },
     'bread': {
         type: 'bread',
@@ -108,7 +116,8 @@ export const itemConfigs = {
         dropForce: DEFAULT_DROP_FORCE,
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
-        handRotation: DEFAULT_HAND_ROTATION
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'https://www.canteach.ca/minecraft-pe/images/bread.gif'
     },
     'book': {
         type: 'book',
@@ -120,7 +129,8 @@ export const itemConfigs = {
         dropForce: DEFAULT_DROP_FORCE,
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
-        handRotation: DEFAULT_HAND_ROTATION
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'https://www.canteach.ca/minecraft-pe/images/book.gif'
     },
     'fishing-rod': {
         type: 'fishing-rod',
@@ -136,7 +146,8 @@ export const itemConfigs = {
             z: 0.2
         },
         handOffset: DEFAULT_HAND_OFFSET,
-        handRotation: SIDEWAYS_HAND_ROTATION
+        handRotation: SIDEWAYS_HAND_ROTATION,
+        imageUrl: 'https://static.vecteezy.com/system/resources/thumbnails/021/665/635/small_2x/pixel-art-fishing-rod-tool-for-game-free-png.png'
     },
     'stick': {
         type: 'stick',
@@ -152,7 +163,8 @@ export const itemConfigs = {
             z: 0.3
         },
         handOffset: DEFAULT_HAND_OFFSET,
-        handRotation: SIDEWAYS_HAND_ROTATION
+        handRotation: SIDEWAYS_HAND_ROTATION,
+        imageUrl: 'https://www.canteach.ca/minecraft-pe/images/stick.gif'
     },
     'iron-ingot': {
         type: 'iron-ingot',
@@ -185,7 +197,8 @@ export const itemConfigs = {
             z: 0.2
         },
         handOffset: TOOLS_HAND_OFFSET,
-        handRotation: TOOLS_HAND_ROTATION
+        handRotation: TOOLS_HAND_ROTATION,
+        imageUrl: 'https://static.vecteezy.com/system/resources/thumbnails/021/665/628/small_2x/pixel-art-stone-axe-tool-for-game-free-png.png'
     },
     'pickaxe-stone': {
         type: 'pickaxe-stone',
@@ -201,7 +214,8 @@ export const itemConfigs = {
             z: 0.2
         },
         handOffset: TOOLS_HAND_OFFSET,
-        handRotation: TOOLS_HAND_ROTATION
+        handRotation: TOOLS_HAND_ROTATION,
+        imageUrl: 'https://static.vecteezy.com/system/resources/thumbnails/021/665/641/small_2x/pixel-art-stone-pickaxe-tool-for-game-free-png.png'
     }
 } as const;
 
@@ -213,7 +227,8 @@ export function getItemConfig(itemType: string) {
     }
     return config as typeof config & { 
         handOffset?: { x: number; y: number; z: number },
-        handRotation?: { x: number; y: number; z: number; w: number }
+        handRotation?: { x: number; y: number; z: number; w: number },
+        imageUrl?: string
     };
 }
 

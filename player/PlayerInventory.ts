@@ -157,7 +157,12 @@ export class PlayerInventory {
         const hotbarUpdates: any[] = [];
 
         this.pendingUpdates.forEach((item, slot) => {
-            const update = { slot, item: item.type, count: item.count };
+            const update = {
+                slot,
+                item: item.type,
+                count: item.count,
+                imageUrl: item.type ? getItemConfig(item.type).imageUrl : undefined
+            };
             inventoryUpdates.push(update);
             if (slot < 5) {
                 hotbarUpdates.push(update);
@@ -187,12 +192,14 @@ export class PlayerInventory {
                 inventoryUpdate: this.slots.map((item, slot) => ({
                     slot,
                     item: item.type,
-                    count: item.count
+                    count: item.count,
+                    imageUrl: item.type ? getItemConfig(item.type).imageUrl : undefined
                 })),
                 hotbarUpdate: this.slots.slice(0, 5).map((item, slot) => ({
                     slot,
                     item: item.type,
-                    count: item.count
+                    count: item.count,
+                    imageUrl: item.type ? getItemConfig(item.type).imageUrl : undefined
                 }))
             };
             this.playerEntity.player.ui.sendData(updates);
