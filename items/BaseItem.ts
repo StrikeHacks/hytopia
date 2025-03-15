@@ -153,8 +153,6 @@ export class BaseItem {
             z: fromPosition.z + direction.z * 0.3
         };
 
-        // Calculate impulse based on direction magnitude
-        // This allows for stronger forces when dropping from blocks
         const directionMagnitude = Math.sqrt(direction.x * direction.x + direction.z * direction.z);
         const normalizedDirection = {
             x: direction.x / (directionMagnitude || 1),
@@ -163,9 +161,9 @@ export class BaseItem {
         };
         
         const impulse = {
-            x: normalizedDirection.x * dropForce.horizontal * directionMagnitude,
+            x: normalizedDirection.x * dropForce.horizontal,
             y: dropForce.vertical,
-            z: normalizedDirection.z * dropForce.horizontal * directionMagnitude
+            z: normalizedDirection.z * dropForce.horizontal
         };
 
         this.entity = new Entity({

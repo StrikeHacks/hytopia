@@ -221,72 +221,7 @@ export class ToolManager {
         }
     }
     
-    private findAndMineNextBlock(playerEntity: PlayerEntity, toolId: string): void {
-        // Check if the tool can break blocks
-        const toolConfig = this.toolConfigs.get(toolId);
-        if (!toolConfig) return;
-        
-        // Cast a ray to find the next block
-        const direction = playerEntity.player.camera.facingDirection;
-        const origin = {
-            x: playerEntity.position.x,
-            y: playerEntity.position.y + playerEntity.player.camera.offset.y + 0.33,
-            z: playerEntity.position.z
-        };
 
-        const raycastResult = this.world.simulation.raycast(origin, direction, 50, {
-            filterExcludeRigidBody: playerEntity.rawRigidBody
-        });
-
-        if (raycastResult?.hitBlock) {
-            const hitPos = raycastResult.hitBlock.globalCoordinate;
-            const distance = Math.sqrt(
-                Math.pow(hitPos.x - origin.x, 2) +
-                Math.pow(hitPos.y - (origin.y - 0.8), 2) +
-                Math.pow(hitPos.z - origin.z, 2)
-            );
-
-            const breakDistance = 4; // Fixed break distance of 4
-            if (distance <= breakDistance) {
-                const blockTypeId = this.world.chunkLattice.getBlockId(raycastResult.hitBlock.globalCoordinate);
-                
-                if (this.canBreakBlock(toolId, blockTypeId)) {
-                    // Found a new block to mine - start mining it
-                    const blockConfig = this.blockConfigs.get(blockTypeId);
-                    if (blockConfig) {
-                        // Initialize mining progress for the new block
-                        const playerId = String(playerEntity.player.id);
-                        const now = Date.now();
-                        this.miningProgress.set(playerId, {
-                            blockId: blockTypeId,
-                            progress: 0,
-                            startTime: now,
-                            lastUpdateTime: now,
-                            blockPos: raycastResult.hitBlock.globalCoordinate
-                        });
-                        
-                        // Send initial progress to UI
-                        playerEntity.player.ui.sendData({
-                            miningProgress: {
-                                progress: 0
-                            }
-                        });
-                        
-                        // Start the continuous mining process for the new block
-                        this.startContinuousMining(playerEntity, toolId);
-                    }
-                } else {
-                    // Can't break this block with this tool - reset UI
-                    const playerId = String(playerEntity.player.id);
-                    playerEntity.player.ui.sendData({
-                        miningProgress: {
-                            progress: 0
-                        }
-                    });
-                }
-            }
-        }
-    }
 
     private isPlayerLookingAtBlock(playerEntity: PlayerEntity, blockPos: any): boolean {
         // Cast a ray from the player's position in the direction they're looking

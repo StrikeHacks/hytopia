@@ -6,6 +6,8 @@ export const DEFAULT_COLLIDER_SIZE = { x: 0.2, y: 0.2, z: 0.2 };
 export const DEFAULT_DROP_FORCE = { horizontal: 0.4, vertical: 0.1 };
 export const PICKUP_COOLDOWN = 500; // ms
 export const HEAVY_DROP_FORCE = { horizontal: 1, vertical: 0.15 };
+export const GIGA_DROP_FORCE = { horizontal: 1.5, vertical: 0.2 };
+
 export const HEAVY_COLLIDER_HEIGHT = 0.55;
 export const MID_COLLIDER_HEIGHT = 0.4;
 export const MAX_STACK_SIZE = 64;
@@ -143,7 +145,7 @@ export const itemConfigs = {
         category: 'materials',
         maxStackSize: 64,
         scale: 0.5,
-        dropForce: DEFAULT_DROP_FORCE,
+        dropForce: GIGA_DROP_FORCE,
         colliderSize: {
             x: 0.3,
             y: 0.37,
@@ -159,7 +161,7 @@ export const itemConfigs = {
         category: 'materials',
         maxStackSize: 64,
         scale: 0.5,
-        dropForce: DEFAULT_DROP_FORCE,
+        dropForce: GIGA_DROP_FORCE,
         colliderSize: {
             x: 0.3,
             y: 0.37,
