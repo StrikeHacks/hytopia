@@ -12,8 +12,15 @@ export const MAX_STACK_SIZE = 64;
 
 // Default hand offset for items
 export const DEFAULT_HAND_OFFSET = { x: 0.0, y: 0.07, z: 0.3 };
-export const TOOLS_HAND_OFFSET = { x: -0.47, y: -0.45, z: 0.4 };
+export const TOOLS_HAND_OFFSET = { x: -0.48, y: 0.5, z: 0.4 };
 export const WEAPONS_HAND_OFFSET = { x: 0, y: 0.07, z: 0.6 };
+
+// Default hand rotation for items (x: pitch, y: yaw, z: roll, w: scalar)
+// Standard downward tilt
+export const DEFAULT_HAND_ROTATION = { x: -Math.PI / 3, y: 0, z: 0, w: 1 };
+export const SIDEWAYS_HAND_ROTATION = { x: -Math.PI / 3, y: Math.PI / 2, z: 0, w: 1 };
+
+export const TOOLS_HAND_ROTATION = { x: -Math.PI / 6, y:Math.PI / 3 , z: -0.5, w: 1 };
 
 // Item properties configuration
 export const itemConfigs = {
@@ -30,7 +37,8 @@ export const itemConfigs = {
             y: HEAVY_COLLIDER_HEIGHT,
             z: 0.2
         },
-        handOffset: WEAPONS_HAND_OFFSET
+        handOffset: WEAPONS_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION
     },
     'sword-stone': {
         type: 'sword-stone',
@@ -45,7 +53,8 @@ export const itemConfigs = {
             y: HEAVY_COLLIDER_HEIGHT,
             z: 0.2
         },
-        handOffset: WEAPONS_HAND_OFFSET
+        handOffset: WEAPONS_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION
     },
     'sword-golden': {
         type: 'sword-golden',
@@ -60,7 +69,8 @@ export const itemConfigs = {
             y: HEAVY_COLLIDER_HEIGHT,
             z: 0.2
         },
-        handOffset: WEAPONS_HAND_OFFSET
+        handOffset: WEAPONS_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION
     },
     'clock': {
         type: 'clock',
@@ -71,7 +81,8 @@ export const itemConfigs = {
         scale: 0.5,
         dropForce: DEFAULT_DROP_FORCE,
         colliderSize: DEFAULT_COLLIDER_SIZE,
-        handOffset: DEFAULT_HAND_OFFSET 
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION
     },
     'paper': {
         type: 'paper',
@@ -82,7 +93,8 @@ export const itemConfigs = {
         scale: 0.5,
         dropForce: DEFAULT_DROP_FORCE,
         colliderSize: DEFAULT_COLLIDER_SIZE,
-        handOffset: DEFAULT_HAND_OFFSET 
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION
     },
     'bread': {
         type: 'bread',
@@ -93,7 +105,8 @@ export const itemConfigs = {
         scale: 0.5,
         dropForce: DEFAULT_DROP_FORCE,
         colliderSize: DEFAULT_COLLIDER_SIZE,
-        handOffset: DEFAULT_HAND_OFFSET 
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION
     },
     'book': {
         type: 'book',
@@ -104,7 +117,8 @@ export const itemConfigs = {
         scale: 0.5,
         dropForce: DEFAULT_DROP_FORCE,
         colliderSize: DEFAULT_COLLIDER_SIZE,
-        handOffset: DEFAULT_HAND_OFFSET 
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION
     },
     'fishing-rod': {
         type: 'fishing-rod',
@@ -119,22 +133,8 @@ export const itemConfigs = {
             y: HEAVY_COLLIDER_HEIGHT,
             z: 0.2
         },
-        handOffset: DEFAULT_HAND_OFFSET 
-    },
-    'axe-stone': {
-        type: 'axe-stone',
-        modelUri: 'models/items/axe-stone.gltf',
-        displayName: 'Axe',
-        category: 'tools',
-        maxStackSize: 1,
-        scale: 0.5,
-        dropForce: HEAVY_DROP_FORCE,
-        colliderSize: {
-            x: 0.2,
-            y: HEAVY_COLLIDER_HEIGHT,
-            z: 0.2
-        },
-        handOffset: TOOLS_HAND_OFFSET
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: SIDEWAYS_HAND_ROTATION
     },
     'stick': {
         type: 'stick',
@@ -149,7 +149,8 @@ export const itemConfigs = {
             y: 0.37,
             z: 0.3
         },
-        handOffset: DEFAULT_HAND_OFFSET 
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: SIDEWAYS_HAND_ROTATION
     },
     'iron-ingot': {
         type: 'iron-ingot',
@@ -165,7 +166,24 @@ export const itemConfigs = {
             z: 0.3
         },
         handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
         imageUrl: 'https://static.vecteezy.com/system/resources/thumbnails/019/527/051/small_2x/an-8-bit-retro-styled-pixel-art-illustration-of-an-iron-bar-ingot-free-png.png'
+    },
+    'axe-stone': {
+        type: 'axe-stone',
+        modelUri: 'models/items/axe-stone.gltf',
+        displayName: 'Axe',
+        category: 'tools',
+        maxStackSize: 1,
+        scale: 0.5,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.2,
+            y: HEAVY_COLLIDER_HEIGHT,
+            z: 0.2
+        },
+        handOffset: TOOLS_HAND_OFFSET,
+        handRotation: TOOLS_HAND_ROTATION
     },
     'pickaxe-stone': {
         type: 'pickaxe-stone',
@@ -180,7 +198,8 @@ export const itemConfigs = {
             y: HEAVY_COLLIDER_HEIGHT,
             z: 0.2
         },
-        handOffset: TOOLS_HAND_OFFSET
+        handOffset: TOOLS_HAND_OFFSET,
+        handRotation: TOOLS_HAND_ROTATION
     }
 } as const;
 
@@ -190,7 +209,10 @@ export function getItemConfig(itemType: string) {
     if (!config) {
         throw new Error(`No configuration found for item type: ${itemType}`);
     }
-    return config as typeof config & { handOffset?: { x: number; y: number; z: number } };
+    return config as typeof config & { 
+        handOffset?: { x: number; y: number; z: number },
+        handRotation?: { x: number; y: number; z: number; w: number }
+    };
 }
 
 // Calculate NON_STACKABLE_TYPES from itemConfigs

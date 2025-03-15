@@ -52,6 +52,12 @@ export interface ItemProperties {
         y: number;
         z: number;
     };
+    readonly handRotation?: {
+        x: number;
+        y: number;
+        z: number;
+        w: number;
+    };
 }
 
 export interface ItemBehavior {

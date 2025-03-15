@@ -1,5 +1,5 @@
 import { PlayerEntity, Entity, RigidBodyType } from 'hytopia';
-import { getItemConfig, DEFAULT_HAND_OFFSET } from '../config/items';
+import { getItemConfig, DEFAULT_HAND_OFFSET, DEFAULT_HAND_ROTATION } from '../config/items';
 
 export class EquipmentManager {
     private currentItem: string | null = null;
@@ -32,10 +32,13 @@ export class EquipmentManager {
         // Use the item-specific hand offset or the default if not specified
         const positionOffset = itemConfig.handOffset || DEFAULT_HAND_OFFSET;
         
+        // Use the item-specific rotation or the default if not specified
+        const rotation = itemConfig.handRotation || DEFAULT_HAND_ROTATION;
+        
         this.equippedEntity.spawn(
             world,
             positionOffset, // Apply the item-specific position offset
-            { x: -Math.PI / 3, y: 0, z: 0, w: 1 }
+            rotation // Apply the item-specific rotation
         );
         this.currentItem = itemType;
     }
