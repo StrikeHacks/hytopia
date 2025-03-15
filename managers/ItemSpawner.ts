@@ -134,7 +134,8 @@ export class ItemSpawner {
             droppedItem.spawn();
             
             // Use the regular drop method but with our custom direction
-            droppedItem.drop(blockCenter, direction);
+            // Set isFromBlock to true so it can be picked up immediately
+            droppedItem.drop(blockCenter, direction, true);
             
             // Track the item
             items.push(droppedItem);

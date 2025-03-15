@@ -137,12 +137,12 @@ export class BaseItem {
         this.droppedFromInventory = false;
     }
 
-    public drop(fromPosition: { x: number; y: number; z: number }, direction: { x: number; y: number; z: number }): void {
+    public drop(fromPosition: { x: number; y: number; z: number }, direction: { x: number; y: number; z: number }, isFromBlock: boolean = false): void {
         if (!this.entity || !this.world) return;
 
         this.entity.despawn();
         this.dropTimestamp = Date.now();
-        this.droppedFromInventory = true;
+        this.droppedFromInventory = !isFromBlock;
         
         const dropForce = this.itemConfig.dropForce || { horizontal: 0.4, vertical: 0.1 };
         const colliderSize = this.itemConfig.colliderSize || { x: 0.2, y: 0.2, z: 0.2 };
@@ -185,48 +185,6 @@ export class BaseItem {
 
         this.entity.spawn(this.world, dropPos);
         this.entity.applyImpulse(impulse);
-    }
-
-    /**
-     * Drops the item with the specified direction and force, without setting a pickup delay
-     * Used for block drops to allow instant pickup
-     */
-    public dropWithoutDelay(position: { x: number; y: number; z: number }, direction: { x: number; y: number; z: number }): void {
-        if (!this.entity || !this.world) return;
-
-        this.entity.despawn();
-        this.droppedFromInventory = false; // No pickup delay
-        
-        const colliderSize = this.itemConfig.colliderSize || { x: 0.2, y: 0.2, z: 0.2 };
-        
-        // Position offset based on direction
-        const dropPos = {
-            x: position.x,
-            y: position.y + colliderSize.y,
-            z: position.z
-        };
-
-        // Create entity with dynamic physics
-        this.entity = new Entity({
-            name: this.itemType,
-            modelUri: this.itemConfig.modelUri,
-            modelScale: this.itemConfig.scale || 0.5,
-            rigidBodyOptions: {
-                type: RigidBodyType.DYNAMIC,
-                enabledRotations: { x: false, y: true, z: false },
-                linearDamping: 0.8,
-                colliders: [
-                    this.createPickupCollider(),
-                    this.createGroundCollider(colliderSize.y)
-                ]
-            }
-        });
-
-        this.entity.spawn(this.world, dropPos);
-        
-        // Apply the provided direction directly as impulse
-        // This allows for custom force values from the caller
-        this.entity.applyImpulse(direction);
     }
 
     public despawn(): void {
