@@ -2,6 +2,7 @@ import { World, PlayerEntity, Entity, RigidBodyType, ColliderShape, CollisionGro
 import type { PlayerInventory } from '../player/PlayerInventory';
 import { ItemSpawner } from './ItemSpawner';
 import { toolConfigs, blockConfigs, getBlockConfig } from '../config/tools';
+import { getBlockRespawnConfig } from '../config/blocks';
 
 export interface ToolConfig {
     name: string;
@@ -9,11 +10,17 @@ export interface ToolConfig {
     damage: number;  // Damage per click
 }
 
+export interface BlockConfig {
+    hp: number;
+    drops?: string[];
+}
+
 export class ToolManager {
     private blockDamages: Map<string, { totalDamage: number; lastDamageTime: number }> = new Map();
     private lastHitBlock: string | null = null;
     private resetTimer: NodeJS.Timer | null = null;
     private readonly RESET_DELAY = 1000; // Increased to 1 second to give more time between hits
+    private respawnTimers: Map<string, NodeJS.Timer> = new Map();
 
     constructor(
         private world: World,
@@ -64,6 +71,29 @@ export class ToolManager {
         const canBreak = toolConfig.canBreak.includes(blockId);
         console.log('[ToolManager] Can break block?', canBreak);
         return canBreak;
+    }
+
+    private scheduleBlockRespawn(blockId: number, position: { x: number; y: number; z: number }): void {
+        const blockKey = this.coordinateToKey(position);
+        const respawnConfig = getBlockRespawnConfig(blockId);
+
+        if (!respawnConfig?.enabled) {
+            return;
+        }
+
+        // Clear any existing respawn timer for this block
+        if (this.respawnTimers.has(blockKey)) {
+            clearTimeout(this.respawnTimers.get(blockKey)!);
+        }
+
+        // Schedule block respawn
+        const timer = setTimeout(() => {
+            console.log('[Mining] Respawning block:', { blockId, position });
+            this.world.chunkLattice.setBlock(position, blockId);
+            this.respawnTimers.delete(blockKey);
+        }, respawnConfig.delay);
+
+        this.respawnTimers.set(blockKey, timer);
     }
 
     public tryMineBlock(playerEntity: PlayerEntity): void {
@@ -186,11 +216,26 @@ export class ToolManager {
             inventory.updateMiningProgressUI(0);
             this.lastHitBlock = null;
 
+            // Schedule block respawn
+            this.scheduleBlockRespawn(blockId, hitPos);
+
             // Clear reset timer when block is broken
             if (this.resetTimer) {
                 clearTimeout(this.resetTimer);
                 this.resetTimer = null;
             }
+        }
+    }
+
+    public cleanup(): void {
+        // Clear all respawn timers
+        this.respawnTimers.forEach(timer => clearTimeout(timer));
+        this.respawnTimers.clear();
+
+        // Clear reset timer
+        if (this.resetTimer) {
+            clearTimeout(this.resetTimer);
+            this.resetTimer = null;
         }
     }
 
