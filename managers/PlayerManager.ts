@@ -167,7 +167,7 @@ export class PlayerManager {
 
     private setupCamera(): void {
         this.player.camera.setMode(PlayerCameraMode.FIRST_PERSON);
-        this.player.camera.setOffset({ x: 0, y: 0.5, z: 0 });
+        this.player.camera.setOffset({ x: 0, y: 0.7, z: 0 });
         this.player.camera.setModelHiddenNodes(['head', 'neck']);
         this.player.camera.setForwardOffset(0.3);
     }
