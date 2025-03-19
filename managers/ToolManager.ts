@@ -8,13 +8,13 @@ import { ItemSpawner } from './ItemSpawner';
 export interface ToolConfig {
     name: string;
     canBreak: number[];  // Array of block IDs this tool can break
-    miningSpeed: number;  // How fast this tool mines blocks (in seconds)
+    damage: number;  // How fast this tool mines blocks (in seconds)
 }
 
 export interface BlockConfig {
     id: number;
     name: string;
-    hardness: number;  // How hard the block is to break
+    hp: number;  // How hard the block is to break
     drops?: string;    // What item it drops when broken
 }
 
@@ -26,12 +26,19 @@ interface MiningProgress {
     blockPos: any;
 }
 
+interface BlockDamage {
+    blockId: number;
+    totalDamage: number;
+    lastDamageTime: number;
+}
+
 export class ToolManager {
     private toolConfigs: Map<string, ToolConfig> = toolConfigs;
     private blockConfigs: Map<number, BlockConfig> = blockConfigs;
     private miningProgress: Map<string, MiningProgress> = new Map(); // playerId -> progress
-    private readonly MINING_INTERVAL = 200; // Update mining every 200ms
+    private readonly MINING_INTERVAL = 500; // Mining interval in ms
     private playerInventories: Map<string, PlayerInventory>;
+    private blockDamages: Map<string, BlockDamage> = new Map();
 
     constructor(
         private world: World,
@@ -61,17 +68,14 @@ export class ToolManager {
         return 4; // Always return 4 as the break distance
     }
 
-    public startMining(playerEntity: PlayerEntity, toolId: string): void {
+    public tryMineBlock(playerEntity: PlayerEntity): void {
         const playerId = String(playerEntity.player.id);
-        const toolConfig = this.toolConfigs.get(toolId);
-        if (!toolConfig) {
-            playerEntity.player.ui.sendData({
-                showItemName: {
-                    name: `Error: No tool config for ${toolId}`
-                }
-            });
-            return;
-        }
+        const inventory = this.playerInventories.get(playerId);
+        if (!inventory) return;
+
+        const selectedSlot = inventory.getSelectedSlot();
+        const heldItem = inventory.getItem(selectedSlot);
+        if (!heldItem) return;
 
         const direction = playerEntity.player.camera.facingDirection;
         const origin = {
@@ -80,50 +84,86 @@ export class ToolManager {
             z: playerEntity.position.z
         };
 
-        const raycastResult = this.world.simulation.raycast(origin, direction, 50, {
+        const raycastResult = this.world.simulation.raycast(origin, direction, 4, {
             filterExcludeRigidBody: playerEntity.rawRigidBody
         });
 
-        if (raycastResult?.hitBlock) {
-            const hitPos = raycastResult.hitBlock.globalCoordinate;
-            const distance = Math.sqrt(
-                Math.pow(hitPos.x - origin.x, 2) +
-                Math.pow(hitPos.y - (origin.y - 0.8), 2) +
-                Math.pow(hitPos.z - origin.z, 2)
-            );
+        if (!raycastResult?.hitBlock) {
+            this.stopMining(playerId);
+            return;
+        }
 
-            const breakDistance = 4; // Fixed break distance of 4
-            if (distance <= breakDistance) {
-                const blockTypeId = this.world.chunkLattice.getBlockId(raycastResult.hitBlock.globalCoordinate);
-                
-                if (this.canBreakBlock(toolId, blockTypeId)) {
-                    // Start continuous mining on this block
-                    const blockConfig = this.blockConfigs.get(blockTypeId);
-                    if (blockConfig) {
-                        // Initialize mining progress
-                        const now = Date.now();
-                        this.miningProgress.set(playerId, {
-                            blockId: blockTypeId,
-                            progress: 0,
-                            startTime: now,
-                            lastUpdateTime: now,
-                            blockPos: raycastResult.hitBlock.globalCoordinate
-                        });
-                        
-                        // Send initial progress to UI
-                        playerEntity.player.ui.sendData({
-                            miningProgress: {
-                                progress: 0
-                            }
-                        });
-                        
-                        // Start the continuous mining process
-                        this.startContinuousMining(playerEntity, toolId);
-                        return;
-                    }
-                }
+        const hitPos = raycastResult.hitBlock.globalCoordinate;
+        const blockTypeId = this.world.chunkLattice.getBlockId(hitPos);
+        const blockConfig = this.blockConfigs.get(blockTypeId);
+        
+        if (!blockConfig || !this.canBreakBlock(heldItem, blockTypeId)) {
+            this.stopMining(playerId);
+            return;
+        }
+
+        // Get tool config for damage calculation
+        const toolConfig = this.toolConfigs.get(heldItem);
+        if (!toolConfig) return;
+
+        const now = Date.now();
+        const coordinateKey = this.coordinateToKey(hitPos);
+        let blockDamage = this.blockDamages.get(coordinateKey);
+
+        // If we're not mining this block yet, initialize damage tracking
+        if (!blockDamage) {
+            blockDamage = {
+                blockId: blockTypeId,
+                totalDamage: 0,
+                lastDamageTime: 0
+            };
+            this.blockDamages.set(coordinateKey, blockDamage);
+        }
+
+        // Check if enough time has passed since last damage
+        if (now - blockDamage.lastDamageTime >= this.MINING_INTERVAL) {
+            // Apply damage
+            blockDamage.totalDamage += toolConfig.damage;
+            blockDamage.lastDamageTime = now;
+
+            // Update UI with progress
+            const progress = (blockDamage.totalDamage / blockConfig.hp) * 100;
+            inventory.updateMiningProgressUI(Math.min(100, Math.max(0, progress)));
+
+            // Check if block should break
+            if (blockDamage.totalDamage >= blockConfig.hp) {
+                console.log(`[Mining] Successfully broke block!`);
+                this.breakBlock(hitPos, blockConfig);
+                this.blockDamages.delete(coordinateKey);
+                this.stopMining(playerId);
             }
         }
+    }
+
+    public stopMining(playerId: string): void {
+        const inventory = this.playerInventories.get(playerId);
+        if (inventory) {
+            inventory.updateMiningProgressUI(0);
+        }
+    }
+
+    private breakBlock(blockPos: any, blockConfig: any): void {
+        // Set block to air (0 is air block ID)
+        this.world.chunkLattice.setBlock(blockPos, 0);
+
+        // Handle drops if specified
+        if (blockConfig.drops) {
+            const dropPos = {
+                x: blockPos.x + 0.5,
+                y: blockPos.y + 0.5,
+                z: blockPos.z + 0.5
+            };
+            this.itemSpawner.handleBlockDrop(blockConfig.drops, dropPos);
+        }
+    }
+
+    private coordinateToKey(coordinate: { x: number; y: number; z: number }): string {
+        return `${coordinate.x},${coordinate.y},${coordinate.z}`;
     }
 
     private handleBlockDrop(blockConfig: BlockConfig, blockPos: any): void {
@@ -145,83 +185,6 @@ export class ToolManager {
             console.error('[ToolManager] Error spawning dropped item:', error);
         }
     }
-
-    public stopMining(playerId: string): void {
-        const progress = this.miningProgress.get(playerId);
-        if (progress) {
-            // Simply remove the mining progress - the UI will be updated by the PlayerManager
-            this.miningProgress.delete(playerId);
-        }
-    }
-
-    private startContinuousMining(playerEntity: PlayerEntity, toolId: string): void {
-        const playerId = String(playerEntity.player.id);
-        const progress = this.miningProgress.get(playerId);
-        if (!progress) return;
-
-        const toolConfig = this.toolConfigs.get(toolId);
-        const blockConfig = this.blockConfigs.get(progress.blockId);
-        if (!toolConfig || !blockConfig) return;
-
-        // Check if player is still looking at the same block - but only every few updates
-        // to reduce the number of raycasts
-        const now = Date.now();
-        const timeSinceStart = now - progress.startTime;
-        const shouldCheckLooking = timeSinceStart % 500 < this.MINING_INTERVAL; // Check roughly every 500ms
-        
-        if (shouldCheckLooking) {
-            const isStillLookingAtBlock = this.isPlayerLookingAtBlock(playerEntity, progress.blockPos);
-            if (!isStillLookingAtBlock) {
-                // Player is no longer looking at the block
-                this.stopMining(playerId);
-                return;
-            }
-        }
-
-        const timeDiff = (now - progress.lastUpdateTime) / 1000; // Convert to seconds
-        const miningSpeed = toolConfig.miningSpeed;
-        const blockHardness = blockConfig.hardness;
-        
-        // Calculate progress based on tool speed and block hardness
-        progress.progress += (timeDiff / (miningSpeed * blockHardness)) * 100;
-        progress.lastUpdateTime = now;
-
-        // Send progress to UI
-        const progressValue = Math.min(100, progress.progress);
-        playerEntity.player.ui.sendData({
-            miningProgress: {
-                progress: progressValue
-            }
-        });
-
-        // Check if block is fully mined
-        if (progress.progress >= 100) {
-            // Break the block
-            this.world.chunkLattice.setBlock(progress.blockPos, 0);
-
-            // Handle drops
-            if (blockConfig.drops) {
-                this.handleBlockDrop(blockConfig, progress.blockPos);
-            }
-
-            // Reset progress
-            this.miningProgress.delete(playerId);
-            
-            // Clear progress bar
-            playerEntity.player.ui.sendData({
-                miningProgress: {
-                    progress: 0
-                }
-            });
-        } else {
-            // Schedule next mining update
-            setTimeout(() => {
-                this.startContinuousMining(playerEntity, toolId);
-            }, this.MINING_INTERVAL);
-        }
-    }
-    
-
 
     private isPlayerLookingAtBlock(playerEntity: PlayerEntity, blockPos: any): boolean {
         // Cast a ray from the player's position in the direction they're looking

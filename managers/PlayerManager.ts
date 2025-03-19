@@ -43,14 +43,7 @@ export class PlayerManager {
             modelScale: 0.5,
         });
         
-        // Disable automatic animations
-        if (entity.controller) {
-            // Disable automatic mouse click cancellation
-            (entity.controller as any).autoCancelMouseLeftClick = false;
-            
-            // Disable automatic animation on left mouse click
-            (entity.controller as any).autoAnimateMouseLeftClick = false;
-        }
+       
         
         return entity;
     }
@@ -110,6 +103,11 @@ export class PlayerManager {
     private setupInputHandling(playerEntity: PlayerEntity): void {
         // Enable debug raycasting for development
         this.world.simulation.enableDebugRaycasting(true);
+        
+        // Disable auto-cancel for left mouse button to allow continuous mining
+        if (playerEntity.controller) {
+            (playerEntity.controller as any).autoCancelMouseLeftClick = false;
+        }
 
         // Throttle variables for mining checks
         let lastMiningCheckTime = 0;
@@ -165,7 +163,7 @@ export class PlayerManager {
             } else if (!isLeftMousePressed && this.isLeftMousePressed) {
                 // Mouse button just released
                 this.isLeftMousePressed = false;
-                this.stopMining(playerEntity);
+                this.toolManager.stopMining(String(playerEntity.player.id));
             }
         });
     }
@@ -205,55 +203,21 @@ export class PlayerManager {
                     
                     if (!isSameBlock) {
                         // Looking at a different block - switch targets
-                        this.stopMining(playerEntity);
-                        this.startMiningOnce(playerEntity, heldItem);
+                        
                     }
                     // If same block, continue mining (handled by ToolManager)
                 } else {
                     // No current mining progress, start mining this block
-                    this.startMiningOnce(playerEntity, heldItem);
                 }
             } else {
                 // Not currently mining, start mining this block
-                this.startMiningOnce(playerEntity, heldItem);
             }
         } else {
             // No block to mine, stop current mining if any
-            if (this.isMining) {
-                this.stopMining(playerEntity);
-            }
         }
     }
     
-    private startMiningOnce(playerEntity: PlayerEntity, heldItem: string): void {
-        // Start mining if we're looking at a block
-        this.isMining = true;
-        
-        // Disable all animations during mining
-        this.disableMiningAnimations(playerEntity);
-        
-        this.toolManager.startMining(playerEntity, heldItem);
-    }
     
-    private disableMiningAnimations(playerEntity: PlayerEntity): void {
-        // Override the animation methods temporarily
-        const originalStartModelOneshotAnimations = playerEntity.startModelOneshotAnimations;
-        playerEntity.startModelOneshotAnimations = function(animations: string[]) {
-            // Block all animations during mining
-            return [];
-        };
-        
-        // Store the original method so we can restore it later
-        (playerEntity as any)._originalStartModelOneshotAnimations = originalStartModelOneshotAnimations;
-    }
-    
-    private restoreMiningAnimations(playerEntity: PlayerEntity): void {
-        // Restore the original animation method
-        if ((playerEntity as any)._originalStartModelOneshotAnimations) {
-            playerEntity.startModelOneshotAnimations = (playerEntity as any)._originalStartModelOneshotAnimations;
-            delete (playerEntity as any)._originalStartModelOneshotAnimations;
-        }
-    }
     
     private getCurrentMiningBlockPos(playerEntity: PlayerEntity): any {
         // This is a helper method to get the current block position being mined
@@ -273,32 +237,7 @@ export class PlayerManager {
         return null;
     }
     
-    private startMining(playerEntity: PlayerEntity): void {
-        // This method is kept for backward compatibility
-        const selectedSlot = this.playerInventory.getSelectedSlot();
-        const heldItem = this.playerInventory.getItem(selectedSlot);
-        
-        if (heldItem) {
-            this.startMiningOnce(playerEntity, heldItem);
-        }
-    }
     
-    private stopMining(playerEntity: PlayerEntity): void {
-        if (this.isMining) {
-            this.isMining = false;
-            this.toolManager.stopMining(String(playerEntity.player.id));
-            
-            // Restore animation methods
-            this.restoreMiningAnimations(playerEntity);
-            
-            // Clear mining progress in UI
-            playerEntity.player.ui.sendData({
-                miningProgress: {
-                    progress: 0
-                }
-            });
-        }
-    }
 
     private setupCamera(): void {
         this.player.camera.setMode(PlayerCameraMode.FIRST_PERSON);

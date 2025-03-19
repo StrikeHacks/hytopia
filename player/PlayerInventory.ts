@@ -240,4 +240,12 @@ export class PlayerInventory {
 
         return { success: false };
     }
+
+    public updateMiningProgressUI(progress: number): void {
+        this.playerEntity.player.ui.sendData({
+            miningProgress: {
+                progress: Math.min(100, Math.max(0, progress))
+            }
+        });
+    }
 } 
