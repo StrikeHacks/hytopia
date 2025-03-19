@@ -103,15 +103,6 @@ export class PlayerManager {
     private setupInputHandling(playerEntity: PlayerEntity): void {
         // Enable debug raycasting for development
         this.world.simulation.enableDebugRaycasting(true);
-        
-        // Disable auto-cancel for left mouse button to allow continuous mining
-        if (playerEntity.controller) {
-            (playerEntity.controller as any).autoCancelMouseLeftClick = false;
-        }
-
-        // Throttle variables for mining checks
-        let lastMiningCheckTime = 0;
-        const MINING_CHECK_THROTTLE = 250; // Only check for new blocks every 250ms
 
         playerEntity.controller?.on('tickWithPlayerInput', ({ input }) => {
             // Handle hotbar selection (1-5)
@@ -141,41 +132,22 @@ export class PlayerManager {
                 this.isEPressed = false;
             }
 
-            // Handle left mouse button (ml) press and hold
-            const isLeftMousePressed = input['ml'];
-            const now = Date.now();
-            
-            // Track mouse button state changes
-            if (isLeftMousePressed) {
-                // Mouse button is pressed
-                if (!this.isLeftMousePressed) {
-                    // Just pressed down - start mining immediately
-                    this.isLeftMousePressed = true;
-                    this.tryMineCurrentBlock(playerEntity);
-                    lastMiningCheckTime = now;
-                } else {
-                    // Mouse is still being held down - check for new blocks periodically
-                    if (now - lastMiningCheckTime >= MINING_CHECK_THROTTLE) {
-                        this.tryMineCurrentBlock(playerEntity);
-                        lastMiningCheckTime = now;
-                    }
-                }
-            } else if (!isLeftMousePressed && this.isLeftMousePressed) {
-                // Mouse button just released
+            // Handle left mouse button (ml) click only
+            if (input['ml'] && !this.isLeftMousePressed) {
+                this.isLeftMousePressed = true;
+                this.tryMineBlock(playerEntity);
+            } else if (!input['ml']) {
                 this.isLeftMousePressed = false;
-                this.toolManager.stopMining(String(playerEntity.player.id));
             }
         });
     }
-    
-    private tryMineCurrentBlock(playerEntity: PlayerEntity): void {
+
+    private tryMineBlock(playerEntity: PlayerEntity): void {
         const selectedSlot = this.playerInventory.getSelectedSlot();
         const heldItem = this.playerInventory.getItem(selectedSlot);
         
-        if (!heldItem) {
-            return;
-        }
-        
+        if (!heldItem) return;
+
         const direction = playerEntity.player.camera.facingDirection;
         const origin = {
             x: playerEntity.position.x,
@@ -183,61 +155,15 @@ export class PlayerManager {
             z: playerEntity.position.z
         };
 
-        const raycastResult = this.world.simulation.raycast(origin, direction, 50, {
+        const raycastResult = this.world.simulation.raycast(origin, direction, 4, {
             filterExcludeRigidBody: playerEntity.rawRigidBody
         });
 
         if (raycastResult?.hitBlock) {
             const hitPos = raycastResult.hitBlock.globalCoordinate;
-            
-            // Check if we're already mining this block
-            if (this.isMining) {
-                const currentBlockPos = this.getCurrentMiningBlockPos(playerEntity);
-                
-                if (currentBlockPos) {
-                    // Check if we're looking at a different block
-                    const isSameBlock = 
-                        Math.floor(hitPos.x) === Math.floor(currentBlockPos.x) &&
-                        Math.floor(hitPos.y) === Math.floor(currentBlockPos.y) &&
-                        Math.floor(hitPos.z) === Math.floor(currentBlockPos.z);
-                    
-                    if (!isSameBlock) {
-                        // Looking at a different block - switch targets
-                        
-                    }
-                    // If same block, continue mining (handled by ToolManager)
-                } else {
-                    // No current mining progress, start mining this block
-                }
-            } else {
-                // Not currently mining, start mining this block
-            }
-        } else {
-            // No block to mine, stop current mining if any
+            this.toolManager.tryMineBlock(playerEntity);
         }
     }
-    
-    
-    
-    private getCurrentMiningBlockPos(playerEntity: PlayerEntity): any {
-        // This is a helper method to get the current block position being mined
-        const playerId = String(playerEntity.player.id);
-        
-        // Access the miningProgress map in the ToolManager
-        // @ts-ignore - Accessing private property
-        const miningProgressMap = this.toolManager['miningProgress'];
-        
-        if (miningProgressMap && miningProgressMap instanceof Map) {
-            const progress = miningProgressMap.get(playerId);
-            if (progress) {
-                return progress.blockPos;
-            }
-        }
-        
-        return null;
-    }
-    
-    
 
     private setupCamera(): void {
         this.player.camera.setMode(PlayerCameraMode.FIRST_PERSON);
