@@ -4,259 +4,373 @@
       "id": 1,
       "name": "bricks",
       "textureUri": "blocks/bricks.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 2,
       "name": "clay",
       "textureUri": "blocks/clay.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 3,
       "name": "coal-ore",
       "textureUri": "blocks/coal-ore.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 4,
       "name": "cobblestone",
       "textureUri": "blocks/cobblestone.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 5,
       "name": "creep",
       "textureUri": "blocks/creep.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 6,
       "name": "diamond-block",
       "textureUri": "blocks/diamond-block.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 7,
       "name": "diamond-ore",
       "textureUri": "blocks/diamond-ore.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 8,
       "name": "dirt",
       "textureUri": "blocks/dirt.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 9,
       "name": "dragon_block",
       "textureUri": "blocks/dragon_block",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": true,
+      "sideTextures": {
+        "+x": "./assets/blocks/dragon_block/+x.png",
+        "+y": "./assets/blocks/dragon_block/+y.png",
+        "+z": "./assets/blocks/dragon_block/+z.png",
+        "-x": "./assets/blocks/dragon_block/-x.png",
+        "-y": "./assets/blocks/dragon_block/-y.png",
+        "-z": "./assets/blocks/dragon_block/-z.png"
+      }
     },
     {
       "id": 10,
       "name": "dragons-stone",
       "textureUri": "blocks/dragons-stone.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 11,
       "name": "emerald-block",
       "textureUri": "blocks/emerald-block.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 12,
       "name": "emerald-ore",
       "textureUri": "blocks/emerald-ore.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 13,
       "name": "ghost-dirt",
       "textureUri": "blocks/ghost-dirt.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 14,
       "name": "glass",
       "textureUri": "blocks/glass.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 15,
       "name": "gold-ore",
       "textureUri": "blocks/gold-ore.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 16,
       "name": "grass",
       "textureUri": "blocks/grass",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": true,
+      "sideTextures": {
+        "+x": "./assets/blocks/grass/+x.png",
+        "+y": "./assets/blocks/grass/+y.png",
+        "+z": "./assets/blocks/grass/+z.png",
+        "-x": "./assets/blocks/grass/-x.png",
+        "-y": "./assets/blocks/grass/-y.png",
+        "-z": "./assets/blocks/grass/-z.png"
+      }
     },
     {
       "id": 17,
       "name": "gravel",
       "textureUri": "blocks/gravel.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 18,
       "name": "ice",
       "textureUri": "blocks/ice.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 19,
       "name": "infected-shadowrock-core",
       "textureUri": "blocks/infected-shadowrock-core.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 20,
       "name": "infected-shadowrock",
       "textureUri": "blocks/infected-shadowrock.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 21,
       "name": "iron-ore",
       "textureUri": "blocks/iron-ore.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 22,
       "name": "lava",
       "textureUri": "blocks/lava.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 23,
       "name": "log",
       "textureUri": "blocks/log",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": true,
+      "sideTextures": {
+        "+x": "./assets/blocks/log/+x.png",
+        "+y": "./assets/blocks/log/+y.png",
+        "+z": "./assets/blocks/log/+z.png",
+        "-x": "./assets/blocks/log/-x.png",
+        "-y": "./assets/blocks/log/-y.png",
+        "-z": "./assets/blocks/log/-z.png"
+      }
     },
     {
       "id": 24,
       "name": "mossy-coblestone",
       "textureUri": "blocks/mossy-coblestone.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 25,
       "name": "nuit-leaves",
       "textureUri": "blocks/nuit-leaves.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 26,
       "name": "nuit",
       "textureUri": "blocks/nuit.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 27,
       "name": "oak-leaves",
       "textureUri": "blocks/oak-leaves.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 28,
       "name": "oak-planks",
       "textureUri": "blocks/oak-planks.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 29,
       "name": "sand-light",
       "textureUri": "blocks/sand-light.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 30,
       "name": "sand",
       "textureUri": "blocks/sand.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 31,
       "name": "sandstone-light",
       "textureUri": "blocks/sandstone-light.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 32,
       "name": "sandstone",
       "textureUri": "blocks/sandstone.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 33,
       "name": "shadow-pebble",
       "textureUri": "blocks/shadow-pebble.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 34,
       "name": "shadowrock",
       "textureUri": "blocks/shadowrock.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 35,
       "name": "snow",
       "textureUri": "blocks/snow.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 36,
       "name": "stone-bricks",
       "textureUri": "blocks/stone-bricks.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 37,
       "name": "stone",
       "textureUri": "blocks/stone.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 38,
       "name": "swirl-rune",
       "textureUri": "blocks/swirl-rune.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 39,
       "name": "void-sand",
       "textureUri": "blocks/void-sand.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 40,
       "name": "void_grass",
       "textureUri": "blocks/void_grass",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": true,
+      "sideTextures": {
+        "+x": "./assets/blocks/void_grass/+x.png",
+        "+y": "./assets/blocks/void_grass/+y.png",
+        "+z": "./assets/blocks/void_grass/+z.png",
+        "-x": "./assets/blocks/void_grass/-x.png",
+        "-y": "./assets/blocks/void_grass/-y.png",
+        "-z": "./assets/blocks/void_grass/-z.png"
+      }
     },
     {
       "id": 41,
       "name": "voidsoil",
       "textureUri": "blocks/voidsoil.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 42,
       "name": "water-flow",
       "textureUri": "blocks/water-flow.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     },
     {
       "id": 43,
       "name": "water-still",
       "textureUri": "blocks/water-still.png",
-      "isCustom": false
+      "isCustom": false,
+      "isMultiTexture": false,
+      "sideTextures": {}
     }
   ],
   "blocks": {
@@ -20200,7 +20314,6 @@
     "-2,0,19": 16,
     "-2,1,19": 16,
     "-2,0,20": 16,
-    "-2,1,20": 16,
     "-2,0,21": 16,
     "-2,1,21": 16,
     "-2,0,22": 16,
@@ -26063,7 +26176,6 @@
     "16,2,13": 16,
     "16,0,14": 16,
     "16,1,14": 16,
-    "16,2,14": 16,
     "16,0,15": 16,
     "16,1,15": 16,
     "16,2,15": 16,
@@ -26389,7 +26501,6 @@
     "17,2,13": 16,
     "17,0,14": 16,
     "17,1,14": 16,
-    "17,2,14": 16,
     "17,0,15": 16,
     "17,1,15": 16,
     "17,2,15": 16,
@@ -41119,7 +41230,100 @@
     "63,0,62": 16,
     "63,1,62": 16,
     "63,0,63": 16,
-    "63,1,63": 16
+    "63,1,63": 16,
+    "17,3,13": 16,
+    "17,3,12": 16,
+    "17,3,11": 16,
+    "17,3,10": 16,
+    "16,3,13": 16,
+    "16,3,12": 16,
+    "16,3,11": 16,
+    "16,3,10": 16,
+    "17,4,13": 16,
+    "17,4,12": 16,
+    "17,4,11": 16,
+    "16,4,13": 16,
+    "16,4,12": 16,
+    "16,4,11": 16,
+    "17,5,13": 16,
+    "17,5,12": 16,
+    "16,5,13": 16,
+    "16,5,12": 16,
+    "17,6,13": 16,
+    "16,6,13": 16,
+    "15,3,14": 16,
+    "15,4,14": 16,
+    "15,5,14": 16,
+    "15,6,14": 16,
+    "14,3,14": 16,
+    "14,4,14": 16,
+    "14,5,14": 16,
+    "14,6,14": 16,
+    "13,3,14": 16,
+    "13,4,14": 16,
+    "13,5,14": 16,
+    "13,5,13": 16,
+    "13,6,14": 16,
+    "13,6,13": 16,
+    "13,3,13": 16,
+    "13,4,13": 16,
+    "13,3,12": 16,
+    "13,4,12": 16,
+    "13,5,12": 16,
+    "13,6,12": 16,
+    "0,3,11": 23,
+    "0,4,11": 23,
+    "0,5,11": 23,
+    "0,6,11": 23,
+    "1,6,11": 27,
+    "0,6,10": 27,
+    "1,6,10": 27,
+    "-2,1,20": 16,
+    "-1,6,11": 27,
+    "-1,6,10": 27,
+    "0,7,10": 27,
+    "-1,7,11": 27,
+    "0,6,12": 27,
+    "-1,6,12": 27,
+    "1,6,12": 27,
+    "0,7,11": 27,
+    "1,7,11": 27,
+    "0,7,12": 27,
+    "0,8,11": 27,
+    "18,3,10": 23,
+    "18,3,11": 23,
+    "18,3,12": 23,
+    "18,3,13": 23,
+    "16,2,14": 23,
+    "17,2,14": 23,
+    "21,3,13": 23,
+    "21,4,13": 23,
+    "21,5,13": 23,
+    "21,6,13": 23,
+    "21,7,13": 23,
+    "21,8,13": 23,
+    "21,9,13": 23,
+    "6,2,17": 21,
+    "5,2,17": 21,
+    "7,2,18": 21,
+    "6,2,18": 21,
+    "4,2,18": 21,
+    "5,3,18": 21,
+    "5,4,19": 21,
+    "6,3,19": 21,
+    "7,3,19": 21,
+    "8,2,19": 21,
+    "6,4,19": 21,
+    "4,2,19": 21,
+    "3,2,19": 21,
+    "4,3,19": 21,
+    "4,2,20": 21,
+    "5,2,20": 21,
+    "6,2,21": 21,
+    "6,2,20": 21,
+    "7,2,20": 21,
+    "5,3,20": 21
   },
-  "entities": {}
+  "entities": {},
+  "version": "1.4.3"
 }

@@ -38,6 +38,7 @@ export interface ItemProperties {
     readonly category: string;
     readonly maxStackSize: number;
     readonly scale?: number;
+    readonly imageUrl?: string;
     readonly dropForce?: {
         horizontal: number;
         vertical: number;
@@ -46,6 +47,17 @@ export interface ItemProperties {
         x: number;
         y: number;
         z: number;
+    };
+    readonly handOffset?: {
+        x: number;
+        y: number;
+        z: number;
+    };
+    readonly handRotation?: {
+        x: number;
+        y: number;
+        z: number;
+        w: number;
     };
 }
 

@@ -6,7 +6,8 @@ export class BaseItem {
     protected entity: Entity | null = null;
     private isBeingPickedUp = false;
     private dropTimestamp = 0;
-    private itemConfig;
+    private droppedFromInventory = false;
+    private readonly itemConfig;
 
     constructor(
         protected world: World,
@@ -19,7 +20,9 @@ export class BaseItem {
     }
 
     private canBePickedUp(): boolean {
-        return Date.now() - this.dropTimestamp >= 400;
+        return this.droppedFromInventory ? 
+            Date.now() - this.dropTimestamp >= 400 : 
+            true;
     }
 
     private createPickupCollider(isSensor: boolean = true) {
@@ -28,11 +31,9 @@ export class BaseItem {
             collidesWith: [CollisionGroup.ENTITY, CollisionGroup.PLAYER]
         };
 
-        const size = this.itemConfig.colliderSize || { x: 0.2, y: 0.2, z: 0.2 };
-
         return {
             shape: ColliderShape.BLOCK,
-            halfExtents: size,
+            halfExtents: this.itemConfig.colliderSize || { x: 0.2, y: 0.2, z: 0.2 },
             isSensor,
             collisionGroups,
             onCollision: this.handlePickupCollision.bind(this)
@@ -40,40 +41,30 @@ export class BaseItem {
     }
 
     private createGroundCollider(height: number) {
-        const collisionGroups = {
-            belongsTo: [CollisionGroup.ENTITY],
-            collidesWith: [CollisionGroup.BLOCK]
-        };
-
         return {
             shape: ColliderShape.BLOCK,
             halfExtents: { x: 0.1, y: height, z: 0.1 },
             isSensor: false,
-            collisionGroups,
+            collisionGroups: {
+                belongsTo: [CollisionGroup.ENTITY],
+                collidesWith: [CollisionGroup.BLOCK]
+            },
             onCollision: this.handleGroundCollision.bind(this)
         };
     }
 
     private handlePickupCollision(other: BlockType | Entity, started: boolean) {
-        if (!started || !(other instanceof PlayerEntity) || !this.entity) return;
-        if (!this.canBePickedUp()) return;
+        if (!started || !(other instanceof PlayerEntity) || !this.entity || !this.canBePickedUp()) return;
 
         const inventory = this.playerInventories.get(String(other.player.id));
-        if (!inventory) return;
-
-        if (!inventory.hasEmptySlot()) return;
+        if (!inventory || !inventory.hasEmptySlot()) return;
 
         try {
-            // Get the selected slot before adding the item
             const selectedSlot = inventory.getSelectedSlot();
             const previousItemInSelectedSlot = inventory.getItem(selectedSlot);
-            
-            // Add item to inventory and get the slot it was added to
             const result = inventory.addItem(this.itemType);
             
             if (result.success && result.addedToSlot !== undefined) {
-                // Only show item name if it was added to the selected slot AND
-                // the slot was either empty or had a different item type
                 if (result.addedToSlot === selectedSlot && previousItemInSelectedSlot !== this.itemType) {
                     const displayName = this.itemConfig.displayName || this.itemType
                         .split('-')
@@ -81,16 +72,12 @@ export class BaseItem {
                         .join(' ');
                     
                     other.player.ui.sendData({
-                        showItemName: {
-                            name: displayName
-                        }
+                        showItemName: { name: displayName }
                     });
 
-                    // Re-select the slot to trigger a refresh
                     inventory.selectSlot(selectedSlot);
                 }
                 
-                // Only despawn after successful inventory update
                 this.entity.despawn();
                 this.entity = null;
             }
@@ -123,20 +110,20 @@ export class BaseItem {
             }
         });
 
-        const spawnPos = {
+        this.entity.spawn(this.world, {
             x: this.position.x,
             y: this.position.y + 0.3,
             z: this.position.z
-        };
-
-        this.entity.spawn(this.world, spawnPos);
+        });
+        this.droppedFromInventory = false;
     }
 
-    public drop(fromPosition: { x: number; y: number; z: number }, direction: { x: number; y: number; z: number }): void {
+    public drop(fromPosition: { x: number; y: number; z: number }, direction: { x: number; y: number; z: number }, isFromBlock: boolean = false): void {
         if (!this.entity || !this.world) return;
 
         this.entity.despawn();
         this.dropTimestamp = Date.now();
+        this.droppedFromInventory = !isFromBlock;
         
         const dropForce = this.itemConfig.dropForce || { horizontal: 0.4, vertical: 0.1 };
         const colliderSize = this.itemConfig.colliderSize || { x: 0.2, y: 0.2, z: 0.2 };
@@ -147,10 +134,17 @@ export class BaseItem {
             z: fromPosition.z + direction.z * 0.3
         };
 
+        const directionMagnitude = Math.sqrt(direction.x * direction.x + direction.z * direction.z) || 1;
+        const normalizedDirection = {
+            x: direction.x / directionMagnitude,
+            y: direction.y,
+            z: direction.z / directionMagnitude
+        };
+        
         const impulse = {
-            x: direction.x * dropForce.horizontal,
+            x: normalizedDirection.x * dropForce.horizontal,
             y: dropForce.vertical,
-            z: direction.z * dropForce.horizontal
+            z: normalizedDirection.z * dropForce.horizontal
         };
 
         this.entity = new Entity({

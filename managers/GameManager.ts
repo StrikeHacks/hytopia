@@ -3,19 +3,22 @@ import { IronGenerator } from '../generators/IronGenerator';
 import { GoldGenerator } from '../generators/GoldGenerator';
 import { ironConfig, goldConfig } from '../config/generators';
 import { PlayerInventory } from '../player/PlayerInventory';
-import worldMap from '../assets/terrain1.json';
+import worldMap from '../assets/terrain.json';
 import { ItemSpawner } from './ItemSpawner';
+import { ToolManager } from './ToolManager';
 
 export class GameManager {
     private playerInventories: Map<string, PlayerInventory> = new Map();
     private ironGenerator!: IronGenerator;
     private goldGenerator!: GoldGenerator;
     private itemSpawner: ItemSpawner;
+    private toolManager: ToolManager;
 
     constructor(private world: World) {
         this.setupWorld();
-        this.setupGenerators();
         this.itemSpawner = new ItemSpawner(world, this.playerInventories);
+        this.toolManager = new ToolManager(world, this.playerInventories, this.itemSpawner);
+        this.setupGenerators();
         this.spawnInitialItems();
     }
 
@@ -56,5 +59,9 @@ export class GameManager {
 
     public cleanup(playerId: string): void {
         this.playerInventories.delete(playerId);
+    }
+
+    public getToolManager(): ToolManager {
+        return this.toolManager;
     }
 } 

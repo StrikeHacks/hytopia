@@ -2,22 +2,30 @@ import { World, PlayerEntity, PlayerCameraMode, PlayerUIEvent } from 'hytopia';
 import { ItemSpawner } from './ItemSpawner';
 import { PlayerHealth } from '../player/PlayerHealth';
 import { PlayerInventory } from '../player/PlayerInventory';
+import { ToolManager } from './ToolManager';
+import { GameManager } from './GameManager';
 import type { HealthChangeEvent } from '../player/PlayerHealth';
 
 export class PlayerManager {
     private playerHealth!: PlayerHealth;
     private playerEntity!: PlayerEntity;
     private playerInventory!: PlayerInventory;
+    private toolManager!: ToolManager;
     private isEPressed: boolean = false;
     private isQPressed: boolean = false;
+    private isMining: boolean = false;
+    private isLeftMousePressed: boolean = false;
+    private leftMouseHoldStartTime: number = 0;
 
     constructor(
         private world: World,
         private player: any,
         private playerInventories: Map<string, PlayerInventory>,
-        private itemSpawner: ItemSpawner
+        private itemSpawner: ItemSpawner,
+        private gameManager: GameManager
     ) {
         this.playerEntity = this.createPlayerEntity();
+        this.toolManager = gameManager.getToolManager();
         this.setupHealth();
         this.setupInventory();
         this.setupUI();
@@ -27,12 +35,17 @@ export class PlayerManager {
     }
 
     private createPlayerEntity(): PlayerEntity {
-        return new PlayerEntity({
+        // Create the player entity with only idle animation
+        const entity = new PlayerEntity({
             player: this.player,
             modelUri: 'models/players/player.gltf',
             modelLoopedAnimations: ['idle'],
             modelScale: 0.5,
         });
+        
+       
+        
+        return entity;
     }
 
     private setupHealth(): void {
@@ -50,22 +63,13 @@ export class PlayerManager {
 
     private onHealthChange(event: HealthChangeEvent): void {
         // Handle health change events
-        if (event.type === 'damage') {
-            console.log(`Player took ${-event.change} damage`);
-            if (this.playerHealth.getIsDead()) {
-                this.handlePlayerDeath();
-            }
-        } else if (event.type === 'heal') {
-            console.log(`Player healed for ${event.change}`);
+        if (event.type === 'damage' && this.playerHealth.getIsDead()) {
+            this.handlePlayerDeath();
         }
     }
 
     private handlePlayerDeath(): void {
-        console.log('Player died!');
-        // Add death handling logic here
-        // For example: respawn timer, death animation, etc.
-        
-        // Auto-revive after 3 seconds for now
+        // Auto-revive after 3 seconds
         setTimeout(() => {
             if (this.playerHealth.getIsDead()) {
                 this.playerHealth.revive();
@@ -97,14 +101,15 @@ export class PlayerManager {
     }
 
     private setupInputHandling(playerEntity: PlayerEntity): void {
+        // Enable debug raycasting for development
+        this.world.simulation.enableDebugRaycasting(true);
+
         playerEntity.controller?.on('tickWithPlayerInput', ({ input }) => {
             // Handle hotbar selection (1-5)
             for (let i = 1; i <= 5; i++) {
                 if (input[i.toString()]) {
                     const slotIndex = i - 1;
-                    // Only select if it's not already the current slot
                     if (this.playerInventory.getSelectedSlot() !== slotIndex) {
-                        console.log(`[PlayerManager] Number ${i} pressed - selecting hotbar slot ${slotIndex}`);
                         this.playerInventory.selectSlot(slotIndex);
                     }
                 }
@@ -113,7 +118,6 @@ export class PlayerManager {
             // Handle item dropping (Q) - only trigger on key down
             if (input['q'] && !this.isQPressed) {
                 const isShiftHeld = input['sh'];
-                console.log('[PlayerManager] Q key pressed - dropping item. Shift held:', isShiftHeld);
                 this.isQPressed = true;
                 this.itemSpawner.handleItemDrop(playerEntity, isShiftHeld);
             } else if (!input['q']) {
@@ -122,18 +126,48 @@ export class PlayerManager {
 
             // Handle inventory toggle (E) - only trigger on key down
             if (input['e'] && !this.isEPressed) {
-                console.log('[PlayerManager] E key pressed - toggling inventory');
                 this.isEPressed = true;
                 this.playerInventory.handleInventoryToggle();
             } else if (!input['e']) {
                 this.isEPressed = false;
             }
+
+            // Handle left mouse button (ml) click only
+            if (input['ml'] && !this.isLeftMousePressed) {
+                this.isLeftMousePressed = true;
+                this.tryMineBlock(playerEntity);
+            } else if (!input['ml']) {
+                this.isLeftMousePressed = false;
+            }
         });
+    }
+
+    private tryMineBlock(playerEntity: PlayerEntity): void {
+        const selectedSlot = this.playerInventory.getSelectedSlot();
+        const heldItem = this.playerInventory.getItem(selectedSlot);
+        
+        if (!heldItem) return;
+
+        const direction = playerEntity.player.camera.facingDirection;
+        const origin = {
+            x: playerEntity.position.x,
+            y: playerEntity.position.y + playerEntity.player.camera.offset.y + 0.33,
+            z: playerEntity.position.z
+        };
+
+        const raycastResult = this.world.simulation.raycast(origin, direction, 4, {
+            filterExcludeRigidBody: playerEntity.rawRigidBody
+        });
+
+        if (raycastResult?.hitBlock) {
+            const hitPos = raycastResult.hitBlock.globalCoordinate;
+            this.toolManager.tryMineBlock(playerEntity);
+        }
     }
 
     private setupCamera(): void {
         this.player.camera.setMode(PlayerCameraMode.FIRST_PERSON);
-        this.player.camera.setOffset({ x: 0, y: 0.8, z: 0 });
+        this.player.camera.setOffset({ x: 0, y: 0.7, z: 0 });
         this.player.camera.setModelHiddenNodes(['head', 'neck']);
         this.player.camera.setForwardOffset(0.3);
     }

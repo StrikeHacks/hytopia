@@ -1,4 +1,4 @@
-import { World, PlayerEntity } from 'hytopia';
+import { World, PlayerEntity, Entity, RigidBodyType, ColliderShape, CollisionGroup } from 'hytopia';
 import type { PlayerInventory } from '../player/PlayerInventory';
 import { BaseItem } from '../items/BaseItem';
 import { itemConfigs, NON_STACKABLE_TYPES, getItemConfig } from '../config/items';
@@ -7,78 +7,8 @@ import { itemConfigs, NON_STACKABLE_TYPES, getItemConfig } from '../config/items
 const INITIAL_ITEMS = [
     { type: 'sword-diamond', position: { x: 6, y: 3.7, z: 2 } },
     { type: 'sword-diamond', position: { x: 6, y: 3.7, z: 1 } },
-    { type: 'sword-diamond', position: { x: 6, y: 3.7, z: 0 } },
     { type: 'clock', position: { x: 8, y: 3.4, z: 2 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 1 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: 0 } },
 
-    { type: 'clock', position: { x: 8, y: 3.4, z: -1 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -2 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -3 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -4 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -5 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -6 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -7 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -8 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -9 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -10 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -11 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -12 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -13 } },  
-    { type: 'clock', position: { x: 8, y: 3.4, z: -14 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -15 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -16 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -17 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -18 } },
-    { type: 'clock', position: { x: 8, y: 3.4, z: -19 } },
     
     { type: 'paper', position: { x: 10, y: 3.4, z: 2 } },
     { type: 'paper', position: { x: 10, y: 3.4, z: 1 } },
@@ -90,20 +20,13 @@ const INITIAL_ITEMS = [
     { type: 'book', position: { x: 14, y: 3.4, z: 1 } },
     { type: 'sword-stone', position: { x: 16, y: 3.7, z: 2 } },
     { type: 'sword-stone', position: { x: 16, y: 3.7, z: 1 } },
-    { type: 'sword-stone', position: { x: 16, y: 3.7, z: 0 } },
-    { type: 'sword-golden', position: { x: 18, y: 3.7, z: 2 } },
-    { type: 'sword-golden', position: { x: 18, y: 3.7, z: 1 } },
+
     { type: 'sword-golden', position: { x: 18, y: 3.7, z: 0 } },
     { type: 'fishing-rod', position: { x: 20, y: 3.7, z: 2 } },
     { type: 'fishing-rod', position: { x: 20, y: 3.7, z: 1 } },
-    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: 0 } },
-    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -1 } },
-    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -2 } },
-    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -3 } },
-    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -4 } },
-    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -5 } },
-    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -6 } },
-    { type: 'fishing-rod', position: { x: 20, y: 3.7, z: -7 } }
+    { type: 'axe-stone', position: { x: 4, y: 3.7, z: 2 } },
+    { type: 'pickaxe-stone', position: { x: 2, y: 3.7, z: 2 } },
+    { type: 'stick', position: { x: 0, y: 3.7, z: 2 } },
 ];
 
 export class ItemSpawner {
@@ -118,12 +41,17 @@ export class ItemSpawner {
 
     public spawnInitialItems(): void {
         INITIAL_ITEMS.forEach(({ type, position }) => {
-            const item = new BaseItem(this.world, position, this.playerInventories, type);
-            item.spawn();
-            const items = this.activeItems.get(type) || [];
-            items.push(item);
-            this.activeItems.set(type, items);
+            this.spawnItem(type, position);
         });
+    }
+
+    private spawnItem(type: string, position: { x: number; y: number; z: number }): void {
+        const item = new BaseItem(this.world, position, this.playerInventories, type);
+        item.spawn();
+        
+        const items = this.activeItems.get(type) || [];
+        items.push(item);
+        this.activeItems.set(type, items);
     }
 
     public handleItemDrop(playerEntity: PlayerEntity, isShiftHeld: boolean): void {
@@ -181,6 +109,38 @@ export class ItemSpawner {
         }
     }
 
+    /**
+     * Handles drops from mining/chopping blocks with a different drop behavior
+     * @param itemType The type of item to drop
+     * @param position The position where the block was broken
+     */
+    public handleBlockDrop(itemType: string, position: { x: number; y: number; z: number }): void {
+        try {
+            const blockCenter = {
+                x: Math.floor(position.x) + 0.5,
+                y: Math.floor(position.y) + 0.5,
+                z: Math.floor(position.z) + 0.5
+            };
+            
+            const randomAngle = Math.random() * Math.PI * 2;
+            const direction = {
+                x: Math.cos(randomAngle) * 1.5,
+                y: 0.3,
+                z: Math.sin(randomAngle) * 1.5
+            };
+            
+            const items = this.activeItems.get(itemType) || [];
+            const droppedItem = new BaseItem(this.world, blockCenter, this.playerInventories, itemType);
+            droppedItem.spawn();
+            droppedItem.drop(blockCenter, direction, true);
+            
+            items.push(droppedItem);
+            this.activeItems.set(itemType, items);
+        } catch (error) {
+            console.error('[ItemSpawner] Error spawning block drop:', error);
+        }
+    }
+
     private calculateDropPosition(playerEntity: PlayerEntity) {
         const playerPos = playerEntity.position;
         return {
@@ -195,9 +155,9 @@ export class ItemSpawner {
         const angle = 2 * Math.atan2(rotation.y, rotation.w);
         
         return {
-            x: -Math.sin(angle),
-            y: 0.2,
-            z: -Math.cos(angle)
+            x: -Math.sin(angle) * 0.4,  // Use DEFAULT_DROP_FORCE.horizontal
+            y: 0.1,                     // Use DEFAULT_DROP_FORCE.vertical
+            z: -Math.cos(angle) * 0.4   // Use DEFAULT_DROP_FORCE.horizontal
         };
     }
 

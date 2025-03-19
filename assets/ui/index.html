@@ -11,37 +11,13 @@
             padding: 0;
             font-family: 'Roboto', sans-serif;
         }
-      
-        .sword-diamond-icon {
-            background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_sword.gif');
-        }
 
-        .sword-stone-icon {
-            background-image: url('https://www.canteach.ca/minecraft-pe/images/stone_sword.gif');
-        }
+       
 
-        .sword-golden-icon {
-            background-image: url('https://www.canteach.ca/minecraft-pe/images/golden_sword.gif');
-        }
-
-        .fishing-rod-icon {
-            background-image: url('https://static.wikia.nocookie.net/minecraft_gamepedia/images/7/7f/Fishing_Rod_JE2_BE2.png');
-        }
-
-        .paper-icon {
-            background-image: url('https://www.canteach.ca/minecraft-pe/images/paper.gif');
-        }
-
-        .bread-icon {
-            background-image: url('https://www.canteach.ca/minecraft-pe/images/bread.gif');
-        }
-
-        .book-icon {
-            background-image: url('https://www.canteach.ca/minecraft-pe/images/book.gif');
-        }
-
-        .clock-icon {
-            background-image: url('https://www.canteach.ca/minecraft-pe/images/clock.gif');
+        /* Error state for failed image loads */
+        .item-icon.error {
+            background-color: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.3);
         }
 
         .generator-text {
@@ -527,39 +503,6 @@
             background-position: center;
         }
 
-        /* Add specific item icon classes */
-        .item-icon.sword-diamond {
-            background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_sword.gif');
-        }
-
-        .item-icon.sword-stone {
-            background-image: url('https://www.canteach.ca/minecraft-pe/images/stone_sword.gif');
-        }
-
-        .item-icon.sword-golden {
-            background-image: url('https://www.canteach.ca/minecraft-pe/images/golden_sword.gif');
-        }
-
-        .item-icon.fishing-rod {
-            background-image: url('https://static.wikia.nocookie.net/minecraft_gamepedia/images/7/7f/Fishing_Rod_JE2_BE2.png');
-        }
-
-        .item-icon.paper {
-            background-image: url('https://www.canteach.ca/minecraft-pe/images/paper.gif');
-        }
-
-        .item-icon.bread {
-            background-image: url('https://www.canteach.ca/minecraft-pe/images/bread.gif');
-        }
-
-        .item-icon.book {
-            background-image: url('https://www.canteach.ca/minecraft-pe/images/book.gif');
-        }
-
-        .item-icon.clock {
-            background-image: url('https://www.canteach.ca/minecraft-pe/images/clock.gif');
-        }
-
         @keyframes rotate {
             from { transform: rotateY(0deg); }
             to { transform: rotateY(360deg); }
@@ -684,10 +627,10 @@
             hotbar.appendChild(slot);
         }
 
-        // Function to update inventory slot with item
-        function updateInventorySlot(slot, item, count = 1) {
+        // Enhanced function to update inventory slot with item
+        function updateInventorySlot(slot, item, count = 1, imageUrl) {
             // Update internal state
-            inventoryState.set(slot, { type: item, count });
+            inventoryState.set(slot, { type: item, count, imageUrl });
             
             // Update inventory slot
             const inventorySlot = document.querySelector(`.inventory-slot[data-slot="${slot}"]`);
@@ -698,7 +641,9 @@
                 if (itemIcon) {
                     itemIcon.className = 'item-icon';
                     if (item) {
-                        itemIcon.classList.add(item);
+                        itemIcon.style.backgroundImage = `url('{{CDN_ASSETS_URL}}/${imageUrl}')`;
+                    } else {
+                        itemIcon.style.backgroundImage = 'none';
                     }
                 }
                 
@@ -717,7 +662,9 @@
                     if (itemIcon) {
                         itemIcon.className = 'item-icon';
                         if (item) {
-                            itemIcon.classList.add(item);
+                            itemIcon.style.backgroundImage = `url('{{CDN_ASSETS_URL}}/${imageUrl}')`;
+                        } else {
+                            itemIcon.style.backgroundImage = 'none';
                         }
                     }
                     
@@ -732,7 +679,7 @@
         function reapplyInventoryState() {
             console.log('[Inventory] Reapplying inventory state...');
             inventoryState.forEach((item, slot) => {
-                updateInventorySlot(slot, item.type, item.count);
+                updateInventorySlot(slot, item.type, item.count, item.imageUrl);
             });
         }
 
@@ -880,11 +827,11 @@
                 if (Array.isArray(data.inventoryUpdate)) {
                     // Handle batch updates
                     data.inventoryUpdate.forEach(update => {
-                        updateInventorySlot(update.slot, update.item, update.count);
+                        updateInventorySlot(update.slot, update.item, update.count, update.imageUrl);
                     });
                 } else {
                     // Handle single update
-                    updateInventorySlot(data.inventoryUpdate.slot, data.inventoryUpdate.item, data.inventoryUpdate.count);
+                    updateInventorySlot(data.inventoryUpdate.slot, data.inventoryUpdate.item, data.inventoryUpdate.count, data.inventoryUpdate.imageUrl);
                 }
             }
 
@@ -898,11 +845,11 @@
                 if (Array.isArray(data.hotbarUpdate)) {
                     // Handle batch updates
                     data.hotbarUpdate.forEach(update => {
-                        updateInventorySlot(update.slot, update.item, update.count);
+                        updateInventorySlot(update.slot, update.item, update.count, update.imageUrl);
                     });
                 } else {
                     // Handle single update
-                    updateInventorySlot(data.hotbarUpdate.slot, data.hotbarUpdate.item, data.hotbarUpdate.count);
+                    updateInventorySlot(data.hotbarUpdate.slot, data.hotbarUpdate.item, data.hotbarUpdate.count, data.hotbarUpdate.imageUrl);
                 }
             }
 

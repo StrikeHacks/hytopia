@@ -13,34 +13,34 @@ export class PlayerInventory {
     private lastUpdateTime: number = 0;
     private readonly UPDATE_THROTTLE = 50; // Minimum time between updates in ms
     private pendingUpdates = new Map<number, { type: string | null; count: number }>();
+    private nameRequestTimeout: ReturnType<typeof setTimeout> | null = null;
 
     constructor(
         private playerEntity: PlayerEntity
     ) {
         this.equipmentManager = new EquipmentManager(playerEntity);
-        console.log('[PlayerInventory] Initialized');
+        this.setupItemNameRequests();
+    }
 
-        // Listen for getItemName requests with debounce
-        let nameRequestTimeout: ReturnType<typeof setTimeout> | null = null;
+    private setupItemNameRequests(): void {
         this.playerEntity.player.ui.on('data', (data: any) => {
-            if (data.getItemName?.type) {
-                if (nameRequestTimeout) {
-                    clearTimeout(nameRequestTimeout);
-                }
-                nameRequestTimeout = setTimeout(() => {
-                    try {
-                        const config = getItemConfig(data.getItemName.type);
-                        this.playerEntity.player.ui.sendData({
-                            showItemName: {
-                                name: config.displayName || data.getItemName.type
-                            }
-                        });
-                    } catch (error) {
-                        console.error('[PlayerInventory] Error getting item name:', error);
-                    }
-                    nameRequestTimeout = null;
-                }, 50);
+            if (!data.getItemName?.type) return;
+
+            if (this.nameRequestTimeout) {
+                clearTimeout(this.nameRequestTimeout);
             }
+
+            this.nameRequestTimeout = setTimeout(() => {
+                try {
+                    const config = getItemConfig(data.getItemName.type);
+                    this.playerEntity.player.ui.sendData({
+                        showItemName: {
+                            name: config.displayName || data.getItemName.type
+                        }
+                    });
+                } catch (error) {}
+                this.nameRequestTimeout = null;
+            }, 50);
         });
     }
 
@@ -54,30 +54,16 @@ export class PlayerInventory {
         // Unequip current item if any
         const currentItem = this.slots[this.selectedSlot];
         if (currentItem.type) {
-            console.log(`[PlayerInventory] Unequipping ${currentItem.type}`);
             this.equipmentManager.unequipItem();
         }
 
         this.selectedSlot = slot;
-        console.log(`[PlayerInventory] Selected slot ${slot}`);
 
         // Equip new item if any
         const newItem = this.slots[slot];
         if (newItem.type) {
-            console.log(`[PlayerInventory] Equipping ${newItem.type}`);
             this.equipmentManager.equipItem(newItem.type);
-            
-            // Send display name for the new item
-            try {
-                const config = getItemConfig(newItem.type);
-                this.playerEntity.player.ui.sendData({
-                    showItemName: {
-                        name: config.displayName || newItem.type
-                    }
-                });
-            } catch (error) {
-                console.error('[PlayerInventory] Error getting item name:', error);
-            }
+            this.showItemName(newItem.type);
         }
 
         // Update UI
@@ -86,6 +72,17 @@ export class PlayerInventory {
                 selectedSlot: slot
             }
         });
+    }
+
+    private showItemName(itemType: string): void {
+        try {
+            const config = getItemConfig(itemType);
+            this.playerEntity.player.ui.sendData({
+                showItemName: {
+                    name: config.displayName || itemType
+                }
+            });
+        } catch (error) {}
     }
 
     public hasEmptySlot(): boolean {
@@ -114,8 +111,6 @@ export class PlayerInventory {
 
     public setItem(slot: number, item: string | null, count: number = 1): void {
         if (slot < 0 || slot >= this.slots.length) return;
-
-        console.log(`[PlayerInventory] Setting slot ${slot} to ${item} (count: ${count})`);
         
         const oldItem = this.slots[slot].type;
         this.slots[slot] = { type: item, count };
@@ -159,20 +154,18 @@ export class PlayerInventory {
     private sendBatchUpdate(): void {
         if (this.pendingUpdates.size === 0) return;
 
-        const inventoryUpdates: any[] = [];
-        const hotbarUpdates: any[] = [];
+        const updates = Array.from(this.pendingUpdates.entries()).map(([slot, item]) => ({
+            slot,
+            item: item.type,
+            count: item.count,
+            imageUrl: item.type ? getItemConfig(item.type).imageUrl : undefined
+        }));
 
-        this.pendingUpdates.forEach((item, slot) => {
-            const update = { slot, item: item.type, count: item.count };
-            inventoryUpdates.push(update);
-            if (slot < 5) {
-                hotbarUpdates.push(update);
-            }
-        });
+        const hotbarUpdates = updates.filter(update => update.slot < 5);
 
         this.playerEntity.player.ui.sendData({
-            inventoryUpdate: inventoryUpdates,
-            hotbarUpdate: hotbarUpdates
+            inventoryUpdate: updates,
+            ...(hotbarUpdates.length > 0 && { hotbarUpdate: hotbarUpdates })
         });
 
         this.pendingUpdates.clear();
@@ -187,21 +180,18 @@ export class PlayerInventory {
         this.isInventoryOpen = !this.isInventoryOpen;
         
         if (this.isInventoryOpen) {
-            // Send all slot states at once
-            const updates = {
+            const updates = this.slots.map((item, slot) => ({
+                slot,
+                item: item.type,
+                count: item.count,
+                imageUrl: item.type ? getItemConfig(item.type).imageUrl : undefined
+            }));
+
+            this.playerEntity.player.ui.sendData({
                 inventoryToggle: { isOpen: true },
-                inventoryUpdate: this.slots.map((item, slot) => ({
-                    slot,
-                    item: item.type,
-                    count: item.count
-                })),
-                hotbarUpdate: this.slots.slice(0, 5).map((item, slot) => ({
-                    slot,
-                    item: item.type,
-                    count: item.count
-                }))
-            };
-            this.playerEntity.player.ui.sendData(updates);
+                inventoryUpdate: updates,
+                hotbarUpdate: updates.slice(0, 5)
+            });
         } else {
             this.playerEntity.player.ui.sendData({
                 inventoryToggle: { isOpen: false }
@@ -238,5 +228,13 @@ export class PlayerInventory {
         }
 
         return { success: false };
+    }
+
+    public updateMiningProgressUI(progress: number): void {
+        this.playerEntity.player.ui.sendData({
+            miningProgress: {
+                progress: Math.min(100, Math.max(0, progress))
+            }
+        });
     }
 } 
