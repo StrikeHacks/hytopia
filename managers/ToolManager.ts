@@ -1,7 +1,7 @@
 import { World, PlayerEntity, Entity, RigidBodyType, ColliderShape, CollisionGroup, BlockType } from 'hytopia';
 import type { PlayerInventory } from '../player/PlayerInventory';
 import { ItemSpawner } from './ItemSpawner';
-import { toolConfigs } from '../config/tools';
+import { toolConfigs, blockConfigs, getBlockConfig } from '../config/tools';
 
 export interface ToolConfig {
     name: string;
@@ -16,7 +16,8 @@ export class ToolManager {
         private itemSpawner: ItemSpawner
     ) {
         console.log('[ToolManager] Initialized with tool configs:', {
-            tools: Array.from(toolConfigs.entries())
+            tools: Array.from(toolConfigs.entries()),
+            blocks: Array.from(blockConfigs.entries())
         });
     }
 
@@ -84,6 +85,13 @@ export class ToolManager {
             return;
         }
 
+        // Get block configuration
+        const blockConfig = getBlockConfig(blockId);
+        if (!blockConfig) {
+            console.log('[Mining] No block config found for ID:', blockId);
+            return;
+        }
+
         if (!this.canBreakBlock(heldItem, blockId)) {
             console.log('[Mining] Cannot break block ID', blockId, 'with item:', heldItem);
             return;
@@ -110,27 +118,25 @@ export class ToolManager {
         console.log('[Mining] Applied damage:', {
             damage: toolConfig.damage,
             previousTotal: previousDamage,
-            newTotal: blockDamage.totalDamage
+            newTotal: blockDamage.totalDamage,
+            blockHP: blockConfig.hp
         });
 
-        // Update UI with progress (blocks take 2.5 seconds to break)
-        const progress = (blockDamage.totalDamage / 2.5) * 100;
+        // Update UI with progress based on block's max HP
+        const progress = (blockDamage.totalDamage / blockConfig.hp) * 100;
         inventory.updateMiningProgressUI(Math.min(100, Math.max(0, progress)));
 
         // Check if block should break
-        if (blockDamage.totalDamage >= 2.5) {
+        if (blockDamage.totalDamage >= blockConfig.hp) {
             console.log('[Mining] Block broken!', {
                 position: hitPos,
-                blockId
+                blockId,
+                drops: blockConfig.drops
             });
             
-            // Break the block and handle drops
-            if (blockId === 1) { // Stone
-                this.itemSpawner.handleBlockDrop('cobblestone', hitPos);
-            } else if (blockId === 21) { // Iron Ore
-                this.itemSpawner.handleBlockDrop('iron-ingot', hitPos);
-            } else if (blockId === 23) { // Log
-                this.itemSpawner.handleBlockDrop('stick', hitPos);
+            // Handle drops if specified in block config
+            if (blockConfig.drops) {
+                this.itemSpawner.handleBlockDrop(blockConfig.drops, hitPos);
             }
 
             this.world.chunkLattice.setBlock(hitPos, 0); // Set to air
