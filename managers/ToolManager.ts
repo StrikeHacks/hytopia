@@ -10,6 +10,11 @@ export interface ToolConfig {
 }
 
 export class ToolManager {
+    private blockDamages: Map<string, { totalDamage: number; lastDamageTime: number }> = new Map();
+    private lastHitBlock: string | null = null;
+    private resetTimer: NodeJS.Timer | null = null;
+    private readonly RESET_DELAY = 500; // 500ms delay before resetting damage
+
     constructor(
         private world: World,
         private playerInventories: Map<string, PlayerInventory>,
@@ -19,6 +24,34 @@ export class ToolManager {
             tools: Array.from(toolConfigs.entries()),
             blocks: Array.from(blockConfigs.entries())
         });
+    }
+
+    private resetBlockDamage(inventory: PlayerInventory, blockKey: string | null = null) {
+        if (blockKey) {
+            // Reset specific block
+            this.blockDamages.delete(blockKey);
+            console.log('[Mining] Reset damage for block:', blockKey);
+        } else {
+            // Reset all blocks
+            this.blockDamages.clear();
+            console.log('[Mining] Reset all block damage');
+        }
+        
+        // Reset UI progress
+        inventory.updateMiningProgressUI(0);
+        this.lastHitBlock = null;
+    }
+
+    private scheduleReset(inventory: PlayerInventory, blockKey: string) {
+        // Clear any existing timer
+        if (this.resetTimer) {
+            clearTimeout(this.resetTimer);
+        }
+
+        // Set new timer
+        this.resetTimer = setTimeout(() => {
+            this.resetBlockDamage(inventory, blockKey);
+        }, this.RESET_DELAY);
     }
 
     public canBreakBlock(toolType: string, blockId: number): boolean {
@@ -68,17 +101,26 @@ export class ToolManager {
         });
 
         if (!raycastResult?.hitBlock) {
-            console.log('[Mining] No block in range');
+            // Player is not looking at any block, reset damage
+            if (this.lastHitBlock) {
+                this.resetBlockDamage(inventory, this.lastHitBlock);
+            }
             return;
         }
 
         const hitPos = raycastResult.hitBlock.globalCoordinate;
         const blockId = this.world.chunkLattice.getBlockId(hitPos);
+        const currentBlockKey = this.coordinateToKey(hitPos);
         
         console.log('[Mining] Hit block:', {
             position: hitPos,
             blockId
         });
+
+        // Check if player is looking at a different block
+        if (this.lastHitBlock && this.lastHitBlock !== currentBlockKey) {
+            this.resetBlockDamage(inventory, this.lastHitBlock);
+        }
 
         if (!blockId) {
             console.log('[Mining] No block ID found at position');
@@ -97,17 +139,16 @@ export class ToolManager {
             return;
         }
 
-        const coordinateKey = this.coordinateToKey(hitPos);
-        let blockDamage = this.blockDamages.get(coordinateKey);
+        let blockDamage = this.blockDamages.get(currentBlockKey);
 
         // Initialize damage tracking if this is a new block
         if (!blockDamage) {
             blockDamage = {
                 totalDamage: 0,
-                lastDamageTime: 0
+                lastDamageTime: Date.now()
             };
-            this.blockDamages.set(coordinateKey, blockDamage);
-            console.log('[Mining] Started mining new block at:', coordinateKey);
+            this.blockDamages.set(currentBlockKey, blockDamage);
+            console.log('[Mining] Started mining new block at:', currentBlockKey);
         }
 
         // Apply damage
@@ -126,6 +167,12 @@ export class ToolManager {
         const progress = (blockDamage.totalDamage / blockConfig.hp) * 100;
         inventory.updateMiningProgressUI(Math.min(100, Math.max(0, progress)));
 
+        // Schedule a reset if the player stops mining
+        this.scheduleReset(inventory, currentBlockKey);
+
+        // Update last hit block
+        this.lastHitBlock = currentBlockKey;
+
         // Check if block should break
         if (blockDamage.totalDamage >= blockConfig.hp) {
             console.log('[Mining] Block broken!', {
@@ -140,14 +187,19 @@ export class ToolManager {
             }
 
             this.world.chunkLattice.setBlock(hitPos, 0); // Set to air
-            this.blockDamages.delete(coordinateKey);
+            this.blockDamages.delete(currentBlockKey);
             inventory.updateMiningProgressUI(0);
+            this.lastHitBlock = null;
+
+            // Clear reset timer when block is broken
+            if (this.resetTimer) {
+                clearTimeout(this.resetTimer);
+                this.resetTimer = null;
+            }
         }
     }
 
     private coordinateToKey(coordinate: { x: number; y: number; z: number }): string {
         return `${coordinate.x},${coordinate.y},${coordinate.z}`;
     }
-
-    private blockDamages: Map<string, { totalDamage: number; lastDamageTime: number }> = new Map();
 } 
