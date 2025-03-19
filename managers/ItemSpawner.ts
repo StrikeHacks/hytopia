@@ -41,12 +41,17 @@ export class ItemSpawner {
 
     public spawnInitialItems(): void {
         INITIAL_ITEMS.forEach(({ type, position }) => {
-            const item = new BaseItem(this.world, position, this.playerInventories, type);
-            item.spawn();
-            const items = this.activeItems.get(type) || [];
-            items.push(item);
-            this.activeItems.set(type, items);
+            this.spawnItem(type, position);
         });
+    }
+
+    private spawnItem(type: string, position: { x: number; y: number; z: number }): void {
+        const item = new BaseItem(this.world, position, this.playerInventories, type);
+        item.spawn();
+        
+        const items = this.activeItems.get(type) || [];
+        items.push(item);
+        this.activeItems.set(type, items);
     }
 
     public handleItemDrop(playerEntity: PlayerEntity, isShiftHeld: boolean): void {

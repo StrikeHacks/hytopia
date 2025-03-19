@@ -43,7 +43,7 @@ export const itemConfigs = {
         },
         handOffset: WEAPONS_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'https://www.canteach.ca/minecraft-pe/images/diamond_sword.gif'
+        imageUrl: 'items/sword-diamond.png'
     },
     'sword-stone': {
         type: 'sword-stone',
@@ -60,7 +60,7 @@ export const itemConfigs = {
         },
         handOffset: WEAPONS_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'https://www.canteach.ca/minecraft-pe/images/stone_sword.gif'
+        imageUrl: 'items/sword-stone.png'
     },
     'sword-golden': {
         type: 'sword-golden',
@@ -77,8 +77,7 @@ export const itemConfigs = {
         },
         handOffset: WEAPONS_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'https://www.canteach.ca/minecraft-pe/images/golden_sword.gif'
-
+        imageUrl: 'items/sword-golden.png'
     },
     'clock': {
         type: 'clock',
@@ -91,7 +90,7 @@ export const itemConfigs = {
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'https://www.canteach.ca/minecraft-pe/images/clock.gif'
+        imageUrl: 'items/clock.png'
     },
     'paper': {
         type: 'paper',
@@ -104,7 +103,7 @@ export const itemConfigs = {
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'https://www.canteach.ca/minecraft-pe/images/paper.gif'
+        imageUrl: 'items/paper.png'
     },
     'bread': {
         type: 'bread',
@@ -117,7 +116,7 @@ export const itemConfigs = {
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'https://www.canteach.ca/minecraft-pe/images/bread.gif'
+        imageUrl: 'items/bread.png'
     },
     'book': {
         type: 'book',
@@ -130,7 +129,7 @@ export const itemConfigs = {
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'https://www.canteach.ca/minecraft-pe/images/book.gif'
+        imageUrl: 'items/book.png'
     },
     'fishing-rod': {
         type: 'fishing-rod',
@@ -147,7 +146,7 @@ export const itemConfigs = {
         },
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: SIDEWAYS_HAND_ROTATION,
-        imageUrl: 'https://static.vecteezy.com/system/resources/thumbnails/021/665/635/small_2x/pixel-art-fishing-rod-tool-for-game-free-png.png'
+        imageUrl: 'items/fishing-rod.png'
     },
     'stick': {
         type: 'stick',
@@ -164,7 +163,7 @@ export const itemConfigs = {
         },
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: SIDEWAYS_HAND_ROTATION,
-        imageUrl: 'https://www.canteach.ca/minecraft-pe/images/stick.gif'
+        imageUrl: 'items/log-oak.png'
     },
     'iron-ingot': {
         type: 'iron-ingot',
@@ -181,12 +180,12 @@ export const itemConfigs = {
         },
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'https://static.vecteezy.com/system/resources/thumbnails/019/527/051/small_2x/an-8-bit-retro-styled-pixel-art-illustration-of-an-iron-bar-ingot-free-png.png'
+        imageUrl: 'items/iron-ingot.png'
     },
     'axe-stone': {
         type: 'axe-stone',
         modelUri: 'models/items/axe-stone.gltf',
-        displayName: 'Axe',
+        displayName: 'Stone Axe',
         category: 'tools',
         maxStackSize: 1,
         scale: 0.5,
@@ -198,7 +197,7 @@ export const itemConfigs = {
         },
         handOffset: TOOLS_HAND_OFFSET,
         handRotation: TOOLS_HAND_ROTATION,
-        imageUrl: 'https://static.vecteezy.com/system/resources/thumbnails/021/665/628/small_2x/pixel-art-stone-axe-tool-for-game-free-png.png'
+        imageUrl: 'items/axe-stone.png'
     },
     'pickaxe-stone': {
         type: 'pickaxe-stone',
@@ -215,7 +214,7 @@ export const itemConfigs = {
         },
         handOffset: TOOLS_HAND_OFFSET,
         handRotation: TOOLS_HAND_ROTATION,
-        imageUrl: 'https://static.vecteezy.com/system/resources/thumbnails/021/665/641/small_2x/pixel-art-stone-pickaxe-tool-for-game-free-png.png'
+        imageUrl: 'items/pickaxe-stone.png'
     }
 } as const;
 

@@ -640,20 +640,8 @@
                 
                 if (itemIcon) {
                     itemIcon.className = 'item-icon';
-                    if (item && imageUrl) {
-                        // Add image error handling
-                        const tempImage = new Image();
-                        tempImage.onerror = () => {
-                            console.error(`[UI] Failed to load image: ${imageUrl}`);
-                            itemIcon.classList.add('error');
-                            // Try to load a backup image or show error state
-                            itemIcon.style.backgroundImage = 'none';
-                        };
-                        tempImage.onload = () => {
-                            itemIcon.style.backgroundImage = `url('${imageUrl}')`;
-                            itemIcon.classList.remove('error');
-                        };
-                        tempImage.src = imageUrl;
+                    if (item) {
+                        itemIcon.style.backgroundImage = `url('{{CDN_ASSETS_URL}}/${imageUrl}')`;
                     } else {
                         itemIcon.style.backgroundImage = 'none';
                     }
@@ -673,19 +661,8 @@
                     
                     if (itemIcon) {
                         itemIcon.className = 'item-icon';
-                        if (item && imageUrl) {
-                            // Add image error handling for hotbar
-                            const tempImage = new Image();
-                            tempImage.onerror = () => {
-                                console.error(`[UI] Failed to load hotbar image: ${imageUrl}`);
-                                itemIcon.classList.add('error');
-                                itemIcon.style.backgroundImage = 'none';
-                            };
-                            tempImage.onload = () => {
-                                itemIcon.style.backgroundImage = `url('${imageUrl}')`;
-                                itemIcon.classList.remove('error');
-                            };
-                            tempImage.src = imageUrl;
+                        if (item) {
+                            itemIcon.style.backgroundImage = `url('{{CDN_ASSETS_URL}}/${imageUrl}')`;
                         } else {
                             itemIcon.style.backgroundImage = 'none';
                         }

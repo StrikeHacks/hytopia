@@ -13,7 +13,7 @@ export class ToolManager {
     private blockDamages: Map<string, { totalDamage: number; lastDamageTime: number }> = new Map();
     private lastHitBlock: string | null = null;
     private resetTimer: NodeJS.Timer | null = null;
-    private readonly RESET_DELAY = 500; // 500ms delay before resetting damage
+    private readonly RESET_DELAY = 1000; // Increased to 1 second to give more time between hits
 
     constructor(
         private world: World,
@@ -26,7 +26,7 @@ export class ToolManager {
         });
     }
 
-    private resetBlockDamage(inventory: PlayerInventory, blockKey: string | null = null) {
+    private resetBlockDamage(inventory: PlayerInventory, blockKey: string | null = null): void {
         if (blockKey) {
             // Reset specific block
             this.blockDamages.delete(blockKey);
@@ -42,7 +42,7 @@ export class ToolManager {
         this.lastHitBlock = null;
     }
 
-    private scheduleReset(inventory: PlayerInventory, blockKey: string) {
+    private scheduleReset(inventory: PlayerInventory, blockKey: string): void {
         // Clear any existing timer
         if (this.resetTimer) {
             clearTimeout(this.resetTimer);
@@ -139,9 +139,8 @@ export class ToolManager {
             return;
         }
 
+        // Get existing damage or create new damage tracker
         let blockDamage = this.blockDamages.get(currentBlockKey);
-
-        // Initialize damage tracking if this is a new block
         if (!blockDamage) {
             blockDamage = {
                 totalDamage: 0,
@@ -152,25 +151,21 @@ export class ToolManager {
         }
 
         // Apply damage
-        const previousDamage = blockDamage.totalDamage;
         blockDamage.totalDamage += toolConfig.damage;
         blockDamage.lastDamageTime = Date.now();
 
-        console.log('[Mining] Applied damage:', {
-            damage: toolConfig.damage,
-            previousTotal: previousDamage,
-            newTotal: blockDamage.totalDamage,
-            blockHP: blockConfig.hp
+        console.log('[Mining] Block damage:', {
+            totalDamage: blockDamage.totalDamage,
+            maxHP: blockConfig.hp,
+            tool: heldItem
         });
 
-        // Update UI with progress based on block's max HP
+        // Update UI with progress
         const progress = (blockDamage.totalDamage / blockConfig.hp) * 100;
         inventory.updateMiningProgressUI(Math.min(100, Math.max(0, progress)));
 
-        // Schedule a reset if the player stops mining
+        // Schedule reset and update last hit block
         this.scheduleReset(inventory, currentBlockKey);
-
-        // Update last hit block
         this.lastHitBlock = currentBlockKey;
 
         // Check if block should break
