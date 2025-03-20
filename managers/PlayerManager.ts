@@ -90,6 +90,7 @@ export class PlayerManager {
     }
 
     private setupUI(): void {
+        // Load the main UI (inventory, health, crafting, etc.)
         this.player.ui.load('ui/index.html');
 
         this.player.ui.on(PlayerUIEvent.DATA, (data: any) => {
@@ -103,6 +104,9 @@ export class PlayerManager {
     private setupInputHandling(playerEntity: PlayerEntity): void {
         // Enable debug raycasting for development
         this.world.simulation.enableDebugRaycasting(true);
+        
+        let isFPressed = false;
+        let isCraftingOpen = false;
 
         playerEntity.controller?.on('tickWithPlayerInput', ({ input }) => {
             // Handle hotbar selection (1-5)
@@ -132,12 +136,28 @@ export class PlayerManager {
                 this.isEPressed = false;
             }
 
+            // Handle crafting toggle (F) - only trigger on key down
+            if (input['f'] && !isFPressed) {
+                isFPressed = true;
+                isCraftingOpen = !isCraftingOpen;
+                console.log('[PlayerManager] F key pressed - toggling crafting UI:', isCraftingOpen);
+            } else if (!input['f']) {
+                isFPressed = false;
+            }
+
             // Handle left mouse button (ml) click only
             if (input['ml'] && !this.isLeftMousePressed) {
                 this.isLeftMousePressed = true;
                 this.tryMineBlock(playerEntity);
             } else if (!input['ml']) {
                 this.isLeftMousePressed = false;
+            }
+        });
+
+        // Handle UI events from client
+        this.player.ui.on(PlayerUIEvent.DATA, (data: any) => {
+            if (data.craftingToggle !== undefined) {
+                isCraftingOpen = data.craftingToggle.isOpen;
             }
         });
     }

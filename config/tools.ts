@@ -31,11 +31,6 @@ export const blockConfigs: Map<number, BlockConfig> = new Map([
 
 // Tool configurations
 export const toolConfigs: Map<string, ToolConfig> = new Map([
-    ['shears', {
-        name: 'Shears',
-        canBreak: [23], // Log blocks
-        damage: 0.5 // Damage per click
-    }],
     ['axe-stone', {
         name: 'Stone Axe',
         canBreak: [23], // Log blocks

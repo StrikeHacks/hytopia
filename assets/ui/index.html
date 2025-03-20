@@ -270,6 +270,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            display: block; /* Show by default */
         }
 
         .inventory-toggle::before {
@@ -298,7 +299,7 @@
         }
 
         .inventory-container {
-            display: none;
+            display: none; /* Hide by default */
             position: fixed;
             top: 20px;
             right: 20px;
@@ -507,6 +508,242 @@
             from { transform: rotateY(0deg); }
             to { transform: rotateY(360deg); }
         }
+
+        /* Add new styles for crafting */
+        .crafting-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #8B4513;
+        }
+
+        .crafting-categories {
+            width: 200px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .category-item {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #8B4513;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .category-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .category-item.selected {
+            background: rgba(139, 69, 19, 0.4);
+            border-color: #FFD700;
+        }
+
+        .crafting-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 45px);
+            grid-template-rows: 45px;
+            gap: 4px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .crafting-overlay {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #444;
+            z-index: 1000;
+        }
+
+        .crafting-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .crafting-categories {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 150px;
+        }
+
+        .category-item {
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .category-item:hover {
+            background-color: rgba(64, 64, 64, 0.6);
+            border-color: #666;
+        }
+
+        .category-item.selected {
+            background-color: rgba(64, 64, 64, 0.8);
+            border-color: #888;
+        }
+
+        .crafting-recipes {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .crafting-recipe {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 1px solid #444;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .crafting-recipe:hover {
+            border-color: #666;
+            background-color: rgba(32, 32, 32, 0.8);
+        }
+
+        .recipe-label {
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .recipe-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .crafting-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 45px);
+            grid-template-rows: 45px;
+            gap: 4px;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .crafting-slot {
+            width: 45px;
+            height: 45px;
+            background-color: rgba(32, 32, 32, 0.8);
+            border: 1px solid #444;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .crafting-slot img {
+            max-width: 80%;
+            max-height: 80%;
+            object-fit: contain;
+        }
+
+        .crafting-arrow {
+            color: #fff;
+            font-size: 24px;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .result-slot {
+            width: 45px;
+            height: 45px;
+            background-color: rgba(32, 32, 32, 0.8);
+            border: 2px solid #ffd700;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .result-slot img {
+            max-width: 80%;
+            max-height: 80%;
+            object-fit: contain;
+        }
+
+        .item-count {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            color: white;
+            font-size: 12px;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+        }
+
+        .recipe-progress {
+            width: 100%;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin-top: 8px;
+        }
+
+        .recipe-progress-fill {
+            width: 0%;
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 2px;
+            transition: width 0.1s linear;
+        }
+
+        .recipe-time {
+            color: #aaa;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        /* Add custom scrollbar for recipe list */
+        .crafting-recipes::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .crafting-recipes::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        .crafting-recipes::-webkit-scrollbar-thumb {
+            background: rgba(139, 69, 19, 0.6);
+            border-radius: 4px;
+        }
+
+        .crafting-recipes::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 69, 19, 0.8);
+        }
     </style>
 </head>
 <body>
@@ -603,12 +840,34 @@
         <div class="inventory-hotbar" id="inventoryHotbar"></div>
     </div>
 
+    <!-- Add crafting UI -->
+    <div class="crafting-overlay">
+        <div class="crafting-container">
+            <div class="crafting-categories">
+                <div class="category-item" data-category="tools">TOOLS</div>
+                <div class="category-item" data-category="weapons">WEAPONS</div>
+                <div class="category-item" data-category="resources">RESOURCES</div>
+                <div class="category-item" data-category="misc">MISC</div>
+            </div>
+            <div class="crafting-recipes">
+                <!-- Recipes will be populated here -->
+            </div>
+        </div>
+    </div>
+
     <script>
         console.log('Script loaded');
         
-        // Track key state
-        let isKeyPressed = false;
-        
+        // Global state variables
+        const state = {
+            isKeyPressed: false,
+            isFPressed: false,
+            isCraftingVisible: false,
+            currentCategory: 'TOOLS',
+            selectedSlot: 0,
+            isInventoryOpen: false
+        };
+
         // Store inventory state
         const inventoryState = new Map();
 
@@ -685,9 +944,9 @@
 
         // Handle keydown
         document.addEventListener('keydown', (event) => {
-            // Only handle if it's the 'e' key and it wasn't already pressed
-            if (event.key.toLowerCase() === 'e' && !isKeyPressed) {
-                isKeyPressed = true;
+            // Handle E key for inventory
+            if (event.key.toLowerCase() === 'e' && !state.isKeyPressed) {
+                state.isKeyPressed = true;
                 console.log('[UI] E key pressed - sending toggle request');
                 hytopia.sendData({
                     inventoryToggle: {
@@ -695,17 +954,59 @@
                     }
                 });
             }
-            // Prevent default behavior for 'e' key
-            if (event.key.toLowerCase() === 'e') {
+            // Handle F key for crafting
+            if (event.key.toLowerCase() === 'f' && !state.isFPressed) {
+                state.isFPressed = true;
+                state.isCraftingVisible = !state.isCraftingVisible;
+                const craftingOverlay = document.querySelector('.crafting-overlay');
+                if (craftingOverlay) {
+                    craftingOverlay.style.display = state.isCraftingVisible ? 'block' : 'none';
+                    if (state.isCraftingVisible) {
+                        // Release pointer lock when opening crafting UI
+                        if (document.pointerLockElement) {
+                            document.exitPointerLock();
+                        }
+                        // Request recipes for the current category when opening
+                        hytopia.sendData({
+                            getRecipes: {
+                                category: state.currentCategory
+                            }
+                        });
+                    } else {
+                        // Request pointer lock when closing crafting UI
+                        document.body.requestPointerLock();
+                    }
+                }
+            }
+            // Prevent default behavior for both keys
+            if (event.key.toLowerCase() === 'e' || event.key.toLowerCase() === 'f') {
                 event.preventDefault();
             }
         });
 
-        // Handle keyup
         document.addEventListener('keyup', (event) => {
             if (event.key.toLowerCase() === 'e') {
-                isKeyPressed = false;
+                state.isKeyPressed = false;
             }
+            if (event.key.toLowerCase() === 'f') {
+                state.isFPressed = false;
+            }
+        });
+
+        // Add pointer lock error handling
+        document.addEventListener('pointerlockerror', () => {
+            console.log('[UI] Pointer lock error - retrying in 100ms');
+            setTimeout(() => {
+                if (!state.isCraftingVisible) {
+                    document.body.requestPointerLock();
+                }
+            }, 100);
+        });
+
+        // Handle pointer lock change
+        document.addEventListener('pointerlockchange', () => {
+            const isLocked = document.pointerLockElement !== null;
+            console.log('[UI] Pointer lock state changed:', isLocked ? 'locked' : 'unlocked');
         });
 
         // Initialize inventory grid with 15 slots
@@ -806,12 +1107,11 @@
             if (data.inventoryToggle) {
                 const { isOpen } = data.inventoryToggle;
                 console.log(`[Inventory] ${isOpen ? 'Opening' : 'Closing'} inventory`);
-                inventoryContainer.style.display = isOpen ? 'block' : 'none';
-                inventoryToggle.style.display = isOpen ? 'none' : 'block';
-                
-                if (isOpen) {
-                    console.log('[Inventory] Restoring inventory state...');
-                    reapplyInventoryState();
+                const inventoryContainer = document.getElementById('inventoryContainer');
+                const inventoryToggle = document.getElementById('inventoryToggle');
+                if (inventoryContainer && inventoryToggle) {
+                    inventoryContainer.style.display = isOpen ? 'block' : 'none';
+                    inventoryToggle.style.display = isOpen ? 'none' : 'block';
                 }
             }
 
@@ -926,6 +1226,173 @@
 
         modelViewer.addEventListener('error', (error) => {
             console.error('[UI] Error loading model:', error);
+        });
+
+        // Add F key handling
+        let isFPressed = false;
+        let isCraftingVisible = false;
+        let currentCategory = 'tools';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize crafting UI
+            const craftingOverlay = document.querySelector('.crafting-overlay');
+            if (craftingOverlay) {
+                craftingOverlay.style.display = 'none';
+            }
+
+            // Add category selection handling
+            document.querySelectorAll('.category-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    // Remove selected class from all categories
+                    document.querySelectorAll('.category-item').forEach(i => {
+                        i.classList.remove('selected');
+                    });
+                    // Add selected class to clicked category
+                    item.classList.add('selected');
+                    state.currentCategory = item.getAttribute('data-category');
+                    
+                    // Request recipes for the selected category
+                    console.log('[UI] Requesting recipes for category:', state.currentCategory);
+                    hytopia.sendData({
+                        getRecipes: {
+                            category: state.currentCategory
+                        }
+                    });
+                });
+            });
+
+            // Handle recipe data and progress updates from server
+            hytopia.onData(data => {
+                console.log('[UI] Received data:', data);
+
+                if (data.recipes) {
+                    console.log('[UI] Received recipes:', data.recipes);
+                    const recipesContainer = document.querySelector('.crafting-recipes');
+                    recipesContainer.innerHTML = ''; // Clear existing recipes
+
+                    data.recipes.forEach(recipe => {
+                        const recipeElement = document.createElement('div');
+                        recipeElement.className = 'crafting-recipe';
+                        recipeElement.setAttribute('data-recipe', recipe.name);
+                        
+                        // Add recipe name
+                        const nameElement = document.createElement('div');
+                        nameElement.className = 'recipe-label';
+                        nameElement.textContent = recipe.name;
+                        recipeElement.appendChild(nameElement);
+
+                        // Add recipe content (grid + arrow + result)
+                        const contentElement = document.createElement('div');
+                        contentElement.className = 'recipe-content';
+
+                        // Create crafting grid
+                        const gridElement = document.createElement('div');
+                        gridElement.className = 'crafting-grid';
+
+                        // Add ingredient slots
+                        for (let i = 0; i < 4; i++) {
+                            const slot = document.createElement('div');
+                            slot.className = 'crafting-slot';
+                            
+                            const ingredient = recipe.ingredients[i];
+                            if (ingredient) {
+                                const img = document.createElement('img');
+                                img.src = `{{CDN_ASSETS_URL}}/${ingredient.imageUrl}`;
+                                slot.appendChild(img);
+
+                                if (ingredient.count > 1) {
+                                    const count = document.createElement('div');
+                                    count.className = 'item-count';
+                                    count.textContent = ingredient.count;
+                                    slot.appendChild(count);
+                                }
+                            }
+                            
+                            gridElement.appendChild(slot);
+                        }
+                        contentElement.appendChild(gridElement);
+
+                        // Add arrow
+                        const arrowElement = document.createElement('div');
+                        arrowElement.className = 'crafting-arrow';
+                        arrowElement.textContent = '➔';
+                        contentElement.appendChild(arrowElement);
+
+                        // Add result slot
+                        const resultElement = document.createElement('div');
+                        resultElement.className = 'result-slot';
+                        const resultImg = document.createElement('img');
+                        resultImg.src = `{{CDN_ASSETS_URL}}/${recipe.result.imageUrl}`;
+                        resultElement.appendChild(resultImg);
+                        if (recipe.result.count > 1) {
+                            const count = document.createElement('div');
+                            count.className = 'item-count';
+                            count.textContent = recipe.result.count;
+                            resultElement.appendChild(count);
+                        }
+                        contentElement.appendChild(resultElement);
+
+                        recipeElement.appendChild(contentElement);
+
+                        // Add progress bar
+                        const progressElement = document.createElement('div');
+                        progressElement.className = 'recipe-progress';
+                        const progressFill = document.createElement('div');
+                        progressFill.className = 'recipe-progress-fill';
+                        progressElement.appendChild(progressFill);
+                        recipeElement.appendChild(progressElement);
+
+                        // Add crafting time
+                        const timeElement = document.createElement('div');
+                        timeElement.className = 'recipe-time';
+                        timeElement.textContent = `Crafting Time: ${recipe.craftingTime}s`;
+                        recipeElement.appendChild(timeElement);
+
+                        // Make the recipe clickable
+                        recipeElement.addEventListener('click', () => {
+                            hytopia.sendData({
+                                startCrafting: {
+                                    recipeName: recipe.name
+                                }
+                            });
+                        });
+
+                        recipesContainer.appendChild(recipeElement);
+                    });
+                }
+                
+                if (data.craftingProgress) {
+                    const { recipeName, progress } = data.craftingProgress;
+                    const recipe = document.querySelector(`.crafting-recipe[data-recipe="${recipeName}"]`);
+                    if (recipe) {
+                        const progressFill = recipe.querySelector('.recipe-progress-fill');
+                        if (progressFill) {
+                            progressFill.style.width = `${progress}%`;
+                        }
+                    }
+                }
+
+                if (data.craftingComplete) {
+                    const { recipeName, success } = data.craftingComplete;
+                    const recipe = document.querySelector(`.crafting-recipe[data-recipe="${recipeName}"]`);
+                    if (recipe) {
+                        const progressFill = recipe.querySelector('.recipe-progress-fill');
+                        if (progressFill) {
+                            progressFill.style.width = '0%';
+                        }
+                    }
+                }
+
+                if (data.craftingError) {
+                    console.error('[UI] Crafting error:', data.craftingError.message);
+                }
+            });
+
+            // Select the default category (tools) when the UI opens
+            const defaultCategory = document.querySelector('.category-item[data-category="tools"]');
+            if (defaultCategory) {
+                defaultCategory.click();
+            }
         });
     </script>
 </body>
