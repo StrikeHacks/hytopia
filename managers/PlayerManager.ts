@@ -13,20 +13,25 @@ import { PlayerHealth } from "../player/PlayerHealth";
 import { PlayerInventory } from "../player/PlayerInventory";
 import { ToolManager } from "./ToolManager";
 import { GameManager } from "./GameManager";
+import { CraftingManager } from "./CraftingManager";
 import type { HealthChangeEvent } from "../player/PlayerHealth";
+import { getAvailableCategories } from '../config/recipes';
 
 export class PlayerManager {
-	private playerHealth!: PlayerHealth;
-	private playerEntity!: PlayerEntity;
+	private playerEntity: PlayerEntity;
 	private playerInventory!: PlayerInventory;
-	private toolManager!: ToolManager;
-	private isEPressed: boolean = false;
-	private isQPressed: boolean = false;
+	private playerHealth!: PlayerHealth;
+	private toolManager: ToolManager;
+	private craftingManager: CraftingManager;
 	private isMining: boolean = false;
 	private isLeftMousePressed: boolean = false;
 	private leftMouseHoldStartTime: number = 0;
 	private miningInterval: NodeJS.Timer | null = null;
 	private readonly MINING_INTERVAL_MS = 300; // Time between mining attempts when holding the button
+	private isCraftingOpen: boolean = false;
+	private isQPressed: boolean = false;
+	private isEPressed: boolean = false;
+	private isFPressed: boolean = false;
 
 	constructor(
 		private world: World,
@@ -39,6 +44,7 @@ export class PlayerManager {
 		this.playerController.autoCancelMouseLeftClick = false;
 		this.playerController.interactOneshotAnimations = [];
 		this.toolManager = gameManager.getToolManager();
+		this.craftingManager = gameManager.getCraftingManager();
 		this.setupHealth();
 		this.setupInventory();
 		this.setupUI();
@@ -118,6 +124,44 @@ export class PlayerManager {
 				const { slot } = data.hotbarSelect;
 				this.playerInventory.selectSlot(slot);
 			}
+
+			// Handle recipe requests
+			if (data.requestRecipes) {
+				const { category } = data.requestRecipes;
+				console.log(`[PlayerManager] Player ${this.player.id} requested recipes for category: ${category}`);
+				
+				// Normalize category to handle weapon/weapons
+				const normalizedCategory = this.normalizeCategory(category);
+				console.log(`[PlayerManager] Normalized category: ${normalizedCategory}`);
+				
+				// Get recipes filtered by category
+				const recipes = this.craftingManager.getRecipesByCategory(normalizedCategory);
+				console.log(`[PlayerManager] Found ${recipes.length} recipes for category ${normalizedCategory}`);
+				
+				// Log the first recipe if available
+				if (recipes.length > 0) {
+					console.log(`[PlayerManager] First recipe: ${JSON.stringify(recipes[0])}`);
+				}
+				
+				// Send recipes back to the player, including the requested category
+				this.player.ui.sendData({
+					recipes: recipes,
+					requestedCategory: normalizedCategory
+				});
+			}
+			
+			// Handle crafting requests
+            if (data.craftItem) {
+                const { recipeName } = data.craftItem;
+                const success = this.craftingManager.craftItem(this.player.id, recipeName);
+                
+                this.player.ui.sendData({
+                    craftResult: {
+                        success,
+                        recipeName
+                    }
+                });
+            }
 		});
 	}
 
@@ -157,7 +201,18 @@ export class PlayerManager {
 					this.isEPressed = false;
 				}
 
-				// Handle left mouse button (ml) for continuous mining
+				// Handle F key for crafting UI
+				if (input["f"] && !this.isFPressed) {
+					this.isFPressed = true;
+					if (this.isCraftingOpen) {
+						this.closeCrafting();
+					} else {
+						this.openCrafting();
+					}
+				} else if (!input["f"]) {
+					this.isFPressed = false;
+				}
+
 				if (input["ml"] && !this.isLeftMousePressed) {
 					// Mouse button was just pressed down
 					this.isLeftMousePressed = true;
@@ -177,6 +232,13 @@ export class PlayerManager {
 				}
 			}
 		);
+
+		// Listen for UI data from client
+		this.player.ui.on(PlayerUIEvent.DATA, ({ data }: { data: any }) => {
+			if (data.craftingToggle?.action === 'close') {
+				this.closeCrafting();
+			}
+		});
 	}
 
 	private startMining(playerEntity: PlayerEntity): void {
@@ -248,6 +310,18 @@ export class PlayerManager {
 		playerEntity.spawn(this.world, { x: 5, y: 10, z: 5 });
 	}
 
+	private openCrafting(): void {
+		this.isCraftingOpen = true;
+		this.toggleCraftingUI(this.player.id, true);
+		this.player.ui.lockPointer(false);
+	}
+
+	private closeCrafting(): void {
+		this.isCraftingOpen = false;
+		this.toggleCraftingUI(this.player.id, false);
+		this.player.ui.lockPointer(true);
+	}
+
 	// Public methods for health management
 	public damage(amount: number): number {
 		return this.playerHealth.damage(amount);
@@ -279,5 +353,78 @@ export class PlayerManager {
 
 	public isDead(): boolean {
 		return this.playerHealth.getIsDead();
+	}
+
+	/**
+	 * Normalize category name to handle different plural/singular forms
+	 */
+	private normalizeCategory(category: string): string {
+		if (!category) return '';
+		
+		// Handle weapon/weapons categories
+		if (category.toLowerCase() === 'weapon') {
+			console.log('[PlayerManager] Normalizing "weapon" to "weapons" for consistency');
+			return 'weapons';
+		}
+		
+		return category;
+	}
+
+	/**
+	 * Toggle the crafting UI for a player
+	 */
+	toggleCraftingUI(playerId: string, isOpen: boolean): void {
+		console.log(`[PlayerManager] Toggling crafting UI for player ${playerId}: ${isOpen ? 'open' : 'close'}`);
+		
+		if (isOpen) {
+			// Get the available categories for the UI
+			const categories = this.craftingManager.getAvailableCategories();
+			console.log(`[PlayerManager] Available crafting categories: ${JSON.stringify(categories)}`);
+			
+			// Normalize categories to ensure consistency
+			const normalizedCategories = categories.map(cat => {
+				// Make sure 'weapon' is normalized to 'weapons'
+				if (cat.toLowerCase() === 'weapon') {
+					return 'weapons';
+				}
+				return cat;
+			});
+			
+			// Get initial recipes for the first category (typically 'tools')
+			const initialCategory = normalizedCategories[0] || 'tools';
+			console.log(`[PlayerManager] Getting initial recipes for category: ${initialCategory}`);
+			const recipes = this.craftingManager.getRecipesByCategory(initialCategory);
+			
+			// Open the crafting UI with categories and initial recipes
+			this.player.ui.sendData({
+				craftingToggle: {
+					isOpen: true,
+					categories: normalizedCategories,
+					recipes: recipes,
+					initialCategory: initialCategory
+				}
+			});
+		} else {
+			// Close the crafting UI
+			this.player.ui.sendData({
+				craftingToggle: {
+					isOpen: false
+				}
+			});
+		}
+	}
+
+	/**
+	 * Handle key press
+	 */
+	onKeyPress(key: string, isDown: boolean): void {
+		// Handle crafting UI toggle
+		if (key === 'KeyE' && isDown) {
+			this.isCraftingOpen = !this.isCraftingOpen;
+			this.toggleCraftingUI(this.player.id, this.isCraftingOpen);
+			return;
+		}
+
+		// ... existing key handling code ...
 	}
 }

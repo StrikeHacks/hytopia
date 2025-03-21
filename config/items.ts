@@ -220,10 +220,32 @@ export const itemConfigs = {
 
 // Helper function to get item config
 export function getItemConfig(itemType: string) {
+    if (!itemType) {
+        console.error('[Items] Attempted to get config for null or undefined item type');
+        throw new Error('Item type is null or undefined');
+    }
+    
+    console.log(`[Items] Getting config for item type: "${itemType}"`);
+    
     const config = itemConfigs[itemType as keyof typeof itemConfigs];
     if (!config) {
-        throw new Error(`No configuration found for item type: ${itemType}`);
+        console.error(`[Items] No configuration found for item type: "${itemType}"`);
+        // Return a default config instead of throwing an error
+        return {
+            type: itemType,
+            modelUri: 'models/items/fallback.gltf',
+            displayName: itemType,
+            category: 'unknown',
+            maxStackSize: MAX_STACK_SIZE,
+            scale: DEFAULT_ITEM_SCALE,
+            dropForce: DEFAULT_DROP_FORCE,
+            colliderSize: DEFAULT_COLLIDER_SIZE,
+            handOffset: DEFAULT_HAND_OFFSET,
+            handRotation: DEFAULT_HAND_ROTATION,
+            imageUrl: 'items/fallback.png'
+        };
     }
+    
     return config as typeof config & { 
         handOffset?: { x: number; y: number; z: number },
         handRotation?: { x: number; y: number; z: number; w: number },

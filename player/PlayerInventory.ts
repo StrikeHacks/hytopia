@@ -203,31 +203,110 @@ export class PlayerInventory {
         }, 200);
     }
 
-    public addItem(itemType: string): { success: boolean; addedToSlot?: number } {
+    /**
+     * Get the total count of a specific item type across all inventory slots
+     */
+    public getCountOfItem(itemType: string): number {
+        let count = 0;
+        for (let i = 0; i < this.slots.length; i++) {
+            if (this.slots[i].type === itemType) {
+                count += this.slots[i].count;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Remove a specific amount of an item type from the inventory
+     */
+    public removeItem(itemType: string, amount: number): boolean {
+        if (amount <= 0) return true;
+        
+        let remainingToRemove = amount;
+        
+        // First try to remove from non-hotbar slots
+        for (let i = 5; i < this.slots.length && remainingToRemove > 0; i++) {
+            if (this.slots[i].type === itemType) {
+                const toRemove = Math.min(this.slots[i].count, remainingToRemove);
+                this.slots[i].count -= toRemove;
+                remainingToRemove -= toRemove;
+                
+                if (this.slots[i].count <= 0) {
+                    this.slots[i] = { type: null, count: 0 };
+                }
+                
+                this.updateSlotUI(i);
+            }
+        }
+        
+        // If we still need to remove more, check hotbar slots
+        for (let i = 0; i < 5 && remainingToRemove > 0; i++) {
+            if (this.slots[i].type === itemType) {
+                const toRemove = Math.min(this.slots[i].count, remainingToRemove);
+                this.slots[i].count -= toRemove;
+                remainingToRemove -= toRemove;
+                
+                if (this.slots[i].count <= 0) {
+                    this.slots[i] = { type: null, count: 0 };
+                    
+                    // If this was the selected slot, unequip the item
+                    if (i === this.selectedSlot) {
+                        this.equipmentManager.unequipItem();
+                    }
+                }
+                
+                this.updateSlotUI(i);
+            }
+        }
+        
+        return remainingToRemove === 0;
+    }
+
+    /**
+     * Add an item to the inventory with a specific count
+     */
+    public addItem(itemType: string, count: number = 1): { success: boolean; addedToSlot?: number } {
+        if (count <= 0) return { success: true };
+        
+        let remaining = count;
+        let firstAddedSlot: number | undefined = undefined;
         const itemConfig = getItemConfig(itemType);
+        const isStackable = !NON_STACKABLE_TYPES.includes(itemType as (typeof NON_STACKABLE_TYPES)[number]);
         
         // First try to stack with existing items
-        for (let i = 0; i < this.slots.length; i++) {
-            const isStackable = !NON_STACKABLE_TYPES.includes(itemType as (typeof NON_STACKABLE_TYPES)[number]);
-            if (this.slots[i].type === itemType && isStackable) {
-                if (this.slots[i].count < itemConfig.maxStackSize) {
-                    this.slots[i].count++;
+        if (isStackable) {
+            for (let i = 0; i < this.slots.length && remaining > 0; i++) {
+                if (this.slots[i].type === itemType && this.slots[i].count < itemConfig.maxStackSize) {
+                    const canAdd = Math.min(remaining, itemConfig.maxStackSize - this.slots[i].count);
+                    this.slots[i].count += canAdd;
+                    remaining -= canAdd;
                     this.updateSlotUI(i);
-                    return { success: true, addedToSlot: i };
+                    
+                    if (firstAddedSlot === undefined) {
+                        firstAddedSlot = i;
+                    }
                 }
             }
         }
-
-        // Then try to find an empty slot
-        for (let i = 0; i < this.slots.length; i++) {
+        
+        // Then find empty slots for remaining items
+        for (let i = 0; i < this.slots.length && remaining > 0; i++) {
             if (!this.slots[i].type) {
-                this.slots[i] = { type: itemType, count: 1 };
+                const canAdd = isStackable ? Math.min(remaining, itemConfig.maxStackSize) : 1;
+                this.slots[i] = { type: itemType, count: canAdd };
+                remaining -= canAdd;
                 this.updateSlotUI(i);
-                return { success: true, addedToSlot: i };
+                
+                if (firstAddedSlot === undefined) {
+                    firstAddedSlot = i;
+                }
             }
         }
-
-        return { success: false };
+        
+        return { 
+            success: remaining < count, 
+            addedToSlot: firstAddedSlot 
+        };
     }
 
     public updateMiningProgressUI(progress: number): void {
