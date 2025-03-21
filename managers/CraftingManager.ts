@@ -198,14 +198,18 @@ export class CraftingManager {
         }
 
         console.log(`[CraftingManager] Crafting ${recipeName} for player ${playerId}`);
+        console.log(`[CraftingManager] Required inputs:`, recipe.inputs);
+        console.log(`[CraftingManager] Output: ${recipe.output.type} x${recipe.output.count}`);
 
         // Remove input items
         recipe.inputs.forEach(input => {
+            console.log(`[CraftingManager] Removing ${input.count}x ${input.type} from inventory`);
             inventory.removeItem(input.type, input.count);
         });
 
         // Add output item
-        inventory.addItem(recipe.output.type, recipe.output.count);
+        const addResult = inventory.addItem(recipe.output.type, recipe.output.count);
+        console.log(`[CraftingManager] Added ${recipe.output.count}x ${recipe.output.type} to inventory:`, addResult);
 
         return true;
     }
@@ -228,5 +232,79 @@ export class CraftingManager {
             console.error(`[CraftingManager] Error getting image URL for item ${itemType}:`, error);
             return '';
         }
+    }
+
+    /**
+     * Get recipe by ID
+     */
+    public getRecipeById(recipeName: string): Recipe | null {
+        try {
+            const recipe = getRecipeById(recipeName);
+            return recipe || null;
+        } catch (error) {
+            console.error(`[CraftingManager] Error getting recipe with ID ${recipeName}:`, error);
+            return null;
+        }
+    }
+
+    /**
+     * Get detailed information about crafting requirements for a recipe
+     */
+    public getDetailedCraftingRequirements(playerId: string, recipeName: string): {
+        requirements: Array<{
+            type: string;
+            requiredCount: number;
+            playerHasCount: number;
+            hasSufficient: boolean;
+        }>;
+        missingItems: Array<{
+            type: string;
+            missing: number;
+        }>;
+    } {
+        const inventory = this.playerInventories.get(playerId);
+        const recipe = this.getRecipeById(recipeName);
+        
+        const result = {
+            requirements: [] as Array<{
+                type: string;
+                requiredCount: number;
+                playerHasCount: number;
+                hasSufficient: boolean;
+            }>,
+            missingItems: [] as Array<{
+                type: string;
+                missing: number;
+            }>
+        };
+        
+        if (!inventory || !recipe) {
+            return result;
+        }
+        
+        // Check each input requirement
+        recipe.inputs.forEach((input: { type: string; count: number }) => {
+            const playerHasCount = this.getPlayerItemCount(playerId, input.type);
+            const hasSufficient = playerHasCount >= input.count;
+            
+            // Add to requirements list
+            result.requirements.push({
+                type: input.type,
+                requiredCount: input.count,
+                playerHasCount,
+                hasSufficient
+            });
+            
+            // If insufficient, add to missing items
+            if (!hasSufficient) {
+                result.missingItems.push({
+                    type: input.type,
+                    missing: input.count - playerHasCount
+                });
+            }
+        });
+        
+        console.log(`[CraftingManager] Detailed requirements for ${recipeName}:`, result);
+        return result;
     }
 } 

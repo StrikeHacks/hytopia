@@ -129,6 +129,11 @@ export class PlayerManager {
 				const { slot } = data.hotbarSelect;
 				this.playerInventory.selectSlot(slot);
 			}
+			// Handle recipe requirements check without crafting
+			else if (data.checkRecipeRequirements) {
+				console.log(`[PlayerManager] Received request to check recipe requirements: ${data.checkRecipeRequirements.recipeName}`);
+				this.handleCheckRecipeRequirements(this.player.id, data.checkRecipeRequirements.recipeName);
+			}
 			// Handle recipe requests
 			else if (data.requestRecipes) {
 				console.log(`[PlayerManager] Received request for recipes in category: ${data.requestRecipes.category}`);
@@ -448,5 +453,55 @@ export class PlayerManager {
 		}
 
 		// ... existing key handling code ...
+	}
+
+	/**
+	 * Handle recipe requirement check without crafting
+	 */
+	handleCheckRecipeRequirements(playerId: string, recipeName: string): void {
+		console.log(`[PlayerManager] Checking requirements for recipe: ${recipeName}`);
+		
+		// Get the recipe
+		const recipe = this.craftingManager.getRecipeById(recipeName);
+		if (!recipe) {
+			console.log(`[PlayerManager] Recipe not found: ${recipeName}`);
+			this.player.ui.sendData({
+				recipeRequirements: {
+					recipeName,
+					exists: false,
+					canCraft: false,
+					missingItems: [],
+					message: "Recipe not found"
+				}
+			});
+			return;
+		}
+		
+		// Check if player can craft
+		const canCraft = this.craftingManager.canPlayerCraftRecipe(playerId, recipeName);
+		console.log(`[PlayerManager] Can player craft ${recipeName}? ${canCraft}`);
+		
+		// Get detailed requirement information
+		const requirementDetails = this.craftingManager.getDetailedCraftingRequirements(playerId, recipeName);
+		
+		// Log the requirement details for debugging
+		console.log(`[PlayerManager] Requirements for ${recipeName}:`, requirementDetails.requirements);
+		if (requirementDetails.missingItems.length > 0) {
+			console.log(`[PlayerManager] Missing items:`, requirementDetails.missingItems);
+		}
+		
+		// Send detailed information back to the UI
+		this.player.ui.sendData({
+			recipeRequirements: {
+				recipeName,
+				exists: true,
+				canCraft,
+				requirements: requirementDetails.requirements,
+				missingItems: requirementDetails.missingItems,
+				message: canCraft 
+					? "You have all the required items!" 
+					: "You're missing some required items."
+			}
+		});
 	}
 }

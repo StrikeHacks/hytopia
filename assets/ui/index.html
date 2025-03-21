@@ -1326,6 +1326,50 @@
                     showNotification(`Missing materials for ${recipeName}`, 'error');
                 }
             }
+
+            // Handle recipe requirement check result
+            if (data.recipeRequirements) {
+                console.log('[UI] Received recipe requirements check result:', data.recipeRequirements);
+                
+                const { recipeName, exists, canCraft, requirements, missingItems, message } = data.recipeRequirements;
+                
+                if (!exists) {
+                    showNotification(`Recipe ${recipeName} not found`, 'error');
+                    return;
+                }
+                
+                // Log detailed information about requirements
+                console.log(`[UI] Requirements for ${recipeName}:`);
+                if (requirements && requirements.length > 0) {
+                    requirements.forEach(req => {
+                        console.log(`  - ${req.type}: ${req.playerHasCount}/${req.requiredCount} (${req.hasSufficient ? 'Sufficient' : 'Insufficient'})`);
+                    });
+                }
+                
+                // Log missing items if any
+                if (missingItems && missingItems.length > 0) {
+                    console.log(`[UI] Missing items for ${recipeName}:`);
+                    missingItems.forEach(item => {
+                        console.log(`  - ${item.type}: missing ${item.missing}`);
+                    });
+                }
+                
+                // If player can craft, proceed with crafting
+                if (canCraft) {
+                    console.log(`[UI] All requirements met for ${recipeName}, proceeding to craft`);
+                    // Craft the item automatically
+                    craftItem(recipeName);
+                } else {
+                    // Show notification with missing items
+                    let missingItemsText = '';
+                    if (missingItems && missingItems.length > 0) {
+                        missingItemsText = missingItems.map(item => `${item.missing} ${item.type}`).join(', ');
+                        showNotification(`Missing: ${missingItemsText}`, 'error');
+                    } else {
+                        showNotification(`You don't have the required items for ${recipeName}`, 'error');
+                    }
+                }
+            }
         });
 
         // Add function to show item name
@@ -1472,9 +1516,29 @@
             return recipes.filter(recipe => recipe.category === normalizedCategory);
         }
 
+        // Function to check recipe requirements instead of crafting
+        function checkRecipeRequirements(recipeName) {
+            console.log(`[UI] Checking requirements for recipe: ${recipeName}`);
+            
+            // Show a temporary message to indicate checking
+            showNotification(`Checking requirements for ${recipeName}...`, 'info');
+            
+            // Send a request to the server to check if the player has the required items
+            hytopia.sendData({
+                checkRecipeRequirements: {
+                    recipeName: recipeName
+                }
+            });
+        }
+
         // Function to craft an item
         function craftItem(recipeName) {
-            console.log(`[UI] Attempting to craft: ${recipeName}`);
+            console.log(`[UI] Crafting item: ${recipeName}`);
+            
+            // Show a temporary message to indicate crafting
+            showNotification(`Crafting ${recipeName}...`, 'info');
+            
+            // Send request to server to craft the item
             hytopia.sendData({
                 craftItem: {
                     recipeName: recipeName
@@ -1714,7 +1778,10 @@
                     
                     craftButton.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        craftItem(recipe.name);
+                        e.preventDefault();
+                        
+                        // Call check recipe requirements instead of crafting directly
+                        checkRecipeRequirements(recipe.name);
                     });
                     
                     recipeElement.appendChild(craftButton);
