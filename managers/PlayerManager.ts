@@ -119,49 +119,50 @@ export class PlayerManager {
 	private setupUI(): void {
 		this.player.ui.load("ui/index.html");
 
-		this.player.ui.on(PlayerUIEvent.DATA, (data: any) => {
-			if (data.hotbarSelect) {
+		this.player.ui.on(PlayerUIEvent.DATA, ({ data }: { data: any }) => {
+			// Handle crafting UI close
+			if (data.craftingToggle?.action === 'close') {
+				this.closeCrafting();
+			} 
+			// Handle hotbar selection
+			else if (data.hotbarSelect) {
 				const { slot } = data.hotbarSelect;
 				this.playerInventory.selectSlot(slot);
 			}
-
 			// Handle recipe requests
-			if (data.requestRecipes) {
-				const { category } = data.requestRecipes;
-				console.log(`[PlayerManager] Player ${this.player.id} requested recipes for category: ${category}`);
+			else if (data.requestRecipes) {
+				console.log(`[PlayerManager] Received request for recipes in category: ${data.requestRecipes.category}`);
 				
-				// Normalize category to handle weapon/weapons
-				const normalizedCategory = this.normalizeCategory(category);
-				console.log(`[PlayerManager] Normalized category: ${normalizedCategory}`);
+				// Normalize the requested category for consistency
+				const requestedCategory = this.normalizeCategory(data.requestRecipes.category);
 				
-				// Get recipes filtered by category
-				const recipes = this.craftingManager.getRecipesByCategory(normalizedCategory);
-				console.log(`[PlayerManager] Found ${recipes.length} recipes for category ${normalizedCategory}`);
+				// Get recipes for the requested category
+				const recipes = this.craftingManager.getRecipesByCategory(requestedCategory);
 				
-				// Log the first recipe if available
-				if (recipes.length > 0) {
-					console.log(`[PlayerManager] First recipe: ${JSON.stringify(recipes[0])}`);
-				}
+				// Is this a cache-only request?
+				const forCache = data.requestRecipes.forCache === true;
+				console.log(`[PlayerManager] Recipe request for ${requestedCategory} is for cache: ${forCache}`);
 				
-				// Send recipes back to the player, including the requested category
+				// Send the recipes back to the client with the category
 				this.player.ui.sendData({
 					recipes: recipes,
-					requestedCategory: normalizedCategory
+					requestedCategory: requestedCategory,
+					forCache: forCache
+				});
+			} 
+			// Handle crafting requests
+			else if (data.craftItem) {
+				console.log(`[PlayerManager] Received request to craft: ${data.craftItem.recipeName}`);
+				const success = this.craftingManager.craftItem(this.player.id, data.craftItem.recipeName);
+				
+				// Send result back to client
+				this.player.ui.sendData({
+					craftResult: {
+						success,
+						recipeName: data.craftItem.recipeName
+					}
 				});
 			}
-			
-			// Handle crafting requests
-            if (data.craftItem) {
-                const { recipeName } = data.craftItem;
-                const success = this.craftingManager.craftItem(this.player.id, recipeName);
-                
-                this.player.ui.sendData({
-                    craftResult: {
-                        success,
-                        recipeName
-                    }
-                });
-            }
 		});
 	}
 
@@ -393,17 +394,38 @@ export class PlayerManager {
 			// Get initial recipes for the first category (typically 'tools')
 			const initialCategory = normalizedCategories[0] || 'tools';
 			console.log(`[PlayerManager] Getting initial recipes for category: ${initialCategory}`);
-			const recipes = this.craftingManager.getRecipesByCategory(initialCategory);
 			
-			// Open the crafting UI with categories and initial recipes
-			this.player.ui.sendData({
-				craftingToggle: {
-					isOpen: true,
-					categories: normalizedCategories,
-					recipes: recipes,
-					initialCategory: initialCategory
-				}
-			});
+			try {
+				// Get recipes with error handling
+				const recipes = this.craftingManager.getRecipesByCategory(initialCategory);
+				console.log(`[PlayerManager] Got ${recipes.length} recipes for initial category ${initialCategory}`);
+				
+				// Ensure we have valid recipes data
+				const validRecipes = Array.isArray(recipes) ? recipes : [];
+				
+				// Open the crafting UI with categories and initial recipes
+				this.player.ui.sendData({
+					craftingToggle: {
+						isOpen: true,
+						categories: normalizedCategories,
+						recipes: validRecipes,
+						initialCategory: initialCategory,
+						requestedCategory: initialCategory // Include the requested category
+					}
+				});
+			} catch (error) {
+				console.error(`[PlayerManager] Error getting recipes for category ${initialCategory}:`, error);
+				
+				// Even if there's an error, open the UI with categories but empty recipes
+				this.player.ui.sendData({
+					craftingToggle: {
+						isOpen: true,
+						categories: normalizedCategories,
+						recipes: [],
+						initialCategory: initialCategory
+					}
+				});
+			}
 		} else {
 			// Close the crafting UI
 			this.player.ui.sendData({

@@ -1191,22 +1191,41 @@
                         craftingUI.classList.add('visible');
                         crosshair.classList.add('hidden');
                         
+                        // Clear any existing recipes to start fresh
+                        document.querySelector('.recipe-list').innerHTML = '';
+                        console.log('[UI] Cleared recipe list for fresh start');
+                        
                         // If categories were provided, update category buttons
                         if (data.craftingToggle.categories && Array.isArray(data.craftingToggle.categories)) {
+                            console.log('[UI] Updating category buttons:', data.craftingToggle.categories);
                             const categoriesContainer = document.querySelector('.crafting-categories');
                             categoriesContainer.innerHTML = '';
                             
                             data.craftingToggle.categories.forEach((category, index) => {
+                                // Create category button
                                 const button = document.createElement('button');
                                 button.className = 'category-button';
-                                if (index === 0) button.classList.add('active');
+                                
+                                // Set active state based on initialCategory if provided
+                                if (data.craftingToggle.initialCategory) {
+                                    if (category === data.craftingToggle.initialCategory) {
+                                        button.classList.add('active');
+                                        console.log(`[UI] Setting ${category} as active initial category`);
+                                        // Update the global active category
+                                        window.activeCategory = category;
+                                    }
+                                } else if (index === 0) {
+                                    button.classList.add('active');
+                                    window.activeCategory = category;
+                                }
+                                
                                 button.setAttribute('data-category', category);
                                 button.textContent = category.charAt(0).toUpperCase() + category.slice(1);
                                 
                                 button.addEventListener('click', (e) => {
+                                    console.log(`[UI] Category button clicked for ${category}`);
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    console.log(`[UI] Category button clicked: ${category}`);
                                     
                                     // Update active class on buttons
                                     document.querySelectorAll('.category-button').forEach(btn => {
@@ -1214,24 +1233,45 @@
                                     });
                                     button.classList.add('active');
                                     
-                                    // Set the active category before requesting recipes
+                                    // Set the active category 
                                     window.activeCategory = category;
-                                    console.log(`[UI] Setting active category to: ${category}`);
                                     
-                                    // Clear the recipe list to indicate loading
-                                    const recipeList = document.querySelector('.recipe-list');
-                                    recipeList.innerHTML = '<div class="loading-message">Loading recipes...</div>';
-                                    
-                                    // Request recipes for this category
-                                    requestRecipes(category);
+                                    // Try to use cached recipes first instead of requesting new ones
+                                    if (window.recipeCache[category] && window.recipeCache[category].length > 0) {
+                                        console.log(`[UI] Using cached recipes for ${category}`);
+                                        renderRecipes(window.recipeCache[category]);
+                                    } else {
+                                        // If no cache, show loading and request
+                                        const recipeList = document.querySelector('.recipe-list');
+                                        recipeList.innerHTML = '<div class="loading-message">Loading recipes...</div>';
+                                        requestRecipes(category);
+                                    }
                                 });
                                 
                                 categoriesContainer.appendChild(button);
                             });
+                            
+                            // Request all categories at once to cache them
+                            if (data.craftingToggle.categories.length > 0) {
+                                console.log('[UI] Pre-fetching all categories for caching');
+                                data.craftingToggle.categories.forEach(category => {
+                                    // Only fetch if not already in cache
+                                    if (!window.recipeCache[category]) {
+                                        console.log(`[UI] Pre-fetching category: ${category}`);
+                                        // Use a delayed fetch to avoid overwhelming the server
+                                        setTimeout(() => {
+                                            requestRecipesForCache(category);
+                                        }, 100 * data.craftingToggle.categories.indexOf(category)); // Stagger requests
+                                    }
+                                });
+                            }
                         }
                         
-                        // If recipes were provided, render them
-                        if (data.craftingToggle.recipes) {
+                        // If recipes were provided with initial toggle, render them right away and cache them
+                        if (data.craftingToggle.recipes && data.craftingToggle.initialCategory) {
+                            console.log(`[UI] Initial recipes provided for category ${data.craftingToggle.initialCategory}:`, data.craftingToggle.recipes);
+                            window.activeCategory = data.craftingToggle.initialCategory;
+                            window.recipeCache[data.craftingToggle.initialCategory] = data.craftingToggle.recipes;
                             renderRecipes(data.craftingToggle.recipes);
                         }
                     } else {
@@ -1241,23 +1281,38 @@
                 }
             }
             
-            // Handle recipe data
+            // Handle recipe data with improved error handling and logging
             if (data.recipes) {
-                // If server sent a requestedCategory, use that instead of the active category
+                console.log('[UI] Received recipes from server:', data.recipes);
+                
+                // Always cache received recipes
                 if (data.requestedCategory) {
-                    console.log(`[UI] Server responded with recipes for category: ${data.requestedCategory}`);
+                    console.log(`[UI] Caching ${data.recipes.length} recipes for category: ${data.requestedCategory}`);
+                    window.recipeCache[data.requestedCategory] = data.recipes;
+                }
+                
+                // Only update UI if this matches our current active category
+                if (data.requestedCategory && (
+                    data.requestedCategory === window.activeCategory || 
+                    (data.requestedCategory === 'weapons' && window.activeCategory === 'weapon') ||
+                    (data.requestedCategory === 'weapon' && window.activeCategory === 'weapons')
+                )) {
                     window.activeCategory = data.requestedCategory;
                     
                     // Update button states to match the requested category
                     document.querySelectorAll('.category-button').forEach(button => {
                         button.classList.remove('active');
-                        if (button.getAttribute('data-category') === window.activeCategory) {
+                        const btnCategory = button.getAttribute('data-category');
+                        if (btnCategory === window.activeCategory || 
+                            (window.activeCategory === 'weapons' && btnCategory === 'weapon') ||
+                            (window.activeCategory === 'weapon' && btnCategory === 'weapons')) {
                             button.classList.add('active');
                         }
                     });
+                    
+                    // Render recipes only if they match our active category
+                    renderRecipes(data.recipes);
                 }
-                
-                renderRecipes(data.recipes);
             }
             
             // Handle craft result
@@ -1321,9 +1376,35 @@
             e.stopPropagation();
         });
 
-        // Function to request recipes by category
+        // Add a cache for recipe data to avoid continuous requests
+        window.recipeCache = {};
+
+        // Add a function to request recipes for caching purposes only
+        function requestRecipesForCache(category) {
+            console.log(`[UI] Requesting recipes for caching: ${category}`);
+            
+            // Normalize category name for compatibility
+            const normalizedCategory = normalizeCategory(category);
+            
+            // Send request to server using Hytopia's data format
+            hytopia.sendData({
+                requestRecipes: {
+                    category: normalizedCategory,
+                    forCache: true // Flag to indicate this is for caching only
+                }
+            });
+        }
+
+        // Update the requestRecipes function to be simpler
         function requestRecipes(category) {
             console.log(`[UI] Requesting recipes for category: ${category}`);
+            
+            // Check cache first
+            if (window.recipeCache[category] && window.recipeCache[category].length > 0) {
+                console.log(`[UI] Using cached recipes for ${category}`);
+                renderRecipes(window.recipeCache[category]);
+                return;
+            }
             
             // Normalize category name for compatibility
             const normalizedCategory = normalizeCategory(category);
@@ -1339,20 +1420,18 @@
                 }
             });
             
-            // Update button states
-            document.querySelectorAll('.category-button').forEach(button => {
-                const btnCategory = button.getAttribute('data-category');
-                button.classList.remove('active');
+            // Add a shorter timeout for better UX
+            setTimeout(() => {
+                const recipeList = document.querySelector('.recipe-list');
+                const loadingMessage = recipeList.querySelector('.loading-message');
                 
-                // Check if this button matches the current active category (normalized)
-                if (btnCategory === normalizedCategory || 
-                    (normalizedCategory === 'weapons' && btnCategory === 'weapon') ||
-                    (normalizedCategory === 'weapon' && btnCategory === 'weapons')) {
-                    button.classList.add('active');
+                if (loadingMessage && window.activeCategory === normalizedCategory) {
+                    console.warn(`[UI] Recipe request for ${normalizedCategory} taking longer than expected`);
+                    loadingMessage.textContent = 'Still loading recipes...';
                 }
-            });
+            }, 2000);
         }
-        
+
         // Function to normalize category name for better compatibility
         function normalizeCategory(category) {
             if (!category) return category;
@@ -1753,6 +1832,47 @@
             
             return iconElement;
         }
+
+        // Modify the DOMContentLoaded event to avoid duplicate event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Remove any existing click handlers from category buttons first
+            const categoryButtons = document.querySelectorAll('.crafting-categories .category-button');
+            categoryButtons.forEach(button => {
+                // Clone the button to remove all event listeners
+                const newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+                
+                // Add event listener to new button
+                newButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const category = newButton.getAttribute('data-category');
+                    console.log(`[UI] Static category button clicked: ${category}`);
+                    
+                    // Update active class
+                    document.querySelectorAll('.category-button').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    newButton.classList.add('active');
+                    
+                    // Clear recipe list and show loading
+                    const recipeList = document.querySelector('.recipe-list');
+                    recipeList.innerHTML = '<div class="loading-message">Loading recipes...</div>';
+                    
+                    // Request recipes
+                    requestRecipes(category);
+                });
+            });
+            
+            // Initialize with the first category if crafting UI is visible
+            if (document.getElementById('craftingUI').classList.contains('visible')) {
+                const firstButton = document.querySelector('.category-button');
+                if (firstButton) {
+                    const firstCategory = firstButton.getAttribute('data-category');
+                    requestRecipes(firstCategory);
+                }
+            }
+        });
     </script>
 </body>
 </html>
