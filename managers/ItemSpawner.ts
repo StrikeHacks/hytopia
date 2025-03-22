@@ -1,7 +1,8 @@
 import { World, PlayerEntity, Entity, RigidBodyType, ColliderShape, CollisionGroup } from 'hytopia';
 import type { PlayerInventory } from '../player/PlayerInventory';
 import { BaseItem } from '../items/BaseItem';
-import { itemConfigs, NON_STACKABLE_TYPES, getItemConfig } from '../config/items';
+import { getItemConfig, NON_STACKABLE_TYPES } from '../config/items';
+import { getItemsByCategory } from '../config/items';
 
 // Define the initial items using item types directly from config
 const INITIAL_ITEMS = [

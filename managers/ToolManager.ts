@@ -1,8 +1,8 @@
 import { World, PlayerEntity, Entity, RigidBodyType, ColliderShape, CollisionGroup, BlockType } from 'hytopia';
 import type { PlayerInventory } from '../player/PlayerInventory';
 import { ItemSpawner } from './ItemSpawner';
-import { toolConfigs, blockConfigs, getBlockConfig } from '../config/tools';
-import { getBlockRespawnConfig } from '../config/blocks';
+import { getToolItem } from '../config/tools';
+import { blockConfigs, getBlockConfig, getBlockRespawnConfig } from '../config/blocks';
 
 export interface ToolConfig {
     name: string;
@@ -27,8 +27,7 @@ export class ToolManager {
         private playerInventories: Map<string, PlayerInventory>,
         private itemSpawner: ItemSpawner
     ) {
-        console.log('[ToolManager] Initialized with tool configs:', {
-            tools: Array.from(toolConfigs.entries()),
+        console.log('[ToolManager] Initialized with block configs:', {
             blocks: Array.from(blockConfigs.entries())
         });
     }
@@ -63,12 +62,12 @@ export class ToolManager {
 
     public canBreakBlock(toolType: string, blockId: number): boolean {
         console.log('[ToolManager] Checking if tool can break block:', { toolType, blockId });
-        const toolConfig = toolConfigs.get(toolType);
-        if (!toolConfig) {
-            console.log('[ToolManager] No tool config found for:', toolType);
+        const toolItem = getToolItem(toolType);
+        if (!toolItem) {
+            console.log('[ToolManager] No tool item found for:', toolType);
             return false;
         }
-        const canBreak = toolConfig.canBreak.includes(blockId);
+        const canBreak = toolItem.canBreak.includes(blockId.toString());
         console.log('[ToolManager] Can break block?', canBreak);
         return canBreak;
     }
@@ -113,9 +112,9 @@ export class ToolManager {
         console.log('[Mining] Player trying to mine with:', heldItem);
 
         // Get tool configuration
-        const toolConfig = toolConfigs.get(heldItem);
-        if (!toolConfig) {
-            console.log('[Mining] No tool config found for:', heldItem);
+        const toolItem = getToolItem(heldItem);
+        if (!toolItem) {
+            console.log('[Mining] No tool item found for:', heldItem);
             return;
         }
 
@@ -181,7 +180,7 @@ export class ToolManager {
         }
 
         // Apply damage
-        blockDamage.totalDamage += toolConfig.damage;
+        blockDamage.totalDamage += toolItem.damage;
         blockDamage.lastDamageTime = Date.now();
 
         console.log('[Mining] Block damage:', {
