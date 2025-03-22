@@ -1,6 +1,8 @@
 import { World, Entity, PlayerEntity, RigidBodyType, ColliderShape, BlockType, CollisionGroup } from 'hytopia';
 import type { PlayerInventory } from '../player/PlayerInventory';
 import { getItemConfig } from '../config/items';
+import { ItemInstanceManager } from './ItemInstanceManager';
+import type { ItemInstance } from '../types/items';
 
 export class BaseItem {
     protected entity: Entity | null = null;
@@ -8,15 +10,28 @@ export class BaseItem {
     private dropTimestamp = 0;
     private droppedFromInventory = false;
     private readonly itemConfig;
+    private itemInstance: ItemInstance;
 
     constructor(
         protected world: World,
         protected position: { x: number; y: number; z: number },
         protected playerInventories: Map<string, PlayerInventory>,
-        protected itemType: string
+        protected itemType: string,
+        itemInstance?: ItemInstance
     ) {
         this.itemConfig = getItemConfig(itemType);
         console.log(`Creating ${itemType} at position:`, position);
+        
+        // Use provided instance or create a new one
+        if (itemInstance) {
+            this.itemInstance = itemInstance;
+        } else {
+            this.itemInstance = ItemInstanceManager.getInstance().createItemInstance(itemType);
+        }
+    }
+
+    public getItemInstance(): ItemInstance {
+        return this.itemInstance;
     }
 
     private canBePickedUp(): boolean {
@@ -62,7 +77,9 @@ export class BaseItem {
         try {
             const selectedSlot = inventory.getSelectedSlot();
             const previousItemInSelectedSlot = inventory.getItem(selectedSlot);
-            const result = inventory.addItem(this.itemType);
+            
+            // Add item with its instance to preserve durability
+            const result = inventory.addItemWithInstance(this.itemInstance);
             
             if (result.success && result.addedToSlot !== undefined) {
                 if (result.addedToSlot === selectedSlot && previousItemInSelectedSlot !== this.itemType) {

@@ -23,9 +23,21 @@ export interface ItemConfig {
     uiPosition: Position3D;
 }
 
+// Interface for item instances with unique IDs and properties
+export interface ItemInstance {
+    instanceId: string;
+    type: string;
+    count: number;
+    durability?: number;
+    maxDurability?: number;
+    properties?: Record<string, any>;
+}
+
+// Updated ItemSlot to support item instances
 export interface ItemSlot {
     type: string | null;
     count: number;
+    instance?: ItemInstance;
 }
 
 export interface GeneratorState {

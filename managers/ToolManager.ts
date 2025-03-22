@@ -3,6 +3,7 @@ import type { PlayerInventory } from '../player/PlayerInventory';
 import { ItemSpawner } from './ItemSpawner';
 import { getToolItem } from '../config/tools';
 import { blockConfigs, getBlockConfig, getBlockRespawnConfig } from '../config/blocks';
+import { ItemInstanceManager } from '../items/ItemInstanceManager';
 
 export interface ToolConfig {
     name: string;
@@ -30,6 +31,9 @@ export class ToolManager {
         console.log('[ToolManager] Initialized with block configs:', {
             blocks: Array.from(blockConfigs.entries())
         });
+        
+        // Ensure ItemInstanceManager is initialized
+        ItemInstanceManager.getInstance();
     }
 
     private resetBlockDamage(inventory: PlayerInventory, blockKey: string | null = null): void {
@@ -115,6 +119,12 @@ export class ToolManager {
         const toolItem = getToolItem(heldItem);
         if (!toolItem) {
             console.log('[Mining] No tool item found for:', heldItem);
+            return;
+        }
+        
+        // Check if tool is broken
+        if (inventory.isItemBroken(selectedSlot)) {
+            console.log(`[Mining] ${heldItem} is broken and can't be used`);
             return;
         }
 
@@ -205,6 +215,10 @@ export class ToolManager {
                 drops: blockConfig.drops
             });
             
+            // Decrease tool durability when a block is broken
+            const itemStillUsable = inventory.decreaseItemDurability(selectedSlot, 1);
+            console.log(`[Mining] ${heldItem} durability decreased. Still usable: ${itemStillUsable}`);
+            
             // Handle drops if specified in block config
             if (blockConfig.drops) {
                 this.itemSpawner.handleBlockDrop(blockConfig.drops, hitPos);
@@ -240,5 +254,44 @@ export class ToolManager {
 
     private coordinateToKey(coordinate: { x: number; y: number; z: number }): string {
         return `${coordinate.x},${coordinate.y},${coordinate.z}`;
+    }
+    
+    /**
+     * Repair a tool for a player
+     */
+    public repairTool(playerId: string, slot: number): boolean {
+        const inventory = this.playerInventories.get(playerId);
+        if (!inventory) {
+            console.log('[ToolManager] No inventory found for player:', playerId);
+            return false;
+        }
+        
+        return inventory.repairItem(slot);
+    }
+    
+    /**
+     * Get the current durability of a tool
+     */
+    public getToolDurability(playerId: string, slot: number): { current: number; max: number } | null {
+        const inventory = this.playerInventories.get(playerId);
+        if (!inventory) {
+            console.log('[ToolManager] No inventory found for player:', playerId);
+            return null;
+        }
+        
+        return inventory.getItemDurability(slot);
+    }
+    
+    /**
+     * Check if a tool is broken
+     */
+    public isToolBroken(playerId: string, slot: number): boolean {
+        const inventory = this.playerInventories.get(playerId);
+        if (!inventory) {
+            console.log('[ToolManager] No inventory found for player:', playerId);
+            return false;
+        }
+        
+        return inventory.isItemBroken(slot);
     }
 } 
