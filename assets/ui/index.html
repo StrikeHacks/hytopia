@@ -737,6 +737,34 @@
             background: rgba(139, 69, 19, 0.8);
         }
         
+        .craft-button:active {
+            transform: translateY(0);
+        }
+        
+        .crafting-progress-container {
+            display: flex;
+            flex-direction: column;
+            margin-top: 10px;
+            width: 90%;
+        }
+        
+        .crafting-progress-bar {
+            height: 30px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 3px solid #8B4513;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .crafting-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #FFD700, #DAA520);
+            transition: width 0.1s linear;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
         .loading-message {
             text-align: center;
             color: #FFD700;
@@ -750,6 +778,42 @@
             0% { opacity: 0.6; }
             50% { opacity: 1; }
             100% { opacity: 0.6; }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .notification.info {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .notification.error {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .notification.warning {
+            background-color: #f39c12;
+            color: white;
         }
     </style>
 </head>
@@ -1320,9 +1384,7 @@
                 const { success, recipeName } = data.craftResult;
                 console.log(`[UI] Craft result for ${recipeName}: ${success ? 'Success' : 'Failed'}`);
                 
-                if (success) {
-                    showNotification(`Successfully crafted ${recipeName}!`, 'success');
-                } else {
+                if (!success) {
                     showNotification(`Missing materials for ${recipeName}`, 'error');
                 }
             }
@@ -1367,6 +1429,117 @@
                         showNotification(`Missing: ${missingItemsText}`, 'error');
                     } else {
                         showNotification(`You don't have the required items for ${recipeName}`, 'error');
+                    }
+                }
+            }
+
+            // Add event handlers for crafting with timer
+            if (data.craftingStarted) {
+                console.log(`[UI] Crafting started for ${data.craftingStarted.recipeName} with time: ${data.craftingStarted.craftingTime}ms`);
+                
+                // Get the recipe element
+                const recipeElement = document.querySelector(`.recipe-item[data-recipe="${data.craftingStarted.recipeName}"]`);
+                if (recipeElement) {
+                    // Replace the craft button with a progress bar
+                    const craftButton = recipeElement.querySelector('.craft-button');
+                    if (craftButton) {
+                        // Create crafting container to hold progress bar
+                        const craftingContainer = document.createElement('div');
+                        craftingContainer.className = 'crafting-progress-container';
+                        
+                        // Create progress bar
+                        const progressBar = document.createElement('div');
+                        progressBar.className = 'crafting-progress-bar';
+                        progressBar.innerHTML = '<div class="crafting-progress-fill"></div>';
+                        
+                        // Add progress bar to container
+                        craftingContainer.appendChild(progressBar);
+                        
+                        // Replace craft button with progress container
+                        craftButton.replaceWith(craftingContainer);
+                        
+                        // Show crafting notification
+                        showNotification(`Crafting ${data.craftingStarted.recipeName}...`, 'info');
+                    }
+                }
+            }
+
+            // Handle crafting progress updates
+            if (data.craftingProgress) {
+                const { recipeName, progress } = data.craftingProgress;
+                console.log(`[UI] Crafting progress for ${recipeName}: ${progress}%`);
+                
+                // Find the recipe element and update its progress bar
+                const recipeElement = document.querySelector(`.recipe-item[data-recipe="${recipeName}"]`);
+                if (recipeElement) {
+                    const progressFill = recipeElement.querySelector('.crafting-progress-fill');
+                    if (progressFill) {
+                        progressFill.style.width = `${progress}%`;
+                    }
+                }
+            }
+
+            // Handle crafting completion
+            if (data.craftingComplete || data.craftingCompleted) {
+                // Support both message formats for compatibility
+                const completionData = data.craftingComplete || data.craftingCompleted;
+                const { recipeName, success } = completionData;
+                console.log(`[UI] Crafting completion received for ${recipeName}: ${success ? 'Success' : 'Failed'}`);
+                
+                // Don't show a notification here - we'll show it AFTER restoring the button
+                // This prevents the notification from appearing twice
+                
+                // Find the recipe element and restore its craft button
+                const recipeElement = document.querySelector(`.recipe-item[data-recipe="${recipeName}"]`);
+                if (recipeElement) {
+                    console.log(`[UI] Found recipe element for ${recipeName}, restoring craft button`);
+                    const container = recipeElement.querySelector('.crafting-progress-container');
+                    if (container) {
+                        const craftButton = document.createElement('button');
+                        craftButton.className = 'craft-button';
+                        craftButton.textContent = 'Craft';
+                        craftButton.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            checkRecipeRequirements(recipeName);
+                        });
+                        
+                        container.replaceWith(craftButton);
+                        console.log(`[UI] Restored craft button for ${recipeName}`);
+                        
+                        // NOW show the success notification AFTER restoring the button
+                        if (success) {
+                            showNotification(`Successfully crafted ${recipeName}!`, 'success');
+                        } else {
+                            showNotification(`Failed to craft ${recipeName}`, 'error');
+                        }
+                    } else {
+                        console.warn(`[UI] Could not find progress container for ${recipeName}`);
+                        
+                        // Fallback approach: try to find any progress containers in this recipe
+                        const allContainers = recipeElement.querySelectorAll('.crafting-progress-container');
+                        if (allContainers.length > 0) {
+                            Array.from(allContainers).forEach(container => {
+                                const craftButton = document.createElement('button');
+                                craftButton.className = 'craft-button';
+                                craftButton.textContent = 'Craft';
+                                craftButton.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    checkRecipeRequirements(recipeName);
+                                });
+                                
+                                container.replaceWith(craftButton);
+                            });
+                            console.log(`[UI] Restored ${allContainers.length} craft buttons using fallback approach`);
+                            
+                            // Show notification after fallback button restoration
+                            if (success) {
+                                showNotification(`Successfully crafted ${recipeName}!`, 'success');
+                            } else {
+                                showNotification(`Failed to craft ${recipeName}`, 'error');
+                            }
+                        }
                     }
                 }
             }
@@ -1521,7 +1694,6 @@
             console.log(`[UI] Checking requirements for recipe: ${recipeName}`);
             
             // Show a temporary message to indicate checking
-            showNotification(`Checking requirements for ${recipeName}...`, 'info');
             
             // Send a request to the server to check if the player has the required items
             hytopia.sendData({
@@ -1796,108 +1968,86 @@
         }
 
         // Function to show notifications
-        function showNotification(message, type = 'info') {
-            // Create notification element if it doesn't exist
-            let notification = document.querySelector('.notification');
-            if (!notification) {
-                notification = document.createElement('div');
-                notification.className = 'notification';
-                document.body.appendChild(notification);
+        function showNotification(message, type = 'info', duration = 3000) {
+            console.log(`[UI] Showing notification: ${message} (${type})`);
+            
+            // Check if a notification with the same message already exists
+            const existingWithSameMessage = Array.from(document.querySelectorAll('.notification'))
+                .find(notification => notification.textContent.includes(message));
+            
+            if (existingWithSameMessage) {
+                console.log(`[UI] Skipping duplicate notification: ${message}`);
+                return; // Don't show duplicate notifications
             }
             
-            // Update notification
-            notification.textContent = message;
+            // Remove any existing notifications
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(notification => {
+                notification.remove();
+            });
+            
+            // Create notification element
+            const notification = document.createElement('div');
             notification.className = `notification ${type}`;
             
-            // Show notification
-            setTimeout(() => {
-                notification.classList.add('visible');
-            }, 10);
-            
-            // Hide notification after delay
-            setTimeout(() => {
-                notification.classList.remove('visible');
-            }, 3000);
-        }
-
-        // Add styles for notifications and craft button
-        const styleElement = document.createElement('style');
-        styleElement.textContent = `
-            .notification {
-                position: fixed;
-                top: 20px;
-                left: 50%;
-                transform: translateX(-50%) translateY(-100px);
-                padding: 10px 20px;
-                background: rgba(0, 0, 0, 0.8);
-                border: 2px solid #8B4513;
-                border-radius: 4px;
-                color: white;
-                font-size: 16px;
-                transition: transform 0.3s ease;
-                z-index: 2000;
-            }
-            
-            .notification.visible {
-                transform: translateX(-50%) translateY(0);
-            }
-            
-            .notification.success {
-                border-color: #4CAF50;
-            }
-            
-            .notification.error {
-                border-color: #F44336;
-            }
-            
-            .craft-button {
-                margin-top: 10px;
-                padding: 5px 15px;
-                background: rgba(139, 69, 19, 0.6);
-                border: 2px solid #8B4513;
-                border-radius: 4px;
-                color: white;
-                font-size: 14px;
-                cursor: pointer;
-            }
-            
-            .craft-button:hover {
-                background: rgba(139, 69, 19, 0.8);
-            }
-            
-            .craft-button:active {
-                transform: translateY(0);
-            }
-        `;
-        document.head.appendChild(styleElement);
-
-        // Function to create an item icon 
-        function createItemIcon(imageUrl, itemType) {
-            console.log(`[UI] Creating icon for ${itemType} with URL: ${imageUrl}`);
-            
-            const iconElement = document.createElement('div');
-            iconElement.className = 'item-icon';
-            
-            // If we have an image URL, try to use it
-            if (imageUrl) {
-                // Apply URL directly to background image - no processing needed
-                iconElement.style.backgroundImage = imageUrl;
-                iconElement.style.backgroundSize = 'contain';
-                iconElement.style.backgroundRepeat = 'no-repeat';
-                iconElement.style.backgroundPosition = 'center';
-                
-                // Handle image load errors
-                iconElement.addEventListener('error', () => {
-                    console.error(`[UI] Failed to load image for ${itemType}: ${imageUrl}`);
-                    iconElement.textContent = itemType.charAt(0).toUpperCase();
-                    iconElement.classList.add('error');
-                });
+            // For success messages, add more visual elements
+            if (type === 'success') {
+                notification.innerHTML = `
+                    <div class="notification-message">${message}</div>
+                `;
+                // Use a longer duration for success messages
+                duration = 5000;
             } else {
-                // Fallback to just showing the first letter if no image URL
-                iconElement.textContent = itemType.charAt(0).toUpperCase();
+                notification.textContent = message;
             }
             
-            return iconElement;
+            // Add notification to the document
+            document.body.appendChild(notification);
+            
+            // Add styles if they don't exist
+            if (!document.getElementById('notification-styles')) {
+                const style = document.createElement('style');
+                style.id = 'notification-styles';
+                style.textContent = `
+                    .notification {
+                        position: fixed;
+                        top: 20px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        padding: 12px 20px;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+                        z-index: 1000;
+                        font-size: 18px;
+                        font-weight: bold;
+                    }
+                    .notification.info {
+                        background-color: #3498db;
+                        color: white;
+                    }
+                    .notification.success {
+                        background: linear-gradient(135deg, #2ecc71, #27ae60);
+                        color: white;
+                        padding: 12px 20px;
+                        display: flex;
+                        align-items: center;
+                    }
+                    .notification.error {
+                        background-color: #e74c3c;
+                        color: white;
+                    }
+                    .notification.warning {
+                        background-color: #f39c12;
+                        color: white;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            // Remove notification after duration without animations
+            setTimeout(() => {
+                notification.remove();
+            }, duration);
         }
 
         // Modify the DOMContentLoaded event to avoid duplicate event listeners
@@ -1940,6 +2090,35 @@
                 }
             }
         });
+
+        // Function to create an item icon 
+        function createItemIcon(imageUrl, itemType) {
+            console.log(`[UI] Creating icon for ${itemType} with URL: ${imageUrl}`);
+            
+            const iconElement = document.createElement('div');
+            iconElement.className = 'item-icon';
+            
+            // If we have an image URL, try to use it
+            if (imageUrl) {
+                // Apply URL directly to background image - no processing needed
+                iconElement.style.backgroundImage = imageUrl;
+                iconElement.style.backgroundSize = 'contain';
+                iconElement.style.backgroundRepeat = 'no-repeat';
+                iconElement.style.backgroundPosition = 'center';
+                
+                // Handle image load errors
+                iconElement.addEventListener('error', () => {
+                    console.error(`[UI] Failed to load image for ${itemType}: ${imageUrl}`);
+                    iconElement.textContent = itemType.charAt(0).toUpperCase();
+                    iconElement.classList.add('error');
+                });
+            } else {
+                // Fallback to just showing the first letter if no image URL
+                iconElement.textContent = itemType.charAt(0).toUpperCase();
+            }
+            
+            return iconElement;
+        }
     </script>
 </body>
 </html>

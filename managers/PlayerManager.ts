@@ -129,7 +129,7 @@ export class PlayerManager {
 				const { slot } = data.hotbarSelect;
 				this.playerInventory.selectSlot(slot);
 			}
-			// Handle recipe requirements check without crafting
+			// Handle recipe requirements check with crafting
 			else if (data.checkRecipeRequirements) {
 				console.log(`[PlayerManager] Received request to check recipe requirements: ${data.checkRecipeRequirements.recipeName}`);
 				this.handleCheckRecipeRequirements(this.player.id, data.checkRecipeRequirements.recipeName);
@@ -155,19 +155,12 @@ export class PlayerManager {
 					forCache: forCache
 				});
 			} 
-			// Handle crafting requests
+			// Handle crafting requests directly (though we now use check first)
 			else if (data.craftItem) {
 				console.log(`[PlayerManager] Received request to craft: ${data.craftItem.recipeName}`);
-				const success = this.craftingManager.craftItem(this.player.id, data.craftItem.recipeName);
-				
-				// Send result back to client
-				this.player.ui.sendData({
-					craftResult: {
-						success,
-						recipeName: data.craftItem.recipeName
-					}
-				});
+				this.startCrafting(this.player.id, data.craftItem.recipeName);
 			}
+			// Note: Cancel crafting functionality removed since there's no cancel button in UI
 		});
 	}
 
@@ -456,7 +449,7 @@ export class PlayerManager {
 	}
 
 	/**
-	 * Handle recipe requirement check without crafting
+	 * Handle recipe requirement check with crafting
 	 */
 	handleCheckRecipeRequirements(playerId: string, recipeName: string): void {
 		console.log(`[PlayerManager] Checking requirements for recipe: ${recipeName}`);
@@ -498,10 +491,96 @@ export class PlayerManager {
 				canCraft,
 				requirements: requirementDetails.requirements,
 				missingItems: requirementDetails.missingItems,
+				craftingTime: this.craftingManager.getCraftingTime(recipeName),
 				message: canCraft 
 					? "You have all the required items!" 
 					: "You're missing some required items."
 			}
 		});
+		
+		// If player can craft, automatically start the crafting process
+		if (canCraft) {
+			this.startCrafting(playerId, recipeName);
+		}
+	}
+
+	/**
+	 * Start the crafting process for a player
+	 */
+	startCrafting(playerId: string, recipeName: string): void {
+		console.log(`[PlayerManager] Starting crafting process for ${recipeName}`);
+		
+		// Start the crafting process with a timer
+		const success = this.craftingManager.startCrafting(playerId, recipeName);
+		
+		if (success) {
+			// Notify the player that crafting has started with the crafting time
+			const craftingTime = this.craftingManager.getCraftingTime(recipeName);
+			this.player.ui.sendData({
+				craftingStarted: {
+					recipeName,
+					craftingTime
+				}
+			});
+			
+			// Set up a timer to send progress updates to the client
+			this.startCraftingProgressUpdates(playerId, recipeName);
+		} else {
+			// If crafting failed to start, notify the player
+			this.player.ui.sendData({
+				craftingFailed: {
+					recipeName,
+					message: "Could not start crafting process"
+				}
+			});
+		}
+	}
+
+	/**
+	 * Start sending progress updates for crafting
+	 */
+	private craftingProgressInterval: ReturnType<typeof setInterval> | null = null;
+
+	private startCraftingProgressUpdates(playerId: string, recipeName: string): void {
+		// Clear any existing interval
+		if (this.craftingProgressInterval !== null) {
+			clearInterval(this.craftingProgressInterval);
+			this.craftingProgressInterval = null;
+		}
+		
+		// Set up an interval to send progress updates (every 100ms)
+		this.craftingProgressInterval = setInterval(() => {
+			// Get current progress
+			const progress = this.craftingManager.getPlayerCraftingProgress(playerId);
+			
+			// Send progress update to the client
+			this.player.ui.sendData({
+				craftingProgress: {
+					recipeName,
+					progress
+				}
+			});
+			
+			// If crafting is complete or not ongoing, stop sending updates
+			if (progress === 100 || !this.craftingManager.isPlayerCrafting(playerId)) {
+				if (this.craftingProgressInterval !== null) {
+					clearInterval(this.craftingProgressInterval);
+					this.craftingProgressInterval = null;
+				}
+				
+				// At 100% progress, also send a crafting completion message after a short delay
+				// This ensures UI can properly transition from progress bar to button
+				if (progress === 100) {
+					setTimeout(() => {
+						this.player.ui.sendData({
+							craftingComplete: {
+								recipeName,
+								success: true
+							}
+						});
+					}, 500); // Short delay to ensure progress bar shows 100% first
+				}
+			}
+		}, 100);
 	}
 }

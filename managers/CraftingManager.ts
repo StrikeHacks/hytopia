@@ -4,7 +4,8 @@ import {
     getRecipesByCategory, 
     getAvailableCategories, 
     getRecipeById,
-    formatRecipeForUI
+    formatRecipeForUI,
+    DEFAULT_CRAFTING_TIME
 } from '../config/recipes';
 import type { Recipe } from '../config/recipes';
 import { getItemConfig } from '../config/items';
@@ -306,5 +307,245 @@ export class CraftingManager {
         
         console.log(`[CraftingManager] Detailed requirements for ${recipeName}:`, result);
         return result;
+    }
+
+    /**
+     * Get crafting time for a recipe
+     */
+    public getCraftingTime(recipeName: string): number {
+        const recipe = this.getRecipeById(recipeName);
+        return recipe?.craftingTime || DEFAULT_CRAFTING_TIME;
+    }
+
+    /**
+     * Get crafting status for a player (check if they're currently crafting)
+     */
+    private playerCraftingTimers: Map<string, {
+        recipeName: string;
+        timerId: NodeJS.Timer;
+        startTime: number;
+        endTime: number;
+    }> = new Map();
+
+    /**
+     * Check if player is currently crafting
+     */
+    public isPlayerCrafting(playerId: string): boolean {
+        return this.playerCraftingTimers.has(playerId);
+    }
+
+    /**
+     * Get current crafting progress for a player (0-100)
+     */
+    public getPlayerCraftingProgress(playerId: string): number {
+        const craftingInfo = this.playerCraftingTimers.get(playerId);
+        if (!craftingInfo) return 0;
+        
+        const now = Date.now();
+        const elapsed = now - craftingInfo.startTime;
+        const total = craftingInfo.endTime - craftingInfo.startTime;
+        
+        return Math.min(100, Math.max(0, Math.floor((elapsed / total) * 100)));
+    }
+
+    /**
+     * Get current crafting recipe for a player
+     */
+    public getPlayerCraftingRecipe(playerId: string): string | null {
+        const craftingInfo = this.playerCraftingTimers.get(playerId);
+        return craftingInfo ? craftingInfo.recipeName : null;
+    }
+
+    /**
+     * Start crafting process with timer
+     */
+    public startCrafting(playerId: string, recipeName: string): boolean {
+        console.log(`[CraftingManager] Starting crafting process for ${recipeName}`);
+        
+        // Check if player is already crafting
+        if (this.isPlayerCrafting(playerId)) {
+            console.log(`[CraftingManager] Player ${playerId} is already crafting something`);
+            return false;
+        }
+        
+        const inventory = this.playerInventories.get(playerId);
+        if (!inventory) {
+            console.log(`[CraftingManager] No inventory found for player ${playerId}`);
+            return false;
+        }
+
+        const recipe = getRecipeById(recipeName);
+        if (!recipe) {
+            console.log(`[CraftingManager] No recipe found with name ${recipeName}`);
+            return false;
+        }
+
+        // Check if can craft
+        if (!this.canPlayerCraftRecipe(playerId, recipeName)) {
+            console.log(`[CraftingManager] Player ${playerId} doesn't have required materials for ${recipeName}`);
+            return false;
+        }
+        
+        // Get crafting time for this recipe
+        const craftingTime = recipe.craftingTime || DEFAULT_CRAFTING_TIME;
+        console.log(`[CraftingManager] Crafting time for ${recipeName}: ${craftingTime}ms`);
+        
+        // Remove input items immediately
+        console.log(`[CraftingManager] Removing materials for ${recipeName}`);
+        recipe.inputs.forEach(input => {
+            console.log(`[CraftingManager] Removing ${input.count}x ${input.type} from inventory`);
+            inventory.removeItem(input.type, input.count);
+        });
+        
+        // Start crafting timer
+        const now = Date.now();
+        const endTime = now + craftingTime;
+        
+        const timerId = setTimeout(() => {
+            this.completeCrafting(playerId, recipeName);
+        }, craftingTime);
+        
+        // Store crafting info
+        this.playerCraftingTimers.set(playerId, {
+            recipeName,
+            timerId,
+            startTime: now,
+            endTime
+        });
+        
+        // Notify player that crafting has started
+        const player = this.getPlayerById(playerId);
+        if (player) {
+            player.ui.sendData({
+                craftingStarted: {
+                    recipeName,
+                    craftingTime
+                }
+            });
+        }
+        
+        return true;
+    }
+
+    /**
+     * Complete crafting process and give the item to the player
+     */
+    private completeCrafting(playerId: string, recipeName: string): void {
+        console.log(`[CraftingManager] Completing crafting of ${recipeName} for player ${playerId}`);
+        
+        // Clear timer info
+        const craftingInfo = this.playerCraftingTimers.get(playerId);
+        if (!craftingInfo) {
+            console.log(`[CraftingManager] No crafting info found for player ${playerId}`);
+            return;
+        }
+        
+        this.playerCraftingTimers.delete(playerId);
+        
+        // Get inventory and recipe
+        const inventory = this.playerInventories.get(playerId);
+        if (!inventory) {
+            console.log(`[CraftingManager] No inventory found for player ${playerId}`);
+            return;
+        }
+        
+        const recipe = getRecipeById(recipeName);
+        if (!recipe) {
+            console.log(`[CraftingManager] No recipe found with name ${recipeName}`);
+            return;
+        }
+        
+        // Add crafted item to inventory
+        console.log(`[CraftingManager] Adding ${recipe.output.count}x ${recipe.output.type} to inventory`);
+        const addResult = inventory.addItem(recipe.output.type, recipe.output.count);
+        console.log(`[CraftingManager] Added item to inventory:`, addResult);
+        
+        // Get player entity instance using inventory
+        let notificationSent = false;
+        
+        // Try method 1: Direct playerEntity access
+        for (const [id, playerInventory] of this.playerInventories.entries()) {
+            if (id === playerId) {
+                try {
+                    // Try to access the player UI through any means possible
+                    const playerEntity = (playerInventory as any).playerEntity;
+                    if (playerEntity && playerEntity.player && playerEntity.player.ui) {
+                        console.log(`[CraftingManager] Found player entity, sending completion notification (Method 1)`);
+                        try {
+                            // Send both craftingComplete and craftingCompleted for compatibility
+                            playerEntity.player.ui.sendData({
+                                craftingComplete: {
+                                    recipeName,
+                                    success: true
+                                },
+                                craftingCompleted: {
+                                    recipeName,
+                                    success: true
+                                }
+                            });
+                            notificationSent = true;
+                        } catch (error) {
+                            console.error(`[CraftingManager] Error sending UI notification:`, error);
+                        }
+                    }
+                } catch (error) {
+                    console.error(`[CraftingManager] Error accessing player UI:`, error);
+                }
+            }
+        }
+        
+        // If notification couldn't be sent via the direct method, try broadcasting more aggressively
+        if (!notificationSent) {
+            console.log(`[CraftingManager] Attempting stronger notification methods for completion of ${recipeName}`);
+            
+            try {
+                // Instead of trying to access entities directly (which causes type errors),
+                // let's try a simpler approach using the world reference we have
+                if (this.world) {
+                    // Log that we're making this attempt
+                    console.log(`[CraftingManager] Attempting to broadcast completion via world object`);
+                    
+                    // We can't directly access entities due to type constraints,
+                    // so we'll rely on the PlayerManager's interval to handle this instead
+                    // and log that we need that fallback
+                    console.log(`[CraftingManager] Relying on PlayerManager's progress interval for notification`);
+                }
+            } catch (error) {
+                console.error(`[CraftingManager] Error with alternative notification method:`, error);
+            }
+        }
+        
+        // Log the result of our notification attempts
+        if (!notificationSent) {
+            console.warn(`[CraftingManager] Could not notify player ${playerId} about crafting completion`);
+            console.warn(`[CraftingManager] This notification should be handled by PlayerManager instead`);
+        }
+    }
+
+    /**
+     * Cancel crafting process for a player
+     */
+    public cancelCrafting(playerId: string): boolean {
+        // Method kept but disabled since cancel button was removed
+        console.log(`[CraftingManager] cancelCrafting called, but this functionality is disabled`);
+        return false;
+    }
+
+    /**
+     * Get player by ID (helper method)
+     */
+    private getPlayerById(playerId: string): any {
+        // We need to find a player by ID in the game
+        // Since PlayerInventory doesn't have a direct way to access the player UI
+        // We'll use a simpler approach
+        
+        // Look for a player with this ID in the world
+        // This is a workaround - in a real implementation, you might want to get this from a player manager
+        const inventory = this.playerInventories.get(playerId);
+        if (!inventory) return null;
+        
+        // For simplicity, we'll pass messages through the PlayerManager instead
+        // This avoids having to add new methods to PlayerInventory
+        return null; // We'll handle messaging through different means
     }
 } 

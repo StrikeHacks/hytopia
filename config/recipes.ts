@@ -1,5 +1,8 @@
 import { getItemConfig } from './items';
 
+// Add craftingTime configuration constants at the top of the file
+export const DEFAULT_CRAFTING_TIME = 3000; // 3 seconds by default
+
 export interface Recipe {
     name: string;
     category: string;
@@ -11,6 +14,7 @@ export interface Recipe {
         type: string;
         count: number;
     };
+    craftingTime?: number; // Time in milliseconds to craft this item
 }
 
 export const recipes: Recipe[] = [
@@ -19,7 +23,7 @@ export const recipes: Recipe[] = [
         category: "tools",
         inputs: [
             { type: "stick", count: 2 },
-            { type: "iron-ingot", count: 3 }
+            { type: "iron-ingot", count: 1 }
         ],
         output: {
             type: "pickaxe-stone",
