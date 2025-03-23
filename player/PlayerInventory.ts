@@ -497,8 +497,18 @@ export class PlayerInventory {
         const instanceId = item.instance.instanceId;
         const success = ItemInstanceManager.getInstance().decreaseDurability(instanceId, amount);
         
-        // Update the UI
-        this.updateSlotUI(slot);
+        // Haal de bijgewerkte instance op om zeker te zijn van de juiste waarden
+        const updatedInstance = ItemInstanceManager.getInstance().getInstance(instanceId);
+        if (updatedInstance && updatedInstance.durability !== undefined) {
+            // Synchroniseer de waarden met onze lokale instance
+            item.instance.durability = updatedInstance.durability;
+            
+            // Direct UI bijwerken om inconsistenties te voorkomen
+            this.updateSlotUI(slot);
+            
+            // Forceer een onmiddellijke batch update voor kritieke durability wijzigingen
+            this.sendBatchUpdate();
+        }
         
         return success;
     }
@@ -512,9 +522,19 @@ export class PlayerInventory {
         const item = this.slots[slot];
         if (!item.type || !item.instance?.instanceId) return null;
         
+        // Haal altijd de laatste durability direct uit de ItemInstanceManager
         const instance = ItemInstanceManager.getInstance().getInstance(item.instance.instanceId);
         if (!instance || instance.durability === undefined || instance.maxDurability === undefined) {
             return null;
+        }
+        
+        // Update de lokale instance met de laatste waarden om consistentie te garanderen
+        if (item.instance) {
+            item.instance.durability = instance.durability;
+            item.instance.maxDurability = instance.maxDurability;
+            
+            // Trigger UI update voor dit slot
+            this.updateSlotUI(slot);
         }
         
         return {

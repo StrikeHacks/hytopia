@@ -64,7 +64,7 @@ export interface ItemProperties {
   dropForce?: { horizontal: number; vertical: number };
   colliderSize?: { x: number; y: number; z: number };
   handOffset?: { x: number; y: number; z: number };
-  handRotation?: { x: number; y: number; z: number; w?: number };
+  handRotation?: { x: number; y: number; z: number; w: number };
   imageUrl: string;
 }
 

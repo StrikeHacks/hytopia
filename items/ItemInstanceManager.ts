@@ -122,7 +122,10 @@ export class ItemInstanceManager {
         const currentDurability = instance.durability;
         const newDurability = Math.max(0, currentDurability - amount);
         
+        // Direct bijwerken van de instantie in de map om race conditions te voorkomen
         instance.durability = newDurability;
+        this.items.set(instanceId, instance);
+        
         console.log(`[ItemInstanceManager] ${instance.type} (ID: ${instanceId}) durability: ${currentDurability} -> ${newDurability}`);
         
         return newDurability > 0;
@@ -183,5 +186,26 @@ export class ItemInstanceManager {
      */
     public deleteInstance(instanceId: string): boolean {
         return this.items.delete(instanceId);
+    }
+
+    /**
+     * Synchronize an item instance with the latest stored durability values
+     * This ensures that any copy of the instance has up-to-date values
+     */
+    public syncInstanceDurability(instance: ItemInstance): ItemInstance {
+        if (!instance || !instance.instanceId) {
+            return instance;
+        }
+        
+        const storedInstance = this.items.get(instance.instanceId);
+        if (!storedInstance || storedInstance.durability === undefined) {
+            return instance;
+        }
+        
+        // Update the instance with the latest durability values
+        instance.durability = storedInstance.durability;
+        instance.maxDurability = storedInstance.maxDurability;
+        
+        return instance;
     }
 } 

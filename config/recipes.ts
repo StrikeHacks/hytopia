@@ -34,9 +34,8 @@ export const recipes: Recipe[] = [
         name: "Stone Axe",
         category: "tools",
         inputs: [
-            { type: "stick", count: 2 },
-            { type: "iron-ingot", count: 3 },
-            { type: "book", count: 3 }
+            { type: "stick", count: 1 },
+            { type: "iron-ingot", count: 1 },
 
         ],
         output: {

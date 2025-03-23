@@ -1,4 +1,5 @@
 import type { EntityOptions } from 'hytopia';
+import { Quaternion } from 'hytopia';
 import MeleeWeaponEntity from './MeleeWeaponEntity';
 
 export interface PickaxeEntityOptions extends EntityOptions {

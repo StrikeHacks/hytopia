@@ -155,6 +155,11 @@ export class PlayerManager {
 					forCache: forCache
 				});
 			} 
+			// Handle item config requests for UI tooltips
+			else if (data.getItemConfig) {
+				console.log(`[PlayerManager] Received request for item config: ${data.getItemConfig.type}`);
+				this.handleItemConfigRequest(data.getItemConfig.type);
+			}
 			// Handle crafting requests directly (though we now use check first)
 			else if (data.craftItem) {
 				console.log(`[PlayerManager] Received request to craft: ${data.craftItem.recipeName}`);
@@ -582,5 +587,36 @@ export class PlayerManager {
 				}
 			}
 		}, 100);
+	}
+
+	/**
+	 * Handle an item config request from the UI
+	 */
+	private handleItemConfigRequest(itemType: string): void {
+		try {
+			const { getItemConfig } = require('../config/items');
+			const itemConfig = getItemConfig(itemType);
+			
+			console.log(`[PlayerManager] Sending item config for ${itemType} to UI`);
+			
+			// Send the config back to the UI
+			this.player.ui.sendData({
+				itemConfig
+			});
+		} catch (error) {
+			console.error(`[PlayerManager] Error fetching item config for ${itemType}:`, error);
+			
+			// Send a basic response to prevent UI from hanging
+			this.player.ui.sendData({
+				itemConfig: {
+					type: itemType,
+					displayName: itemType
+						.split('-')
+						.map(word => word.charAt(0).toUpperCase() + word.slice(1))
+						.join(' '),
+					category: 'resource'
+				}
+			});
+		}
 	}
 }
