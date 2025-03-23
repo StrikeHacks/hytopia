@@ -28,9 +28,6 @@ export class ToolManager {
         private playerInventories: Map<string, PlayerInventory>,
         private itemSpawner: ItemSpawner
     ) {
-        console.log('[ToolManager] Initialized with block configs:', {
-            blocks: Array.from(blockConfigs.entries())
-        });
         
         // Ensure ItemInstanceManager is initialized
         ItemInstanceManager.getInstance();

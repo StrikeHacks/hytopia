@@ -3,13 +3,14 @@
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/node": "^22.13.11"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
     "@hytopia.com/assets": "^0.2.6",
-    "hytopia": "^0.3.6"
+    "hytopia": "^0.3.10"
   }
 }

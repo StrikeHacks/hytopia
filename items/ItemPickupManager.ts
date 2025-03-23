@@ -16,14 +16,12 @@ export class ItemPickupManager {
     public async canProcessPickup(): Promise<boolean> {
         // If already processing a pickup, deny new pickups
         if (this.isProcessingPickup) {
-            console.log('[ItemPickupManager] Already processing a pickup, denying new pickup');
             return false;
         }
 
         // Check global cooldown
         const now = Date.now();
         if (now - this.lastPickupTime < ItemPickupManager.GLOBAL_COOLDOWN) {
-            console.log('[ItemPickupManager] Global cooldown active, denying pickup');
             return false;
         }
 
