@@ -1,6 +1,8 @@
 import { World, Entity, PlayerEntity, RigidBodyType, ColliderShape, BlockType, CollisionGroup } from 'hytopia';
 import type { PlayerInventory } from '../player/PlayerInventory';
 import { getItemConfig } from '../config/items';
+import { ItemInstanceManager } from './ItemInstanceManager';
+import type { ItemInstance } from '../types/items';
 
 export class BaseItem {
     protected entity: Entity | null = null;
@@ -8,15 +10,28 @@ export class BaseItem {
     private dropTimestamp = 0;
     private droppedFromInventory = false;
     private readonly itemConfig;
+    private itemInstance: ItemInstance;
 
     constructor(
         protected world: World,
         protected position: { x: number; y: number; z: number },
         protected playerInventories: Map<string, PlayerInventory>,
-        protected itemType: string
+        protected itemType: string,
+        itemInstance?: ItemInstance
     ) {
         this.itemConfig = getItemConfig(itemType);
         console.log(`Creating ${itemType} at position:`, position);
+        
+        // Use provided instance or create a new one
+        if (itemInstance) {
+            this.itemInstance = itemInstance;
+        } else {
+            this.itemInstance = ItemInstanceManager.getInstance().createItemInstance(itemType);
+        }
+    }
+
+    public getItemInstance(): ItemInstance {
+        return this.itemInstance;
     }
 
     private canBePickedUp(): boolean {
@@ -62,7 +77,12 @@ export class BaseItem {
         try {
             const selectedSlot = inventory.getSelectedSlot();
             const previousItemInSelectedSlot = inventory.getItem(selectedSlot);
-            const result = inventory.addItem(this.itemType);
+            
+            // Zorg dat we de meest actuele durability info hebben voordat we het item toevoegen
+            const syncedInstance = ItemInstanceManager.getInstance().syncInstanceDurability(this.itemInstance);
+            
+            // Add item with its instance to preserve durability
+            const result = inventory.addItemWithInstance(syncedInstance);
             
             if (result.success && result.addedToSlot !== undefined) {
                 if (result.addedToSlot === selectedSlot && previousItemInSelectedSlot !== this.itemType) {
@@ -71,11 +91,45 @@ export class BaseItem {
                         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                         .join(' ');
                     
-                    other.player.ui.sendData({
-                        showItemName: { name: displayName }
-                    });
+                    // Stuur direct durability informatie mee als het item dat heeft
+                    if (syncedInstance.durability !== undefined && syncedInstance.maxDurability !== undefined) {
+                        const durabilityPercentage = Math.floor((syncedInstance.durability / syncedInstance.maxDurability) * 100);
+                        
+                        other.player.ui.sendData({
+                            showItemName: { name: displayName },
+                            selectedItemDurability: {
+                                durability: syncedInstance.durability,
+                                maxDurability: syncedInstance.maxDurability,
+                                durabilityPercentage: durabilityPercentage
+                            }
+                        });
+                    } else {
+                        other.player.ui.sendData({
+                            showItemName: { name: displayName }
+                        });
+                    }
 
                     inventory.selectSlot(selectedSlot);
+                }
+                
+                // Forceer UI update voor de slot waar het item is toegevoegd
+                // Update UI direct in plaats van via een privé methode
+                if (syncedInstance.durability !== undefined && syncedInstance.maxDurability !== undefined) {
+                    const durabilityPercentage = Math.floor((syncedInstance.durability / syncedInstance.maxDurability) * 100);
+                    
+                    // Gebruik de inventoryState data update om direct de UI bij te werken
+                    const inventoryUpdates: any = {};
+                    inventoryUpdates[`slot${result.addedToSlot}`] = {
+                        type: this.itemType,
+                        count: syncedInstance.count || 1,
+                        durability: syncedInstance.durability,
+                        maxDurability: syncedInstance.maxDurability,
+                        durabilityPercentage: durabilityPercentage
+                    };
+                    
+                    other.player.ui.sendData({
+                        inventoryState: inventoryUpdates
+                    });
                 }
                 
                 this.entity.despawn();

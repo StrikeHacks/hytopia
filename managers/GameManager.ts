@@ -6,6 +6,8 @@ import { PlayerInventory } from '../player/PlayerInventory';
 import worldMap from '../assets/terrain.json';
 import { ItemSpawner } from './ItemSpawner';
 import { ToolManager } from './ToolManager';
+import { CraftingManager } from './CraftingManager';
+import { testItemSystem } from '../items/TestItems';
 
 export class GameManager {
     private playerInventories: Map<string, PlayerInventory> = new Map();
@@ -13,13 +15,25 @@ export class GameManager {
     private goldGenerator!: GoldGenerator;
     private itemSpawner: ItemSpawner;
     private toolManager: ToolManager;
+    private craftingManager: CraftingManager;
 
     constructor(private world: World) {
         this.setupWorld();
         this.itemSpawner = new ItemSpawner(world, this.playerInventories);
         this.toolManager = new ToolManager(world, this.playerInventories, this.itemSpawner);
+        this.craftingManager = new CraftingManager(world, this.playerInventories);
         this.setupGenerators();
         this.spawnInitialItems();
+        
+        // Run tests in development mode
+        if (process.env.NODE_ENV !== 'production') {
+            this.runTests();
+        }
+    }
+
+    private runTests(): void {
+        console.log('Running tests in development mode...');
+        testItemSystem();
     }
 
     private setupWorld(): void {
@@ -63,5 +77,9 @@ export class GameManager {
 
     public getToolManager(): ToolManager {
         return this.toolManager;
+    }
+    
+    public getCraftingManager(): CraftingManager {
+        return this.craftingManager;
     }
 } 

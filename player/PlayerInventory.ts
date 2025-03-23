@@ -1,7 +1,8 @@
 import { PlayerEntity } from 'hytopia';
 import { EquipmentManager } from './EquipmentManager';
 import { NON_STACKABLE_TYPES, getItemConfig } from '../config/items';
-import type { ItemSlot } from '../types/items';
+import type { ItemSlot, ItemInstance } from '../types/items';
+import { ItemInstanceManager } from '../items/ItemInstanceManager';
 
 export class PlayerInventory {
     private slots: ItemSlot[] = Array(20).fill(null).map(() => ({ type: null, count: 0 }));
@@ -12,8 +13,9 @@ export class PlayerInventory {
     private batchUpdateTimeout: ReturnType<typeof setTimeout> | null = null;
     private lastUpdateTime: number = 0;
     private readonly UPDATE_THROTTLE = 50; // Minimum time between updates in ms
-    private pendingUpdates = new Map<number, { type: string | null; count: number }>();
+    private pendingUpdates = new Map<number, { type: string | null; count: number; instanceId?: string }>();
     private nameRequestTimeout: ReturnType<typeof setTimeout> | null = null;
+    private readonly DEFAULT_MAX_STACK_SIZE = 64; // Default max stack size
 
     constructor(
         private playerEntity: PlayerEntity
@@ -92,7 +94,7 @@ export class PlayerInventory {
                 const isStackable = !NON_STACKABLE_TYPES.includes(slot.type as (typeof NON_STACKABLE_TYPES)[number]);
                 if (isStackable) {
                     const config = getItemConfig(slot.type);
-                    return slot.count < config.maxStackSize;
+                    return slot.count < (config.maxStackSize || this.DEFAULT_MAX_STACK_SIZE);
                 }
             }
             return false;
@@ -104,6 +106,11 @@ export class PlayerInventory {
         return this.slots[slot].type;
     }
 
+    public getItemInstance(slot: number): ItemInstance | undefined {
+        if (slot < 0 || slot >= this.slots.length) return undefined;
+        return this.slots[slot].instance;
+    }
+
     public getItemCount(slot: number): number {
         if (slot < 0 || slot >= this.slots.length) return 0;
         return this.slots[slot].count;
@@ -113,7 +120,18 @@ export class PlayerInventory {
         if (slot < 0 || slot >= this.slots.length) return;
         
         const oldItem = this.slots[slot].type;
-        this.slots[slot] = { type: item, count };
+        
+        // If setting a new item (not just updating count), create a new instance
+        if (item !== null && (oldItem === null || oldItem !== item)) {
+            const instance = ItemInstanceManager.getInstance().createItemInstance(item, count);
+            this.slots[slot] = { type: item, count, instance };
+        } else if (item !== null) {
+            // Just update the count, keeping the instance
+            this.slots[slot].count = count;
+        } else {
+            // Clearing the slot
+            this.slots[slot] = { type: null, count: 0 };
+        }
 
         // If this is the selected hotbar slot, handle equipment changes
         if (slot < 5 && slot === this.selectedSlot) {
@@ -128,9 +146,44 @@ export class PlayerInventory {
         this.updateSlotUI(slot);
     }
 
+    public setItemWithInstance(slot: number, instance: ItemInstance | null): void {
+        if (slot < 0 || slot >= this.slots.length) return;
+        
+        const oldItem = this.slots[slot].type;
+        
+        if (instance) {
+            this.slots[slot] = { 
+                type: instance.type, 
+                count: instance.count, 
+                instance 
+            };
+        } else {
+            this.slots[slot] = { type: null, count: 0 };
+        }
+
+        // If this is the selected hotbar slot, handle equipment changes
+        if (slot < 5 && slot === this.selectedSlot) {
+            if (oldItem) {
+                this.equipmentManager.unequipItem();
+            }
+            if (instance?.type) {
+                this.equipmentManager.equipItem(instance.type);
+            }
+        }
+
+        this.updateSlotUI(slot);
+    }
+
     private updateSlotUI(slot: number): void {
         const item = this.slots[slot];
-        this.pendingUpdates.set(slot, { type: item.type, count: item.count });
+        const instanceId = item.instance?.instanceId;
+        
+        this.pendingUpdates.set(slot, { 
+            type: item.type, 
+            count: item.count,
+            instanceId
+        });
+        
         this.scheduleBatchUpdate();
     }
 
@@ -154,12 +207,29 @@ export class PlayerInventory {
     private sendBatchUpdate(): void {
         if (this.pendingUpdates.size === 0) return;
 
-        const updates = Array.from(this.pendingUpdates.entries()).map(([slot, item]) => ({
-            slot,
-            item: item.type,
-            count: item.count,
-            imageUrl: item.type ? getItemConfig(item.type).imageUrl : undefined
-        }));
+        const updates = Array.from(this.pendingUpdates.entries()).map(([slot, item]) => {
+            // Get durability info if available
+            let durabilityInfo = {};
+            if (item.instanceId) {
+                const instance = ItemInstanceManager.getInstance().getInstance(item.instanceId);
+                if (instance && instance.durability !== undefined && instance.maxDurability !== undefined) {
+                    durabilityInfo = {
+                        durability: instance.durability,
+                        maxDurability: instance.maxDurability,
+                        durabilityPercentage: Math.floor((instance.durability / instance.maxDurability) * 100)
+                    };
+                }
+            }
+            
+            return {
+                slot,
+                item: item.type,
+                count: item.count,
+                imageUrl: item.type ? getItemConfig(item.type).imageUrl : undefined,
+                instanceId: item.instanceId,
+                ...durabilityInfo
+            };
+        });
 
         const hotbarUpdates = updates.filter(update => update.slot < 5);
 
@@ -180,12 +250,29 @@ export class PlayerInventory {
         this.isInventoryOpen = !this.isInventoryOpen;
         
         if (this.isInventoryOpen) {
-            const updates = this.slots.map((item, slot) => ({
-                slot,
-                item: item.type,
-                count: item.count,
-                imageUrl: item.type ? getItemConfig(item.type).imageUrl : undefined
-            }));
+            const updates = this.slots.map((item, slot) => {
+                // Get durability info if available
+                let durabilityInfo = {};
+                if (item.instance?.instanceId) {
+                    const instance = item.instance;
+                    if (instance && instance.durability !== undefined && instance.maxDurability !== undefined) {
+                        durabilityInfo = {
+                            durability: instance.durability,
+                            maxDurability: instance.maxDurability,
+                            durabilityPercentage: Math.floor((instance.durability / instance.maxDurability) * 100)
+                        };
+                    }
+                }
+                
+                return {
+                    slot,
+                    item: item.type,
+                    count: item.count,
+                    imageUrl: item.type ? getItemConfig(item.type).imageUrl : undefined,
+                    instanceId: item.instance?.instanceId,
+                    ...durabilityInfo
+                };
+            });
 
             this.playerEntity.player.ui.sendData({
                 inventoryToggle: { isOpen: true },
@@ -203,31 +290,191 @@ export class PlayerInventory {
         }, 200);
     }
 
-    public addItem(itemType: string): { success: boolean; addedToSlot?: number } {
-        const itemConfig = getItemConfig(itemType);
-        
-        // First try to stack with existing items
+    /**
+     * Get the total count of a specific item type across all inventory slots
+     */
+    public getCountOfItem(itemType: string): number {
+        let count = 0;
         for (let i = 0; i < this.slots.length; i++) {
-            const isStackable = !NON_STACKABLE_TYPES.includes(itemType as (typeof NON_STACKABLE_TYPES)[number]);
-            if (this.slots[i].type === itemType && isStackable) {
-                if (this.slots[i].count < itemConfig.maxStackSize) {
-                    this.slots[i].count++;
+            if (this.slots[i].type === itemType) {
+                count += this.slots[i].count;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Remove a specific amount of an item type from the inventory
+     */
+    public removeItem(itemType: string, amount: number): boolean {
+        if (amount <= 0) return true;
+        
+        let remainingToRemove = amount;
+        
+        // First try to remove from non-hotbar slots
+        for (let i = 5; i < this.slots.length && remainingToRemove > 0; i++) {
+            if (this.slots[i].type === itemType) {
+                const toRemove = Math.min(this.slots[i].count, remainingToRemove);
+                this.slots[i].count -= toRemove;
+                remainingToRemove -= toRemove;
+                
+                if (this.slots[i].count <= 0) {
+                    // Delete the item instance if it exists
+                    const instance = this.slots[i].instance;
+                    if (instance && instance.instanceId) {
+                        ItemInstanceManager.getInstance().deleteInstance(instance.instanceId);
+                    }
+                    
+                    this.slots[i] = { type: null, count: 0 };
+                }
+                
+                this.updateSlotUI(i);
+            }
+        }
+        
+        // If we still need to remove more, check hotbar slots
+        for (let i = 0; i < 5 && remainingToRemove > 0; i++) {
+            if (this.slots[i].type === itemType) {
+                const toRemove = Math.min(this.slots[i].count, remainingToRemove);
+                this.slots[i].count -= toRemove;
+                remainingToRemove -= toRemove;
+                
+                if (this.slots[i].count <= 0) {
+                    // Delete the item instance if it exists
+                    const instance = this.slots[i].instance;
+                    if (instance && instance.instanceId) {
+                        ItemInstanceManager.getInstance().deleteInstance(instance.instanceId);
+                    }
+                    
+                    this.slots[i] = { type: null, count: 0 };
+                    
+                    // If this was the selected slot, unequip the item
+                    if (i === this.selectedSlot) {
+                        this.equipmentManager.unequipItem();
+                    }
+                }
+                
+                this.updateSlotUI(i);
+            }
+        }
+        
+        return remainingToRemove === 0;
+    }
+
+    /**
+     * Add an item to the inventory with a specific count
+     */
+    public addItem(itemType: string, count: number = 1): { success: boolean; addedToSlot?: number } {
+        if (count <= 0) return { success: true };
+        
+        // Create an item instance
+        const itemInstance = ItemInstanceManager.getInstance().createItemInstance(itemType, count);
+        
+        return this.addItemWithInstance(itemInstance);
+    }
+
+    /**
+     * Add an item instance to the inventory
+     */
+    public addItemWithInstance(instance: ItemInstance): { success: boolean; addedToSlot?: number } {
+        if (instance.count <= 0) return { success: true };
+        
+        const itemType = instance.type;
+        let remaining = instance.count;
+        let firstAddedSlot: number | undefined = undefined;
+        const itemConfig = getItemConfig(itemType);
+        const maxStackSize = itemConfig.maxStackSize || this.DEFAULT_MAX_STACK_SIZE;
+        const isStackable = !NON_STACKABLE_TYPES.includes(itemType as (typeof NON_STACKABLE_TYPES)[number]);
+        
+        // For non-stackable items or items with durability, handle differently
+        const hasDurability = instance.durability !== undefined;
+        
+        if (!isStackable || hasDurability) {
+            // Find the first empty slot
+            for (let i = 0; i < this.slots.length && remaining > 0; i++) {
+                if (!this.slots[i].type) {
+                    // Create a clone for each item in case there are multiple
+                    if (remaining > 1) {
+                        const singleInstance = {
+                            ...instance,
+                            count: 1
+                        };
+                        
+                        this.slots[i] = { 
+                            type: itemType, 
+                            count: 1,
+                            instance: singleInstance
+                        };
+                        
+                        remaining--;
+                    } else {
+                        // Last or only item, use the original instance
+                        this.slots[i] = { 
+                            type: itemType, 
+                            count: 1,
+                            instance: { ...instance, count: 1 }
+                        };
+                        
+                        remaining--;
+                    }
+                    
                     this.updateSlotUI(i);
-                    return { success: true, addedToSlot: i };
+                    
+                    if (firstAddedSlot === undefined) {
+                        firstAddedSlot = i;
+                    }
+                }
+            }
+        } else {
+            // For stackable items without durability, stack with existing items
+            for (let i = 0; i < this.slots.length && remaining > 0; i++) {
+                if (this.slots[i].type === itemType && this.slots[i].count < maxStackSize) {
+                    const canAdd = Math.min(remaining, maxStackSize - this.slots[i].count);
+                    this.slots[i].count += canAdd;
+                    
+                    // Update the instance count or create if not exists
+                    if (!this.slots[i].instance) {
+                        this.slots[i].instance = { ...instance, count: this.slots[i].count };
+                    } else if (this.slots[i].instance) {
+                        const slotInstance = this.slots[i].instance;
+                        if (slotInstance) {
+                            slotInstance.count = this.slots[i].count;
+                        }
+                    }
+                    
+                    remaining -= canAdd;
+                    this.updateSlotUI(i);
+                    
+                    if (firstAddedSlot === undefined) {
+                        firstAddedSlot = i;
+                    }
+                }
+            }
+            
+            // Then find empty slots for remaining items
+            for (let i = 0; i < this.slots.length && remaining > 0; i++) {
+                if (!this.slots[i].type) {
+                    const canAdd = Math.min(remaining, maxStackSize);
+                    this.slots[i] = { 
+                        type: itemType, 
+                        count: canAdd,
+                        instance: { ...instance, count: canAdd }
+                    };
+                    
+                    remaining -= canAdd;
+                    this.updateSlotUI(i);
+                    
+                    if (firstAddedSlot === undefined) {
+                        firstAddedSlot = i;
+                    }
                 }
             }
         }
-
-        // Then try to find an empty slot
-        for (let i = 0; i < this.slots.length; i++) {
-            if (!this.slots[i].type) {
-                this.slots[i] = { type: itemType, count: 1 };
-                this.updateSlotUI(i);
-                return { success: true, addedToSlot: i };
-            }
-        }
-
-        return { success: false };
+        
+        return { 
+            success: remaining < instance.count, 
+            addedToSlot: firstAddedSlot 
+        };
     }
 
     public updateMiningProgressUI(progress: number): void {
@@ -236,5 +483,92 @@ export class PlayerInventory {
                 progress: Math.min(100, Math.max(0, progress))
             }
         });
+    }
+    
+    /**
+     * Decrease durability of an item in a specific slot
+     */
+    public decreaseItemDurability(slot: number, amount: number = 1): boolean {
+        if (slot < 0 || slot >= this.slots.length) return false;
+        
+        const item = this.slots[slot];
+        if (!item.type || !item.instance?.instanceId) return false;
+        
+        const instanceId = item.instance.instanceId;
+        const success = ItemInstanceManager.getInstance().decreaseDurability(instanceId, amount);
+        
+        // Haal de bijgewerkte instance op om zeker te zijn van de juiste waarden
+        const updatedInstance = ItemInstanceManager.getInstance().getInstance(instanceId);
+        if (updatedInstance && updatedInstance.durability !== undefined) {
+            // Synchroniseer de waarden met onze lokale instance
+            item.instance.durability = updatedInstance.durability;
+            
+            // Direct UI bijwerken om inconsistenties te voorkomen
+            this.updateSlotUI(slot);
+            
+            // Forceer een onmiddellijke batch update voor kritieke durability wijzigingen
+            this.sendBatchUpdate();
+        }
+        
+        return success;
+    }
+    
+    /**
+     * Get tool durability for the item in the specified slot
+     */
+    public getItemDurability(slot: number): { current: number; max: number } | null {
+        if (slot < 0 || slot >= this.slots.length) return null;
+        
+        const item = this.slots[slot];
+        if (!item.type || !item.instance?.instanceId) return null;
+        
+        // Haal altijd de laatste durability direct uit de ItemInstanceManager
+        const instance = ItemInstanceManager.getInstance().getInstance(item.instance.instanceId);
+        if (!instance || instance.durability === undefined || instance.maxDurability === undefined) {
+            return null;
+        }
+        
+        // Update de lokale instance met de laatste waarden om consistentie te garanderen
+        if (item.instance) {
+            item.instance.durability = instance.durability;
+            item.instance.maxDurability = instance.maxDurability;
+            
+            // Trigger UI update voor dit slot
+            this.updateSlotUI(slot);
+        }
+        
+        return {
+            current: instance.durability,
+            max: instance.maxDurability
+        };
+    }
+    
+    /**
+     * Check if an item is broken (durability = 0)
+     */
+    public isItemBroken(slot: number): boolean {
+        if (slot < 0 || slot >= this.slots.length) return false;
+        
+        const item = this.slots[slot];
+        if (!item.type || !item.instance?.instanceId) return false;
+        
+        return ItemInstanceManager.getInstance().isItemBroken(item.instance.instanceId);
+    }
+    
+    /**
+     * Repair an item to its maximum durability
+     */
+    public repairItem(slot: number): boolean {
+        if (slot < 0 || slot >= this.slots.length) return false;
+        
+        const item = this.slots[slot];
+        if (!item.type || !item.instance?.instanceId) return false;
+        
+        const success = ItemInstanceManager.getInstance().repairItem(item.instance.instanceId);
+        if (success) {
+            this.updateSlotUI(slot);
+        }
+        
+        return success;
     }
 } 

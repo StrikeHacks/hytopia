@@ -1,4 +1,13 @@
+import { Player } from 'hytopia';
 import type { World, Entity } from 'hytopia';
+import { 
+  DEFAULT_ITEM_SCALE, 
+  DEFAULT_HAND_OFFSET,
+  DEFAULT_HAND_ROTATION,
+  DEFAULT_DROP_FORCE,
+  DEFAULT_COLLIDER_SIZE,
+  MAX_STACK_SIZE
+} from '../config/constants';
 import type { PlayerInventory } from '../player/PlayerInventory';
 
 export interface Position3D {
@@ -14,9 +23,21 @@ export interface ItemConfig {
     uiPosition: Position3D;
 }
 
+// Interface for item instances with unique IDs and properties
+export interface ItemInstance {
+    instanceId: string;
+    type: string;
+    count: number;
+    durability?: number;
+    maxDurability?: number;
+    properties?: Record<string, any>;
+}
+
+// Updated ItemSlot to support item instances
 export interface ItemSlot {
     type: string | null;
     count: number;
+    instance?: ItemInstance;
 }
 
 export interface GeneratorState {
@@ -31,7 +52,84 @@ export interface ItemGenerator {
     updateUI: () => void;
 }
 
+export type ItemCategory = 'resource' | 'resources' | 'tool' | 'tools' | 'weapon' | 'weapons' | 'armor' | 'food' | 'misc' | 'unknown';
+
 export interface ItemProperties {
+  type: string;
+  modelUri: string;
+  displayName: string;
+  category: ItemCategory;
+  maxStackSize?: number;
+  scale?: number;
+  dropForce?: { horizontal: number; vertical: number };
+  colliderSize?: { x: number; y: number; z: number };
+  handOffset?: { x: number; y: number; z: number };
+  handRotation?: { x: number; y: number; z: number; w: number };
+  imageUrl: string;
+}
+
+// Resources
+export interface ResourceItemProperties extends ItemProperties {
+  category: 'resource' | 'resources';
+}
+
+// Tools
+export interface ToolItemProperties extends ItemProperties {
+  category: 'tool' | 'tools';
+  durability: number;
+  maxDurability: number;
+  damage: number;
+  canBreak: string[];
+  miningSpeed?: number;
+}
+
+// Weapons
+export interface WeaponItemProperties extends ItemProperties {
+  category: 'weapon' | 'weapons';
+  durability: number;
+  maxDurability: number;
+  damage: number;
+}
+
+// Armor
+export interface ArmorItemProperties extends ItemProperties {
+  category: 'armor';
+  durability: number;
+  maxDurability: number;
+  armorPoints: number;
+}
+
+// Food
+export interface FoodItemProperties extends ItemProperties {
+  category: 'food';
+  hunger: number;
+  saturation: number;
+}
+
+// Default item properties
+export function getDefaultItemProperties(type: string, displayName: string, category: ItemCategory): ItemProperties {
+  return {
+    type,
+    modelUri: `models/items/${type}.gltf`,
+    displayName,
+    category,
+    maxStackSize: MAX_STACK_SIZE,
+    scale: DEFAULT_ITEM_SCALE,
+    dropForce: DEFAULT_DROP_FORCE,
+    colliderSize: DEFAULT_COLLIDER_SIZE,
+    handOffset: DEFAULT_HAND_OFFSET,
+    handRotation: DEFAULT_HAND_ROTATION,
+    imageUrl: `items/${type}.png`
+  };
+}
+
+// Constants for item configuration
+export const PICKUP_COOLDOWN = 500; // ms
+export const SWORD_DROP_FORCE = { horizontal: 0.6, vertical: 0.15 };
+export const SWORD_COLLIDER_HEIGHT = 0.5;
+
+// Base item interfaces 
+export interface BaseItemProperties {
     readonly type: string;
     readonly modelUri: string;
     readonly displayName?: string;
@@ -61,16 +159,9 @@ export interface ItemProperties {
     };
 }
 
-export interface ItemBehavior {
-    spawn(): void;
-    drop(fromPosition: Position3D, direction: Position3D): void;
-    despawn(): void;
-}
-
-// Constants for item configuration
-export const DEFAULT_ITEM_SCALE = 0.5;
-export const DEFAULT_COLLIDER_SIZE = { x: 0.2, y: 0.2, z: 0.2 };
-export const DEFAULT_DROP_FORCE = { horizontal: 0.4, vertical: 0.1 };
-export const PICKUP_COOLDOWN = 500; // ms
-export const SWORD_DROP_FORCE = { horizontal: 0.6, vertical: 0.15 };
-export const SWORD_COLLIDER_HEIGHT = 0.5; 
+// Combined item type that can be any of the specific types
+export type ItemType = 
+    | ResourceItemProperties 
+    | WeaponItemProperties 
+    | ToolItemProperties 
+    | ArmorItemProperties; 

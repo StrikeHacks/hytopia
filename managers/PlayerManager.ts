@@ -13,20 +13,25 @@ import { PlayerHealth } from "../player/PlayerHealth";
 import { PlayerInventory } from "../player/PlayerInventory";
 import { ToolManager } from "./ToolManager";
 import { GameManager } from "./GameManager";
+import { CraftingManager } from "./CraftingManager";
 import type { HealthChangeEvent } from "../player/PlayerHealth";
+import { getAvailableCategories } from '../config/recipes';
 
 export class PlayerManager {
-	private playerHealth!: PlayerHealth;
-	private playerEntity!: PlayerEntity;
+	private playerEntity: PlayerEntity;
 	private playerInventory!: PlayerInventory;
-	private toolManager!: ToolManager;
-	private isEPressed: boolean = false;
-	private isQPressed: boolean = false;
+	private playerHealth!: PlayerHealth;
+	private toolManager: ToolManager;
+	private craftingManager: CraftingManager;
 	private isMining: boolean = false;
 	private isLeftMousePressed: boolean = false;
 	private leftMouseHoldStartTime: number = 0;
 	private miningInterval: NodeJS.Timer | null = null;
 	private readonly MINING_INTERVAL_MS = 300; // Time between mining attempts when holding the button
+	private isCraftingOpen: boolean = false;
+	private isQPressed: boolean = false;
+	private isEPressed: boolean = false;
+	private isFPressed: boolean = false;
 
 	constructor(
 		private world: World,
@@ -39,6 +44,7 @@ export class PlayerManager {
 		this.playerController.autoCancelMouseLeftClick = false;
 		this.playerController.interactOneshotAnimations = [];
 		this.toolManager = gameManager.getToolManager();
+		this.craftingManager = gameManager.getCraftingManager();
 		this.setupHealth();
 		this.setupInventory();
 		this.setupUI();
@@ -113,11 +119,53 @@ export class PlayerManager {
 	private setupUI(): void {
 		this.player.ui.load("ui/index.html");
 
-		this.player.ui.on(PlayerUIEvent.DATA, (data: any) => {
-			if (data.hotbarSelect) {
+		this.player.ui.on(PlayerUIEvent.DATA, ({ data }: { data: any }) => {
+			// Handle crafting UI close
+			if (data.craftingToggle?.action === 'close') {
+				this.closeCrafting();
+			} 
+			// Handle hotbar selection
+			else if (data.hotbarSelect) {
 				const { slot } = data.hotbarSelect;
 				this.playerInventory.selectSlot(slot);
 			}
+			// Handle recipe requirements check with crafting
+			else if (data.checkRecipeRequirements) {
+				console.log(`[PlayerManager] Received request to check recipe requirements: ${data.checkRecipeRequirements.recipeName}`);
+				this.handleCheckRecipeRequirements(this.player.id, data.checkRecipeRequirements.recipeName);
+			}
+			// Handle recipe requests
+			else if (data.requestRecipes) {
+				console.log(`[PlayerManager] Received request for recipes in category: ${data.requestRecipes.category}`);
+				
+				// Normalize the requested category for consistency
+				const requestedCategory = this.normalizeCategory(data.requestRecipes.category);
+				
+				// Get recipes for the requested category
+				const recipes = this.craftingManager.getRecipesByCategory(requestedCategory);
+				
+				// Is this a cache-only request?
+				const forCache = data.requestRecipes.forCache === true;
+				console.log(`[PlayerManager] Recipe request for ${requestedCategory} is for cache: ${forCache}`);
+				
+				// Send the recipes back to the client with the category
+				this.player.ui.sendData({
+					recipes: recipes,
+					requestedCategory: requestedCategory,
+					forCache: forCache
+				});
+			} 
+			// Handle item config requests for UI tooltips
+			else if (data.getItemConfig) {
+				console.log(`[PlayerManager] Received request for item config: ${data.getItemConfig.type}`);
+				this.handleItemConfigRequest(data.getItemConfig.type);
+			}
+			// Handle crafting requests directly (though we now use check first)
+			else if (data.craftItem) {
+				console.log(`[PlayerManager] Received request to craft: ${data.craftItem.recipeName}`);
+				this.startCrafting(this.player.id, data.craftItem.recipeName);
+			}
+			// Note: Cancel crafting functionality removed since there's no cancel button in UI
 		});
 	}
 
@@ -157,7 +205,18 @@ export class PlayerManager {
 					this.isEPressed = false;
 				}
 
-				// Handle left mouse button (ml) for continuous mining
+				// Handle F key for crafting UI
+				if (input["f"] && !this.isFPressed) {
+					this.isFPressed = true;
+					if (this.isCraftingOpen) {
+						this.closeCrafting();
+					} else {
+						this.openCrafting();
+					}
+				} else if (!input["f"]) {
+					this.isFPressed = false;
+				}
+
 				if (input["ml"] && !this.isLeftMousePressed) {
 					// Mouse button was just pressed down
 					this.isLeftMousePressed = true;
@@ -177,6 +236,13 @@ export class PlayerManager {
 				}
 			}
 		);
+
+		// Listen for UI data from client
+		this.player.ui.on(PlayerUIEvent.DATA, ({ data }: { data: any }) => {
+			if (data.craftingToggle?.action === 'close') {
+				this.closeCrafting();
+			}
+		});
 	}
 
 	private startMining(playerEntity: PlayerEntity): void {
@@ -248,6 +314,18 @@ export class PlayerManager {
 		playerEntity.spawn(this.world, { x: 5, y: 10, z: 5 });
 	}
 
+	private openCrafting(): void {
+		this.isCraftingOpen = true;
+		this.toggleCraftingUI(this.player.id, true);
+		this.player.ui.lockPointer(false);
+	}
+
+	private closeCrafting(): void {
+		this.isCraftingOpen = false;
+		this.toggleCraftingUI(this.player.id, false);
+		this.player.ui.lockPointer(true);
+	}
+
 	// Public methods for health management
 	public damage(amount: number): number {
 		return this.playerHealth.damage(amount);
@@ -279,5 +357,266 @@ export class PlayerManager {
 
 	public isDead(): boolean {
 		return this.playerHealth.getIsDead();
+	}
+
+	/**
+	 * Normalize category name to handle different plural/singular forms
+	 */
+	private normalizeCategory(category: string): string {
+		if (!category) return '';
+		
+		// Handle weapon/weapons categories
+		if (category.toLowerCase() === 'weapon') {
+			console.log('[PlayerManager] Normalizing "weapon" to "weapons" for consistency');
+			return 'weapons';
+		}
+		
+		return category;
+	}
+
+	/**
+	 * Toggle the crafting UI for a player
+	 */
+	toggleCraftingUI(playerId: string, isOpen: boolean): void {
+		console.log(`[PlayerManager] Toggling crafting UI for player ${playerId}: ${isOpen ? 'open' : 'close'}`);
+		
+		if (isOpen) {
+			// Get the available categories for the UI
+			const categories = this.craftingManager.getAvailableCategories();
+			console.log(`[PlayerManager] Available crafting categories: ${JSON.stringify(categories)}`);
+			
+			// Normalize categories to ensure consistency
+			const normalizedCategories = categories.map(cat => {
+				// Make sure 'weapon' is normalized to 'weapons'
+				if (cat.toLowerCase() === 'weapon') {
+					return 'weapons';
+				}
+				return cat;
+			});
+			
+			// Get initial recipes for the first category (typically 'tools')
+			const initialCategory = normalizedCategories[0] || 'tools';
+			console.log(`[PlayerManager] Getting initial recipes for category: ${initialCategory}`);
+			
+			try {
+				// Get recipes with error handling
+				const recipes = this.craftingManager.getRecipesByCategory(initialCategory);
+				console.log(`[PlayerManager] Got ${recipes.length} recipes for initial category ${initialCategory}`);
+				
+				// Ensure we have valid recipes data
+				const validRecipes = Array.isArray(recipes) ? recipes : [];
+				
+				// Open the crafting UI with categories and initial recipes
+				this.player.ui.sendData({
+					craftingToggle: {
+						isOpen: true,
+						categories: normalizedCategories,
+						recipes: validRecipes,
+						initialCategory: initialCategory,
+						requestedCategory: initialCategory // Include the requested category
+					}
+				});
+			} catch (error) {
+				console.error(`[PlayerManager] Error getting recipes for category ${initialCategory}:`, error);
+				
+				// Even if there's an error, open the UI with categories but empty recipes
+				this.player.ui.sendData({
+					craftingToggle: {
+						isOpen: true,
+						categories: normalizedCategories,
+						recipes: [],
+						initialCategory: initialCategory
+					}
+				});
+			}
+		} else {
+			// Close the crafting UI
+			this.player.ui.sendData({
+				craftingToggle: {
+					isOpen: false
+				}
+			});
+		}
+	}
+
+	/**
+	 * Handle key press
+	 */
+	onKeyPress(key: string, isDown: boolean): void {
+		// Handle crafting UI toggle
+		if (key === 'KeyE' && isDown) {
+			this.isCraftingOpen = !this.isCraftingOpen;
+			this.toggleCraftingUI(this.player.id, this.isCraftingOpen);
+			return;
+		}
+
+		// ... existing key handling code ...
+	}
+
+	/**
+	 * Handle recipe requirement check with crafting
+	 */
+	handleCheckRecipeRequirements(playerId: string, recipeName: string): void {
+		console.log(`[PlayerManager] Checking requirements for recipe: ${recipeName}`);
+		
+		// Get the recipe
+		const recipe = this.craftingManager.getRecipeById(recipeName);
+		if (!recipe) {
+			console.log(`[PlayerManager] Recipe not found: ${recipeName}`);
+			this.player.ui.sendData({
+				recipeRequirements: {
+					recipeName,
+					exists: false,
+					canCraft: false,
+					missingItems: [],
+					message: "Recipe not found"
+				}
+			});
+			return;
+		}
+		
+		// Check if player can craft
+		const canCraft = this.craftingManager.canPlayerCraftRecipe(playerId, recipeName);
+		console.log(`[PlayerManager] Can player craft ${recipeName}? ${canCraft}`);
+		
+		// Get detailed requirement information
+		const requirementDetails = this.craftingManager.getDetailedCraftingRequirements(playerId, recipeName);
+		
+		// Log the requirement details for debugging
+		console.log(`[PlayerManager] Requirements for ${recipeName}:`, requirementDetails.requirements);
+		if (requirementDetails.missingItems.length > 0) {
+			console.log(`[PlayerManager] Missing items:`, requirementDetails.missingItems);
+		}
+		
+		// Send detailed information back to the UI
+		this.player.ui.sendData({
+			recipeRequirements: {
+				recipeName,
+				exists: true,
+				canCraft,
+				requirements: requirementDetails.requirements,
+				missingItems: requirementDetails.missingItems,
+				craftingTime: this.craftingManager.getCraftingTime(recipeName),
+				message: canCraft 
+					? "You have all the required items!" 
+					: "You're missing some required items."
+			}
+		});
+		
+		// If player can craft, automatically start the crafting process
+		if (canCraft) {
+			this.startCrafting(playerId, recipeName);
+		}
+	}
+
+	/**
+	 * Start the crafting process for a player
+	 */
+	startCrafting(playerId: string, recipeName: string): void {
+		console.log(`[PlayerManager] Starting crafting process for ${recipeName}`);
+		
+		// Start the crafting process with a timer
+		const success = this.craftingManager.startCrafting(playerId, recipeName);
+		
+		if (success) {
+			// Notify the player that crafting has started with the crafting time
+			const craftingTime = this.craftingManager.getCraftingTime(recipeName);
+			this.player.ui.sendData({
+				craftingStarted: {
+					recipeName,
+					craftingTime
+				}
+			});
+			
+			// Set up a timer to send progress updates to the client
+			this.startCraftingProgressUpdates(playerId, recipeName);
+		} else {
+			// If crafting failed to start, notify the player
+			this.player.ui.sendData({
+				craftingFailed: {
+					recipeName,
+					message: "Could not start crafting process"
+				}
+			});
+		}
+	}
+
+	/**
+	 * Start sending progress updates for crafting
+	 */
+	private craftingProgressInterval: ReturnType<typeof setInterval> | null = null;
+
+	private startCraftingProgressUpdates(playerId: string, recipeName: string): void {
+		// Clear any existing interval
+		if (this.craftingProgressInterval !== null) {
+			clearInterval(this.craftingProgressInterval);
+			this.craftingProgressInterval = null;
+		}
+		
+		// Set up an interval to send progress updates (every 100ms)
+		this.craftingProgressInterval = setInterval(() => {
+			// Get current progress
+			const progress = this.craftingManager.getPlayerCraftingProgress(playerId);
+			
+			// Send progress update to the client
+			this.player.ui.sendData({
+				craftingProgress: {
+					recipeName,
+					progress
+				}
+			});
+			
+			// If crafting is complete or not ongoing, stop sending updates
+			if (progress === 100 || !this.craftingManager.isPlayerCrafting(playerId)) {
+				if (this.craftingProgressInterval !== null) {
+					clearInterval(this.craftingProgressInterval);
+					this.craftingProgressInterval = null;
+				}
+				
+				// At 100% progress, also send a crafting completion message after a short delay
+				// This ensures UI can properly transition from progress bar to button
+				if (progress === 100) {
+					setTimeout(() => {
+						this.player.ui.sendData({
+							craftingComplete: {
+								recipeName,
+								success: true
+							}
+						});
+					}, 500); // Short delay to ensure progress bar shows 100% first
+				}
+			}
+		}, 100);
+	}
+
+	/**
+	 * Handle an item config request from the UI
+	 */
+	private handleItemConfigRequest(itemType: string): void {
+		try {
+			const { getItemConfig } = require('../config/items');
+			const itemConfig = getItemConfig(itemType);
+			
+			console.log(`[PlayerManager] Sending item config for ${itemType} to UI`);
+			
+			// Send the config back to the UI
+			this.player.ui.sendData({
+				itemConfig
+			});
+		} catch (error) {
+			console.error(`[PlayerManager] Error fetching item config for ${itemType}:`, error);
+			
+			// Send a basic response to prevent UI from hanging
+			this.player.ui.sendData({
+				itemConfig: {
+					type: itemType,
+					displayName: itemType
+						.split('-')
+						.map(word => word.charAt(0).toUpperCase() + word.slice(1))
+						.join(' '),
+					category: 'resource'
+				}
+			});
+		}
 	}
 }

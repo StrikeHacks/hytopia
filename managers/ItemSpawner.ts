@@ -1,7 +1,8 @@
 import { World, PlayerEntity, Entity, RigidBodyType, ColliderShape, CollisionGroup } from 'hytopia';
 import type { PlayerInventory } from '../player/PlayerInventory';
 import { BaseItem } from '../items/BaseItem';
-import { itemConfigs, NON_STACKABLE_TYPES, getItemConfig } from '../config/items';
+import { getItemConfig, NON_STACKABLE_TYPES } from '../config/items';
+import { getItemsByCategory } from '../config/items';
 
 // Define the initial items using item types directly from config
 const INITIAL_ITEMS = [
@@ -78,9 +79,13 @@ export class ItemSpawner {
             return;
         }
 
+        // Get the item instance before removing from inventory
+        const itemInstance = inventory.getItemInstance(selectedSlot);
+        
         const dropCount = isShiftHeld ? itemCount : 1;
         const newCount = itemCount - dropCount;
         
+        // Update inventory, removing the items that will be dropped
         inventory.setItem(selectedSlot, newCount > 0 ? itemType : null, newCount);
 
         const dropPosition = this.calculateDropPosition(playerEntity);
@@ -97,7 +102,23 @@ export class ItemSpawner {
                     z: dropPosition.z + (Math.random() * 0.2 - 0.1)
                 };
 
-                const droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType);
+                // Create a new item with the same instance properties to preserve durability
+                let droppedItem;
+                if (itemInstance && i === 0) {
+                    // Use the original instance for the first item
+                    droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType, itemInstance);
+                } else if (itemInstance) {
+                    // Clone the instance for additional items (if dropping multiple)
+                    const clonedInstance = { 
+                        ...itemInstance,
+                        count: 1 
+                    };
+                    droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType, clonedInstance);
+                } else {
+                    // Fallback to creating a new item without an instance
+                    droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType);
+                }
+                
                 droppedItem.spawn();
                 droppedItem.drop(offsetPosition, direction);
                 items.push(droppedItem);
