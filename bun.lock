@@ -5,7 +5,7 @@
       "name": "hytopia-demo",
       "dependencies": {
         "@hytopia.com/assets": "^0.2.6",
-        "hytopia": "^0.3.10",
+        "hytopia": "^0.3.12",
       },
       "devDependencies": {
         "@types/bun": "latest",
@@ -233,7 +233,7 @@
 
     "hasown": ["hasown@2.0.2", "", { "dependencies": { "function-bind": "^1.1.2" } }, "sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ=="],
 
-    "hytopia": ["hytopia@0.3.10", "", { "dependencies": { "@gltf-transform/cli": "4.1.1" }, "bin": { "hytopia": "bin/scripts.js" } }, "sha512-8iTlLpZGoGK2k6TtCycqLkoRdBRY6RPIiM4gJXeC19C805omQ1V9zKvQs6Cvv4kVTcANDiwdIu/Qg7sgbsb9zQ=="],
+    "hytopia": ["hytopia@0.3.12", "", { "dependencies": { "@gltf-transform/cli": "4.1.1" }, "bin": { "hytopia": "bin/scripts.js" } }, "sha512-cPTovmXc569H9trh4dhTk/54y7tNPwYdEcCvOEOTCiE7CQXTD/ZevpJeiEndct1LQOgMAi0R02J+Lncs/AjXfg=="],
 
     "inherits": ["inherits@2.0.4", "", {}, "sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ=="],
 

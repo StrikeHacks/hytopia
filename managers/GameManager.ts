@@ -27,7 +27,7 @@ export class GameManager {
         this.itemSpawner = new ItemSpawner(world, this.playerInventories);
         this.toolManager = new ToolManager(world, this.playerInventories, this.itemSpawner);
         this.craftingManager = new CraftingManager(world, this.playerInventories);
-        this.animalManager = new AnimalManager(world);
+        this.animalManager = new AnimalManager(world, this.itemSpawner, this);
         this.setupGenerators();
         this.spawnInitialItems();
         

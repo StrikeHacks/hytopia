@@ -648,14 +648,39 @@ export class PlayerManager {
 			const hitEntity = raycastResult.hitEntity;
 			// Check if the hit entity is a cow by checking its name
 			if (hitEntity.name.toLowerCase().includes('cow')) {
+				// Get the selected item to determine damage
+				const selectedSlot = this.playerInventory.getSelectedSlot();
+				const heldItem = this.playerInventory.getItem(selectedSlot);
+				
+				let damage = 0.5; // Default hand damage verlaagd van 1.5 naar 0.5
+
+				if (heldItem) {
+					try {
+						const { getItemConfig } = require('../config/items');
+						const itemConfig = getItemConfig(heldItem);
+						
+						// Als het een wapen is, gebruik de schade van het wapen
+						if (itemConfig.category === 'weapons' || itemConfig.category === 'weapon') {
+							damage = itemConfig.damage || damage;
+						} else if (itemConfig.category === 'tools') {
+							// Tools doen geen schade
+							return;
+						}
+					} catch (error) {
+						console.error('[Combat] Error getting item config:', error);
+					}
+				}
+
 				console.log('[Combat] Hit a cow!', {
 					cowName: hitEntity.name,
-					position: hitEntity.position
+					position: hitEntity.position,
+					damage: damage,
+					weapon: heldItem || 'hand'
 				});
 
-				// Get the AnimalManager and handle the hit
+				// Get the AnimalManager and handle the hit with damage
 				const animalManager = this.gameManager.getAnimalManager();
-				animalManager.handleAnimalHit(hitEntity, direction);
+				animalManager.handleAnimalHit(hitEntity, direction, damage);
 			}
 		}
 	}

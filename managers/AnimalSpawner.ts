@@ -285,6 +285,14 @@ class SpawnArea {
         return position.x >= minX && position.x <= maxX && 
                position.z >= minZ && position.z <= maxZ;
     }
+
+    public removeEntity(entity: Entity): void {
+        const index = this.spawnedEntities.indexOf(entity);
+        if (index !== -1) {
+            this.spawnedEntities.splice(index, 1);
+            console.log(`[SpawnArea] Entity removed, current count: ${this.spawnedEntities.length}/${this.config.maxEntities}`);
+        }
+    }
 }
 
 export class AnimalSpawner {
@@ -301,6 +309,12 @@ export class AnimalSpawner {
         });
         
         console.log(`[AnimalSpawner] Initialized with ${this.spawnAreas.length} spawn areas`);
+    }
+
+    public removeEntityFromArea(entity: Entity): void {
+        for (const area of this.spawnAreas) {
+            area.removeEntity(entity);
+        }
     }
 
     public cleanup(): void {

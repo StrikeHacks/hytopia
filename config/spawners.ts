@@ -69,10 +69,10 @@ export const spawnAreas: SpawnAreaConfig[] = [
             { x: 10, y: 0, z: 10 },
             { x: 20, y: 0, z: 10 }
         ],
-        minEntityDistance: 4,
+        minEntityDistance: 3,
         maxEntities: 3,
         spawnInterval: 15000, // 15 seconden
-        spawnChance: 0.2,
+        spawnChance: 1,
         enabled: true,
         animalType: 'cow'
     },
@@ -88,7 +88,7 @@ export const spawnAreas: SpawnAreaConfig[] = [
         minEntityDistance: 2,
         maxEntities: 2,
         spawnInterval: 20000, // 20 seconden
-        spawnChance: 0.5,
+        spawnChance: 1,
         enabled: true,
         animalType: 'cow'
     }

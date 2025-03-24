@@ -28,6 +28,8 @@ const INITIAL_ITEMS = [
     { type: 'axe-stone', position: { x: 4, y: 3.7, z: 2 } },
     { type: 'pickaxe-stone', position: { x: 2, y: 3.7, z: 2 } },
     { type: 'stick', position: { x: 0, y: 3.7, z: 2 } },
+    { type: 'bone', position: { x: -2, y: 3.7, z: 2 } },
+    { type: 'log', position: { x: -4, y: 3.7, z: 2 } },
 ];
 
 export class ItemSpawner {
@@ -104,17 +106,14 @@ export class ItemSpawner {
                 // Create a new item with the same instance properties to preserve durability
                 let droppedItem;
                 if (itemInstance && i === 0) {
-                    // Use the original instance for the first item
-                    droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType, itemInstance);
-                } else if (itemInstance) {
-                    // Clone the instance for additional items (if dropping multiple)
-                    const clonedInstance = { 
+                    // Use the original instance for the first item, but with correct count
+                    const modifiedInstance = {
                         ...itemInstance,
-                        count: 1 
+                        count: 1
                     };
-                    droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType, clonedInstance);
+                    droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType, modifiedInstance);
                 } else {
-                    // Fallback to creating a new item without an instance
+                    // Create new items without instance (they'll get new instances)
                     droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType);
                 }
                 

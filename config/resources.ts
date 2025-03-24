@@ -96,6 +96,35 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
         imageUrl: 'items/clock.png'
+    },
+    'bone': {
+        type: 'bone',
+        modelUri: 'models/items/bone.gltf',
+        displayName: 'Bone',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.5,
+        dropForce: DEFAULT_DROP_FORCE,
+        colliderSize: DEFAULT_COLLIDER_SIZE,
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/bone.png'
+    },
+    'log' : {
+        type: 'log',
+        modelUri: 'models/items/log.gltf',
+        displayName: 'Log',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.7,
+        dropForce: DEFAULT_DROP_FORCE,
+        colliderSize: {
+            x: 0.2,
+            y: 0.25,
+            z: 0.2
+        },        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/log.png'
     }
 
 };
