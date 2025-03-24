@@ -34,6 +34,11 @@ export class ToolManager {
         ItemInstanceManager.getInstance();
     }
 
+    public isTool(item: string): boolean {
+        const toolItem = getToolItem(item);
+        return !!toolItem;
+    }
+
     private resetBlockDamage(inventory: PlayerInventory, blockKey: string | null = null): void {
         if (blockKey) {
             // Reset specific block

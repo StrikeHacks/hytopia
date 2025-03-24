@@ -10,6 +10,7 @@ import { CraftingManager } from './CraftingManager';
 import { testItemSystem } from '../items/TestItems';
 import { AnimalSpawner } from './AnimalSpawner';
 import { spawnAreas } from '../config/spawners';
+import { AnimalManager } from './AnimalManager';
 
 export class GameManager {
     private playerInventories: Map<string, PlayerInventory> = new Map();
@@ -19,17 +20,19 @@ export class GameManager {
     private toolManager: ToolManager;
     private craftingManager: CraftingManager;
     private animalSpawner: AnimalSpawner;
+    private animalManager: AnimalManager;
 
     constructor(private world: World) {
         this.setupWorld();
         this.itemSpawner = new ItemSpawner(world, this.playerInventories);
         this.toolManager = new ToolManager(world, this.playerInventories, this.itemSpawner);
         this.craftingManager = new CraftingManager(world, this.playerInventories);
+        this.animalManager = new AnimalManager(world);
         this.setupGenerators();
         this.spawnInitialItems();
         
         // Maak één AnimalSpawner aan die alle gebieden beheert
-        this.animalSpawner = new AnimalSpawner(world, spawnAreas);
+        this.animalSpawner = new AnimalSpawner(world, this, spawnAreas);
         
         // Run tests in development mode
         if (process.env.NODE_ENV !== 'production') {
@@ -97,5 +100,9 @@ export class GameManager {
     
     public getCraftingManager(): CraftingManager {
         return this.craftingManager;
+    }
+
+    public getAnimalManager(): AnimalManager {
+        return this.animalManager;
     }
 } 

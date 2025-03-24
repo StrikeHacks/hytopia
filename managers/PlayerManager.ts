@@ -214,17 +214,36 @@ export class PlayerManager {
 					this.isFPressed = false;
 				}
 
+				// Handle mouse input
 				if (input["ml"] && !this.isLeftMousePressed) {
 					// Mouse button was just pressed down
 					this.isLeftMousePressed = true;
 					this.leftMouseHoldStartTime = Date.now();
 
-					// Start mining immediately
-					this.startMining(playerEntity);
-				} else if (input["ml"] && this.isLeftMousePressed) {
-					// Mouse button is being held down, continue mining
-					if (!this.isMining) {
+					// Check if holding a tool
+					const selectedSlot = this.playerInventory.getSelectedSlot();
+					const heldItem = this.playerInventory.getItem(selectedSlot);
+					const isTool = heldItem && this.toolManager.isTool(heldItem);
+
+					if (isTool) {
+						// Start mining if holding a tool
 						this.startMining(playerEntity);
+					} else {
+						// Do attack if not holding a tool
+						this.playerEntity.startModelOneshotAnimations(["simple_interact"]);
+						this.tryAttack(playerEntity);
+					}
+				} else if (input["ml"] && this.isLeftMousePressed) {
+					// Mouse button is being held down
+					if (!this.isMining) {
+						// Check again if we should start mining
+						const selectedSlot = this.playerInventory.getSelectedSlot();
+						const heldItem = this.playerInventory.getItem(selectedSlot);
+						const isTool = heldItem && this.toolManager.isTool(heldItem);
+
+						if (isTool) {
+							this.startMining(playerEntity);
+						}
 					}
 				} else if (!input["ml"] && this.isLeftMousePressed) {
 					// Mouse button was released
@@ -610,6 +629,34 @@ export class PlayerManager {
 					category: 'resource'
 				}
 			});
+		}
+	}
+
+	private tryAttack(playerEntity: PlayerEntity): void {
+		const direction = playerEntity.player.camera.facingDirection;
+		const origin = {
+			x: playerEntity.position.x,
+			y: playerEntity.position.y + 1,
+			z: playerEntity.position.z,
+		};
+
+		const raycastResult = this.world.simulation.raycast(origin, direction, 3, {
+			filterExcludeRigidBody: playerEntity.rawRigidBody
+		});
+
+		if (raycastResult?.hitEntity) {
+			const hitEntity = raycastResult.hitEntity;
+			// Check if the hit entity is a cow by checking its name
+			if (hitEntity.name.toLowerCase().includes('cow')) {
+				console.log('[Combat] Hit a cow!', {
+					cowName: hitEntity.name,
+					position: hitEntity.position
+				});
+
+				// Get the AnimalManager and handle the hit
+				const animalManager = this.gameManager.getAnimalManager();
+				animalManager.handleAnimalHit(hitEntity, direction);
+			}
 		}
 	}
 }

@@ -1,6 +1,9 @@
 import { Entity, Quaternion, RigidBodyType, World, PathfindingEntityController, ColliderShape, CollisionGroup } from 'hytopia';
 import type { SpawnAreaConfig, AnimalConfig } from '../config/spawners';
 import { animalConfigs } from '../config/spawners';
+import { AnimalManager } from './AnimalManager';
+import { GameManager } from './GameManager';
+import { EntityEvent } from 'hytopia';
 
 // Helper class voor een spawn gebied
 class SpawnArea {
@@ -10,7 +13,8 @@ class SpawnArea {
 
     constructor(
         private world: World,
-        private config: SpawnAreaConfig
+        private config: SpawnAreaConfig,
+        private gameManager: GameManager
     ) {
         const animalConfig = animalConfigs[this.config.animalType];
         if (!animalConfig) {
@@ -73,7 +77,7 @@ class SpawnArea {
         this.spawnAnimal(position);
     }
 
-    private spawnAnimal(position: { x: number, y: number, z: number }): void {
+    public spawnAnimal(position: { x: number, y: number, z: number }): void {
         const modelLoopedAnimations: string[] = [];
         
         const idleAnim = this.animalConfig.animations.find(a => a.name === 'idle');
@@ -93,7 +97,8 @@ class SpawnArea {
                 type: RigidBodyType.DYNAMIC,
                 additionalMass: this.animalConfig.mass,
                 gravityScale: 1.2,  // Verlaagd voor hogere en consistentere sprongen
-                enabledRotations: { x: false, y: true, z: false }
+                enabledRotations: { x: false, y: true, z: false },
+                enabledPositions: { x: true, y: true, z: true },
             }
         });
 
@@ -112,6 +117,17 @@ class SpawnArea {
         // Stel de willekeurige rotatie in direct na het spawnen
         entity.setRotation(Quaternion.fromEuler(0, randomRotation, 0));
         
+        // Register the animal with the AnimalManager
+        const animalManager = this.gameManager.getAnimalManager();
+        animalManager.registerAnimal(entity);
+
+        // Add despawn listener to unregister from AnimalManager
+        entity.on(EntityEvent.DESPAWN, () => {
+            if (entity.id) {
+                animalManager.unregisterAnimal(entity.id);
+            }
+        });
+
         this.addAnimalBehavior(entity);
         this.spawnedEntities.push(entity);
     }
@@ -274,9 +290,13 @@ class SpawnArea {
 export class AnimalSpawner {
     private spawnAreas: SpawnArea[] = [];
 
-    constructor(private world: World, spawnConfigs: SpawnAreaConfig[]) {
+    constructor(
+        private world: World,
+        private gameManager: GameManager,
+        spawnConfigs: SpawnAreaConfig[]
+    ) {
         spawnConfigs.forEach(config => {
-            const spawnArea = new SpawnArea(world, config);
+            const spawnArea = new SpawnArea(world, config, gameManager);
             this.spawnAreas.push(spawnArea);
         });
         
