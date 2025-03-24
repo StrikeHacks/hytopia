@@ -28,6 +28,8 @@ export class PlayerManager {
 	private leftMouseHoldStartTime: number = 0;
 	private miningInterval: NodeJS.Timer | null = null;
 	private readonly MINING_INTERVAL_MS = 300; // Time between mining attempts when holding the button
+	private readonly MINING_COOLDOWN_MS = 250; // Minimum time between mining attempts (even for clicks)
+	private lastMiningTime: number = 0; // Track the last time mining was attempted
 	private isCraftingOpen: boolean = false;
 	private isQPressed: boolean = false;
 	private isEPressed: boolean = false;
@@ -131,12 +133,10 @@ export class PlayerManager {
 			}
 			// Handle recipe requirements check with crafting
 			else if (data.checkRecipeRequirements) {
-				console.log(`[PlayerManager] Received request to check recipe requirements: ${data.checkRecipeRequirements.recipeName}`);
 				this.handleCheckRecipeRequirements(this.player.id, data.checkRecipeRequirements.recipeName);
 			}
 			// Handle recipe requests
 			else if (data.requestRecipes) {
-				console.log(`[PlayerManager] Received request for recipes in category: ${data.requestRecipes.category}`);
 				
 				// Normalize the requested category for consistency
 				const requestedCategory = this.normalizeCategory(data.requestRecipes.category);
@@ -146,7 +146,6 @@ export class PlayerManager {
 				
 				// Is this a cache-only request?
 				const forCache = data.requestRecipes.forCache === true;
-				console.log(`[PlayerManager] Recipe request for ${requestedCategory} is for cache: ${forCache}`);
 				
 				// Send the recipes back to the client with the category
 				this.player.ui.sendData({
@@ -157,12 +156,10 @@ export class PlayerManager {
 			} 
 			// Handle item config requests for UI tooltips
 			else if (data.getItemConfig) {
-				console.log(`[PlayerManager] Received request for item config: ${data.getItemConfig.type}`);
 				this.handleItemConfigRequest(data.getItemConfig.type);
 			}
 			// Handle crafting requests directly (though we now use check first)
 			else if (data.craftItem) {
-				console.log(`[PlayerManager] Received request to craft: ${data.craftItem.recipeName}`);
 				this.startCrafting(this.player.id, data.craftItem.recipeName);
 			}
 			// Note: Cancel crafting functionality removed since there's no cancel button in UI
@@ -272,6 +269,16 @@ export class PlayerManager {
 	}
 
 	private tryMineBlock(playerEntity: PlayerEntity): void {
+		const currentTime = Date.now();
+		
+		// Check if we're within the cooldown period
+		if (currentTime - this.lastMiningTime < this.MINING_COOLDOWN_MS) {
+			return; // Still on cooldown, skip this mining attempt
+		}
+		
+		// Update last mining time
+		this.lastMiningTime = currentTime;
+		
 		this.playerEntity.startModelOneshotAnimations(["simple_interact"]);
 		const selectedSlot = this.playerInventory.getSelectedSlot();
 		const heldItem = this.playerInventory.getItem(selectedSlot);
@@ -367,7 +374,6 @@ export class PlayerManager {
 		
 		// Handle weapon/weapons categories
 		if (category.toLowerCase() === 'weapon') {
-			console.log('[PlayerManager] Normalizing "weapon" to "weapons" for consistency');
 			return 'weapons';
 		}
 		
@@ -378,12 +384,10 @@ export class PlayerManager {
 	 * Toggle the crafting UI for a player
 	 */
 	toggleCraftingUI(playerId: string, isOpen: boolean): void {
-		console.log(`[PlayerManager] Toggling crafting UI for player ${playerId}: ${isOpen ? 'open' : 'close'}`);
 		
 		if (isOpen) {
 			// Get the available categories for the UI
 			const categories = this.craftingManager.getAvailableCategories();
-			console.log(`[PlayerManager] Available crafting categories: ${JSON.stringify(categories)}`);
 			
 			// Normalize categories to ensure consistency
 			const normalizedCategories = categories.map(cat => {
@@ -396,12 +400,10 @@ export class PlayerManager {
 			
 			// Get initial recipes for the first category (typically 'tools')
 			const initialCategory = normalizedCategories[0] || 'tools';
-			console.log(`[PlayerManager] Getting initial recipes for category: ${initialCategory}`);
 			
 			try {
 				// Get recipes with error handling
 				const recipes = this.craftingManager.getRecipesByCategory(initialCategory);
-				console.log(`[PlayerManager] Got ${recipes.length} recipes for initial category ${initialCategory}`);
 				
 				// Ensure we have valid recipes data
 				const validRecipes = Array.isArray(recipes) ? recipes : [];
@@ -457,12 +459,10 @@ export class PlayerManager {
 	 * Handle recipe requirement check with crafting
 	 */
 	handleCheckRecipeRequirements(playerId: string, recipeName: string): void {
-		console.log(`[PlayerManager] Checking requirements for recipe: ${recipeName}`);
 		
 		// Get the recipe
 		const recipe = this.craftingManager.getRecipeById(recipeName);
 		if (!recipe) {
-			console.log(`[PlayerManager] Recipe not found: ${recipeName}`);
 			this.player.ui.sendData({
 				recipeRequirements: {
 					recipeName,
@@ -477,16 +477,11 @@ export class PlayerManager {
 		
 		// Check if player can craft
 		const canCraft = this.craftingManager.canPlayerCraftRecipe(playerId, recipeName);
-		console.log(`[PlayerManager] Can player craft ${recipeName}? ${canCraft}`);
 		
 		// Get detailed requirement information
 		const requirementDetails = this.craftingManager.getDetailedCraftingRequirements(playerId, recipeName);
 		
-		// Log the requirement details for debugging
-		console.log(`[PlayerManager] Requirements for ${recipeName}:`, requirementDetails.requirements);
-		if (requirementDetails.missingItems.length > 0) {
-			console.log(`[PlayerManager] Missing items:`, requirementDetails.missingItems);
-		}
+		
 		
 		// Send detailed information back to the UI
 		this.player.ui.sendData({
@@ -513,7 +508,6 @@ export class PlayerManager {
 	 * Start the crafting process for a player
 	 */
 	startCrafting(playerId: string, recipeName: string): void {
-		console.log(`[PlayerManager] Starting crafting process for ${recipeName}`);
 		
 		// Start the crafting process with a timer
 		const success = this.craftingManager.startCrafting(playerId, recipeName);
@@ -597,7 +591,6 @@ export class PlayerManager {
 			const { getItemConfig } = require('../config/items');
 			const itemConfig = getItemConfig(itemType);
 			
-			console.log(`[PlayerManager] Sending item config for ${itemType} to UI`);
 			
 			// Send the config back to the UI
 			this.player.ui.sendData({

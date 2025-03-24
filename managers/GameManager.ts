@@ -3,11 +3,13 @@ import { IronGenerator } from '../generators/IronGenerator';
 import { GoldGenerator } from '../generators/GoldGenerator';
 import { ironConfig, goldConfig } from '../config/generators';
 import { PlayerInventory } from '../player/PlayerInventory';
-import worldMap from '../assets/terrain.json';
+import worldMap from '../assets/terrain4.json';
 import { ItemSpawner } from './ItemSpawner';
 import { ToolManager } from './ToolManager';
 import { CraftingManager } from './CraftingManager';
 import { testItemSystem } from '../items/TestItems';
+import { AnimalSpawner } from './AnimalSpawner';
+import { spawnAreas } from '../config/spawners';
 
 export class GameManager {
     private playerInventories: Map<string, PlayerInventory> = new Map();
@@ -16,6 +18,7 @@ export class GameManager {
     private itemSpawner: ItemSpawner;
     private toolManager: ToolManager;
     private craftingManager: CraftingManager;
+    private animalSpawner: AnimalSpawner;
 
     constructor(private world: World) {
         this.setupWorld();
@@ -24,6 +27,9 @@ export class GameManager {
         this.craftingManager = new CraftingManager(world, this.playerInventories);
         this.setupGenerators();
         this.spawnInitialItems();
+        
+        // Maak één AnimalSpawner aan die alle gebieden beheert
+        this.animalSpawner = new AnimalSpawner(world, spawnAreas);
         
         // Run tests in development mode
         if (process.env.NODE_ENV !== 'production') {
@@ -71,8 +77,18 @@ export class GameManager {
         };
     }
 
+    public getAnimalSpawner(): AnimalSpawner {
+        return this.animalSpawner;
+    }
+
     public cleanup(playerId: string): void {
+        // Cleanup van speler inventories
         this.playerInventories.delete(playerId);
+        
+        // Als er geen spelers meer zijn, cleanup van animal spawner
+        if (this.playerInventories.size === 0) {
+            this.animalSpawner.cleanup();
+        }
     }
 
     public getToolManager(): ToolManager {

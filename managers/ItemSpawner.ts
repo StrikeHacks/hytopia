@@ -64,7 +64,6 @@ export class ItemSpawner {
 
         const inventory = this.playerInventories.get(String(playerEntity.player.id));
         if (!inventory) {
-            console.log('[ItemSpawner] No inventory found for player');
             return;
         }
 

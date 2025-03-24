@@ -20,7 +20,6 @@ export class BaseItem {
         itemInstance?: ItemInstance
     ) {
         this.itemConfig = getItemConfig(itemType);
-        console.log(`Creating ${itemType} at position:`, position);
         
         // Use provided instance or create a new one
         if (itemInstance) {

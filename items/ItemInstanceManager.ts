@@ -12,7 +12,6 @@ export class ItemInstanceManager {
     private items: Map<string, ItemInstance> = new Map();
 
     private constructor() {
-        console.log('[ItemInstanceManager] Initialized');
     }
 
     /**
@@ -70,9 +69,7 @@ export class ItemInstanceManager {
                 }
             }
             
-            console.log(`[ItemInstanceManager] Created new instance of ${type} (ID: ${instanceId}), durability: ${instance.durability}/${instance.maxDurability}`);
         } catch (error) {
-            console.error(`[ItemInstanceManager] Error creating item instance: ${error}`);
         }
         
         // Store the instance for later retrieval
@@ -103,7 +100,6 @@ export class ItemInstanceManager {
         
         // If durability is set to 0 or below, log it
         if (updates.durability !== undefined && updates.durability <= 0) {
-            console.log(`[ItemInstanceManager] Item ${instance.type} (ID: ${instanceId}) has broken (durability: ${updates.durability})`);
         }
         
         return true;
@@ -126,7 +122,6 @@ export class ItemInstanceManager {
         instance.durability = newDurability;
         this.items.set(instanceId, instance);
         
-        console.log(`[ItemInstanceManager] ${instance.type} (ID: ${instanceId}) durability: ${currentDurability} -> ${newDurability}`);
         
         return newDurability > 0;
     }
@@ -153,7 +148,6 @@ export class ItemInstanceManager {
         }
         
         instance.durability = instance.maxDurability;
-        console.log(`[ItemInstanceManager] Repaired ${instance.type} (ID: ${instanceId}) to ${instance.durability} durability`);
         
         return true;
     }
