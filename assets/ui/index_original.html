@@ -16,14 +16,24 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            width: 40px;
+            width: 60px;
             height: 40px;
             background: rgba(0, 0, 0, 0.8);
             border: 2px solid #8B4513;
             border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+        }
+
+        .inventory-toggle:hover {
+            background: rgba(0, 0, 0, 0.9);
+            border-color: #A65D1E;
+            transform: scale(1.05);
         }
 
         .inventory-toggle::before {
@@ -38,11 +48,6 @@
             border-radius: 2px;
             opacity: 0.8;
             transition: all 0.2s ease;
-        }
-
-        .inventory-toggle:hover {
-            background: rgba(0, 0, 0, 0.9);
-            border-color: #A65D1E;
         }
 
         .inventory-toggle:hover::before {
@@ -1047,7 +1052,7 @@
         <div class="mana-text">100/100</div>
     </div>
 
-    <div class="inventory-toggle"></div>
+    <button id="newInventoryButton" style="position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 10px; background: black; color: white; border: 2px solid #8B4513; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="console.log('[UI] New inventory button clicked'); hytopia.sendData({inventoryToggle: {action: 'toggle'}});">INV</button>
 
     <div class="item-name-display"></div>
 
@@ -1252,97 +1257,41 @@
                         statsSection.appendChild(armorElement);
                     }
                     
-                    // Only add stats section if there are stats
+                    // Only add stats section if we have stats
                     if (hasStats) {
                         tooltip.appendChild(statsSection);
                     }
                     
-                    // SECTION 3: Durability
-                    let hasDurability = false;
-                    const durabilitySection = document.createElement('div');
-                    durabilitySection.className = 'tooltip-section';
-                    
-                    // Add durability info from actual item instance if available, otherwise from config
-                    if (itemData.durability !== undefined && itemData.maxDurability !== undefined) {
-                        hasDurability = true;
-                        // Use actual item durability from inventory slot
-                        const durabilityElement = document.createElement('div');
-                        durabilityElement.className = 'tooltip-durability';
-                        durabilityElement.textContent = `Durability: ${itemData.durability}/${itemData.maxDurability}`;
+                    // SECTION 3: Description
+                    if (itemConfig.description) {
+                        const descriptionSection = document.createElement('div');
+                        descriptionSection.className = 'tooltip-section';
                         
-                        const durabilityBarElement = document.createElement('div');
-                        durabilityBarElement.className = 'tooltip-durability-bar';
+                        const descriptionElement = document.createElement('div');
+                        descriptionElement.className = 'tooltip-description';
+                        descriptionElement.textContent = itemConfig.description;
+                        descriptionSection.appendChild(descriptionElement);
                         
-                        const durabilityFillElement = document.createElement('div');
-                        durabilityFillElement.className = 'tooltip-durability-fill';
-                        const durabilityPercentage = (itemData.durability / itemData.maxDurability) * 100;
-                        durabilityFillElement.style.width = `${durabilityPercentage}%`;
-                        durabilityFillElement.style.height = '100%';
-                        
-                        // Color the bar based on durability level
-                        if (durabilityPercentage > 66) {
-                            durabilityFillElement.style.backgroundColor = '#4CAF50'; // Green
-                        } else if (durabilityPercentage > 33) {
-                            durabilityFillElement.style.backgroundColor = '#FFA500'; // Orange
-                        } else {
-                            durabilityFillElement.style.backgroundColor = '#F44336'; // Red
-                        }
-                        
-                        durabilityBarElement.appendChild(durabilityFillElement);
-                        durabilityElement.appendChild(durabilityBarElement);
-                        durabilitySection.appendChild(durabilityElement);
-                    } else if (category === 'tool' || category === 'tools' || 
-                               category === 'weapon' || category === 'weapons' || 
-                               category === 'armor') {
-                        // Fallback to config values if the item should have durability
-                        const maxDurability = itemConfig.maxDurability || 0;
-                        const durability = itemConfig.durability || maxDurability;
-                        
-                        if (maxDurability > 0) {
-                            hasDurability = true;
-                            const durabilityElement = document.createElement('div');
-                            durabilityElement.className = 'tooltip-durability';
-                            durabilityElement.textContent = `Durability: ${durability}/${maxDurability}`;
-                            
-                            const durabilityBarElement = document.createElement('div');
-                            durabilityBarElement.className = 'tooltip-durability-bar';
-                            
-                            const durabilityFillElement = document.createElement('div');
-                            durabilityFillElement.className = 'tooltip-durability-fill';
-                            const durabilityPercentage = (durability / maxDurability) * 100;
-                            durabilityFillElement.style.width = `${durabilityPercentage}%`;
-                            durabilityFillElement.style.height = '100%';
-                            
-                            // Default green for new items
-                            durabilityFillElement.style.backgroundColor = '#4CAF50';
-                            
-                            durabilityBarElement.appendChild(durabilityFillElement);
-                            durabilityElement.appendChild(durabilityBarElement);
-                            durabilitySection.appendChild(durabilityElement);
-                        }
+                        tooltip.appendChild(descriptionSection);
                     }
                     
-                    // Only add durability section if there is durability
-                    if (hasDurability) {
-                        tooltip.appendChild(durabilitySection);
-                    }
+                    // Position tooltip near cursor
+                    tooltip.style.left = `${e.clientX + 15}px`;
+                    tooltip.style.top = `${e.clientY + 15}px`;
                     
+                    // Show tooltip
                     tooltip.style.display = 'block';
-                    moveTooltip(e);
-                    
-                    console.log(`[UI] Successfully displayed tooltip for item: ${itemData.type}`);
                 });
             } catch (error) {
-                console.error('[UI] Error in showTooltip:', error);
+                console.error('[UI] Error showing tooltip:', error);
             }
         }
-        
+
         // Function to hide tooltip
-        function hideTooltip(e) {
-            e.stopPropagation();
+        function hideTooltip() {
             tooltip.style.display = 'none';
         }
-        
+
         // Function to move tooltip with cursor
         function moveTooltip(e) {
             tooltip.style.left = (e.clientX - tooltip.offsetWidth - 15) + 'px';
@@ -1586,13 +1535,31 @@
             });
         }
 
+        // Function to handle inventory toggle when button is clicked
+        function toggleInventory(e) {
+            console.log('[UI] Inventory toggle button clicked', e);
+            console.log('[UI] Button element:', this);
+            console.log('[UI] Current inventory state:', document.getElementById('inventory').style.display);
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Debug what's being sent
+            console.log('[UI] Sending inventory toggle request to server');
+            
+            // Send inventory toggle request to server
+            hytopia.sendData({
+                inventoryToggle: {
+                    action: 'toggle'
+                }
+            });
+            
+            console.log('[UI] Inventory toggle request sent');
+        }
+
         // Handle keydown
         document.addEventListener('keydown', (event) => {
-            // Check if crafting UI is open
-            const isCraftingOpen = document.getElementById('craftingUI').classList.contains('visible');
-            
-            // E key for inventory toggle - only if crafting is closed
-            if (event.key.toLowerCase() === 'e' && !isKeyPressed && !isCraftingOpen) {
+            // E key for inventory toggle
+            if (event.key.toLowerCase() === 'e' && !isKeyPressed) {
                 isKeyPressed = true;
                 const inventoryContainer = document.getElementById('inventory');
                 const isInventoryOpen = inventoryContainer.style.display === 'block';
@@ -1748,7 +1715,7 @@
                 const { isOpen, updates, hotbar } = data.inventoryToggle;
                 const inventoryContainer = document.getElementById('inventory');
                 const crosshair = document.querySelector('.crosshair');
-                const inventoryToggleBtn = document.querySelector('.inventory-toggle');
+                const inventoryToggleBtn = document.getElementById('inventoryToggle');
                 
                 if (inventoryContainer && crosshair) {
                     console.log('[UI] Toggling inventory:', isOpen);
@@ -1764,6 +1731,7 @@
                         // Hide inventory toggle button when inventory is open
                         if (inventoryToggleBtn) {
                             inventoryToggleBtn.style.display = 'none';
+                            console.log('[UI] Hidden inventory toggle button');
                         }
                     } else {
                         console.log('[UI] INVENTORY IS CLOSED');
@@ -1775,6 +1743,7 @@
                         // Show inventory toggle button when inventory is closed
                         if (inventoryToggleBtn) {
                             inventoryToggleBtn.style.display = 'block';
+                            console.log('[UI] Showing inventory toggle button');
                         }
                     }
                     
@@ -1909,10 +1878,7 @@
             // Handle crafting UI toggle from server
             if (data.craftingToggle) {
                 const craftingUI = document.getElementById('craftingUI');
-                const inventoryContainer = document.getElementById('inventory');
                 const crosshair = document.querySelector('.crosshair');
-                const inventoryToggleBtn = document.querySelector('.inventory-toggle');
-                const closeInventoryBtn = document.getElementById('closeInventory');
                 
                 if (craftingUI && crosshair) {
                     console.log('[UI] Toggling crafting UI:', data.craftingToggle.isOpen);
@@ -1920,28 +1886,9 @@
                         craftingUI.classList.add('visible');
                         crosshair.classList.add('hidden');
                         
-                        // Also open inventory when crafting opens
-                        if (inventoryContainer) {
-                            console.log('[UI] Opening inventory with crafting');
-                            inventoryContainer.style.display = 'block';
-                            // Hide inventory toggle button
-                            if (inventoryToggleBtn) {
-                                inventoryToggleBtn.style.display = 'none';
-                            }
-                            // Disable inventory close button
-                            if (closeInventoryBtn) {
-                                closeInventoryBtn.style.pointerEvents = 'none';
-                                closeInventoryBtn.style.opacity = '0.5';
-                            }
-                        }
-                        
                         // Clear any existing recipes to start fresh
                         document.querySelector('.recipe-list').innerHTML = '';
                         console.log('[UI] Cleared recipe list for fresh start');
-                        
-                        // Disable pointer lock when opening crafting/inventory
-                        hytopia.lockPointer(false);
-                        console.log('[UI] POINTLOCK IS DISABLED');
                         
                         // If categories were provided, update category buttons
                         if (data.craftingToggle.categories && Array.isArray(data.craftingToggle.categories)) {
@@ -2025,25 +1972,6 @@
                     } else {
                         craftingUI.classList.remove('visible');
                         crosshair.classList.remove('hidden');
-                        
-                        // Also close inventory when crafting closes
-                        if (inventoryContainer) {
-                            console.log('[UI] Closing inventory with crafting');
-                            inventoryContainer.style.display = 'none';
-                            // Show inventory toggle button
-                            if (inventoryToggleBtn) {
-                                inventoryToggleBtn.style.display = 'block';
-                            }
-                            // Re-enable inventory close button
-                            if (closeInventoryBtn) {
-                                closeInventoryBtn.style.pointerEvents = 'auto';
-                                closeInventoryBtn.style.opacity = '1';
-                            }
-                        }
-                        
-                        // Enable pointer lock when closing crafting/inventory
-                        hytopia.lockPointer(true);
-                        console.log('[UI] POINTLOCK IS ENABLED');
                     }
                 }
             }
@@ -2775,33 +2703,45 @@
             }, duration);
         }
 
-        // Modify the DOMContentLoaded event to avoid duplicate event listeners
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('[UI] DOM content loaded');
+        // Clean, simple DOMContentLoaded handler
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('[UI] DOM Content Loaded');
             
-            // Initialize inventory toggle button visibility
-            const inventoryToggleBtn = document.querySelector('.inventory-toggle');
-            const inventoryContainer = document.getElementById('inventory');
-            
-            if (inventoryToggleBtn && inventoryContainer) {
-                // Show toggle button only if inventory is hidden
-                inventoryToggleBtn.style.display = inventoryContainer.style.display === 'none' ? 'block' : 'none';
+            // Set up the inventory toggle button event listener
+            const inventoryToggleBtn = document.getElementById('inventoryToggle');
+            if (inventoryToggleBtn) {
+                console.log('[UI] Found inventory toggle button, setting up event listener');
+                
+                inventoryToggleBtn.addEventListener('click', function() {
+                    console.log('[UI] Inventory toggle button clicked');
+                    
+                    // Send the same message as pressing E would
+                    hytopia.sendData({
+                        inventoryToggle: {
+                            action: 'toggle'
+                        }
+                    });
+                });
+            } else {
+                console.error('[UI] Could not find inventory toggle button');
             }
             
             // Set up recipe cache
             window.recipeCache = {};
-            console.log('[UI] Recipe cache initialized');
             
             // Initialize inventory grid
             initializeInventoryGrid();
             
             // Create event listener for inventory close button
-            document.getElementById('closeInventory').addEventListener('click', () => {
-                console.log('[UI] Inventory close button clicked');
-                hytopia.sendData({
-                    closeInventory: true
+            const closeInventoryBtn = document.getElementById('closeInventory');
+            if (closeInventoryBtn) {
+                closeInventoryBtn.addEventListener('click', function() {
+                    console.log('[UI] Inventory close button clicked');
+                    hytopia.sendData({
+                        closeInventory: true
+                    });
                 });
-            });
+            }
             
             // Remove any existing click handlers from category buttons first
             const categoryButtons = document.querySelectorAll('.crafting-categories .category-button');
@@ -3052,20 +2992,137 @@
             // ... rest of data handling ...
         });
 
+        // Function to update inventory slots
         function updateInventorySlots(updates) {
+            if (!updates || !Array.isArray(updates)) {
+                console.error('[UI] Invalid inventory updates:', updates);
+                return;
+            }
+            
+            console.log('[UI] Updating inventory slots:', updates);
+            
+            // Process each update
             updates.forEach(update => {
-                const slot = document.querySelector(`.inventory-slot[data-slot="${update.slot}"]`);
-                if (slot) {
-                    updateSlot(slot, update);
+                try {
+                    const { slot, item } = update;
+                    if (slot === undefined) {
+                        console.warn('[UI] Update missing slot number:', update);
+                        return;
+                    }
+                    
+                    // Handle inventory state tracking
+                    if (!item) {
+                        console.log(`[UI] Removing item from slot ${slot}`);
+                        inventoryState.delete(slot);
+                    } else {
+                        console.log(`[UI] Setting slot ${slot} to:`, item);
+                        inventoryState.set(slot, item);
+                    }
+                    
+                    // Find the inventory slot element
+                    const inventorySlot = document.querySelector(`.inventory-slot[data-slot="${slot}"]`);
+                    if (!inventorySlot) {
+                        console.warn(`[UI] Could not find inventory slot ${slot}`);
+                        return;
+                    }
+                    
+                    // Get icon and count elements
+                    const iconElement = inventorySlot.querySelector('.item-icon');
+                    const countElement = inventorySlot.querySelector('.item-count');
+                    
+                    if (!iconElement || !countElement) {
+                        console.warn(`[UI] Missing icon or count element for slot ${slot}`);
+                        return;
+                    }
+                    
+                    // Update the slot's contents
+                    if (item && item.type) {
+                        // Set background image
+                        if (item.imageUrl) {
+                            iconElement.style.backgroundImage = `url('${item.imageUrl}')`;
+                            iconElement.style.backgroundSize = 'contain';
+                            iconElement.style.backgroundRepeat = 'no-repeat';
+                            iconElement.style.backgroundPosition = 'center';
+                        } else {
+                            console.warn(`[UI] Item in slot ${slot} missing imageUrl:`, item);
+                        }
+                        
+                        // Set count
+                        if (item.count > 1) {
+                            countElement.textContent = item.count;
+                        } else {
+                            countElement.textContent = '';
+                        }
+                    } else {
+                        // Clear the slot
+                        iconElement.style.backgroundImage = 'none';
+                        countElement.textContent = '';
+                    }
+                } catch (error) {
+                    console.error('[UI] Error processing inventory update:', error, update);
                 }
             });
         }
 
+        // Function to update hotbar slots
         function updateHotbarSlots(updates) {
+            if (!updates || !Array.isArray(updates)) {
+                console.error('[UI] Invalid hotbar updates:', updates);
+                return;
+            }
+            
+            console.log('[UI] Updating hotbar slots:', updates);
+            
+            // Process each update
             updates.forEach(update => {
-                const slot = document.querySelector(`.hotbar-slot[data-slot="${update.slot}"]`);
-                if (slot) {
-                    updateSlot(slot, update);
+                try {
+                    const { slot, item } = update;
+                    if (slot === undefined) {
+                        console.warn('[UI] Update missing slot number:', update);
+                        return;
+                    }
+                    
+                    // Find the hotbar slot element
+                    const hotbarSlot = document.querySelector(`.hotbar-slot[data-slot="${slot}"]`);
+                    if (!hotbarSlot) {
+                        console.warn(`[UI] Could not find hotbar slot ${slot}`);
+                        return;
+                    }
+                    
+                    // Get icon and count elements
+                    const iconElement = hotbarSlot.querySelector('.item-icon');
+                    const countElement = hotbarSlot.querySelector('.item-count');
+                    
+                    if (!iconElement || !countElement) {
+                        console.warn(`[UI] Missing icon or count element for hotbar slot ${slot}`);
+                        return;
+                    }
+                    
+                    // Update the slot's contents
+                    if (item && item.type) {
+                        // Set background image
+                        if (item.imageUrl) {
+                            iconElement.style.backgroundImage = `url('${item.imageUrl}')`;
+                            iconElement.style.backgroundSize = 'contain';
+                            iconElement.style.backgroundRepeat = 'no-repeat';
+                            iconElement.style.backgroundPosition = 'center';
+                        } else {
+                            console.warn(`[UI] Item in hotbar slot ${slot} missing imageUrl:`, item);
+                        }
+                        
+                        // Set count
+                        if (item.count > 1) {
+                            countElement.textContent = item.count;
+                        } else {
+                            countElement.textContent = '';
+                        }
+                    } else {
+                        // Clear the slot
+                        iconElement.style.backgroundImage = 'none';
+                        countElement.textContent = '';
+                    }
+                } catch (error) {
+                    console.error('[UI] Error processing hotbar update:', error, update);
                 }
             });
         }
@@ -3129,6 +3186,63 @@
                 closeInventory: true
             });
         });
+
+        // ... existing code ...
+        // Function to show tooltip for entities
+        function showEntityTooltip(entityId, name, health, maxHealth, e) {
+            tooltip.innerHTML = '';
+            
+            const headerSection = document.createElement('div');
+            headerSection.className = 'tooltip-section';
+            
+            const nameElement = document.createElement('div');
+            nameElement.className = 'tooltip-title';
+            nameElement.textContent = name;
+            headerSection.appendChild(nameElement);
+            
+            tooltip.appendChild(headerSection);
+            
+            // Health section
+            const healthSection = document.createElement('div');
+            healthSection.className = 'tooltip-section';
+            
+            const healthElement = document.createElement('div');
+            healthElement.className = 'tooltip-health';
+            healthElement.textContent = `Health: ${health}/${maxHealth}`;
+            
+            const healthBarElement = document.createElement('div');
+            healthBarElement.className = 'tooltip-health-bar';
+            
+            const healthFillElement = document.createElement('div');
+            healthFillElement.className = 'tooltip-health-fill';
+            const healthPercentage = (health / maxHealth) * 100;
+            healthFillElement.style.width = `${healthPercentage}%`;
+            healthFillElement.style.height = '100%';
+            
+            // Color based on health percentage
+            if (healthPercentage > 66) {
+                healthFillElement.style.backgroundColor = '#4CAF50'; // Green
+            } else if (healthPercentage > 33) {
+                healthFillElement.style.backgroundColor = '#FFA500'; // Orange
+            } else {
+                healthFillElement.style.backgroundColor = '#F44336'; // Red
+            }
+            
+            healthBarElement.appendChild(healthFillElement);
+            healthElement.appendChild(healthBarElement);
+            healthSection.appendChild(healthElement);
+            
+            tooltip.appendChild(healthSection);
+            
+            // Position tooltip near cursor
+            tooltip.style.left = `${e.clientX + 15}px`;
+            tooltip.style.top = `${e.clientY + 15}px`;
+            
+            // Show tooltip
+            tooltip.style.display = 'block';
+        }
+
+        // ... existing code ...
     </script>
 </body>
 </html>

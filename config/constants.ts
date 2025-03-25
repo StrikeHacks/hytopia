@@ -5,6 +5,7 @@ export const MAX_STACK_SIZE = 64;
 
 // Drop force constants
 export const DEFAULT_DROP_FORCE = { horizontal: 0.4, vertical: 0.1 };
+export const MID_DROP_FORCE = { horizontal: 0.65, vertical: 0.12 };
 export const HEAVY_DROP_FORCE = { horizontal: 1, vertical: 0.15 };
 export const GIGA_DROP_FORCE = { horizontal: 1.5, vertical: 0.2 };
 

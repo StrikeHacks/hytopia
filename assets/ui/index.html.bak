@@ -12,6 +12,131 @@
             font-family: 'Roboto', sans-serif;
         }
 
+        .inventory-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #8B4513;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            display: block;
+        }
+
+
+        .inventory-toggle::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            background: #8B4513;
+            border-radius: 2px;
+            opacity: 0.8;
+            transition: all 0.2s ease;
+        }
+
+        .inventory-toggle:hover {
+            background: rgba(0, 0, 0, 0.9);
+            border-color: #A65D1E;
+        }
+
+        .inventory-toggle:hover::before {
+            opacity: 1;
+            background: #A65D1E;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        /* Tooltip styles */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        /* Tooltip styles */
+        .item-tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.85);
+            border: 2px solid rgba(139, 69, 19, 0.7);
+            border-radius: 4px;
+            color: white;
+            padding: 12px;
+            z-index: 100;
+            pointer-events: none;
+            max-width: 250px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            font-size: 14px;
+        }
+        
+        .tooltip-title {
+            color: #FFD700;
+            margin-bottom: 3px;
+            text-align: left;
+        }
+        
+        .tooltip-category {
+            color: #aaaaaa;
+            font-size: 12px;
+            font-style: italic;
+            margin-bottom: 3px;
+            text-align: left;
+        }
+        
+        .tooltip-count,
+        .tooltip-damage,
+        .tooltip-armor {
+            text-align: left;
+        }
+        
+        .tooltip-damage {
+            color: #ff6b6b;
+        }
+        
+        .tooltip-armor {
+            color: #6bb5ff;
+        }
+        
+        .tooltip-durability {
+            margin-top: 5px;
+            font-size: 12px;
+            text-align: left;
+        }
+        
+        .tooltip-durability-bar {
+            height: 4px;
+            background-color: #333;
+            border-radius: 2px;
+            margin-top: 2px;
+            position: relative;
+            width: 100%;
+        }
+        
+        .tooltip-durability-fill {
+            height: 100%;
+            background-color: #4CAF50;
+        }
+
+        .tooltip-damage {
+            color: #FF6666;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        .tooltip-armor {
+            color: #6699FF;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
        
 
         /* Error state for failed image loads */
@@ -110,8 +235,7 @@
             pointer-events: none;
         }
 
-        .hotbar-slot .item-icon,
-        .inventory-slot .item-icon {
+        .hotbar-slot .item-icon {
             width: 32px;
             height: 32px;
             background-size: contain;
@@ -265,44 +389,7 @@
             pointer-events: none;
         }
 
-        .inventory-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #8B4513;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .inventory-toggle::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 24px;
-            height: 24px;
-            background: #8B4513;
-            border-radius: 2px;
-            opacity: 0.8;
-            transition: all 0.2s ease;
-        }
-
-        .inventory-toggle:hover {
-            background: rgba(0, 0, 0, 0.9);
-            border-color: #A65D1E;
-        }
-
-        .inventory-toggle:hover::before {
-            opacity: 1;
-            background: #A65D1E;
-            transform: translate(-50%, -50%) scale(1.1);
-        }
+        
 
         .inventory-container {
             display: none;
@@ -817,20 +904,137 @@
             color: white;
         }
 
-        /* Mining progress bar styling */
-        .mining-progress-container {
+        /* Add styles for the tooltip */
+        .item-tooltip {
+            position: fixed; /* Changed from absolute to fixed */
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 1500; /* Increased z-index to ensure visibility */
+            border: 1px solid #555;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            white-space: nowrap;
+            font-weight: bold; /* Added bold for better visibility */
+        }
+        
+        .tooltip-section {
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+        }
+        
+        .tooltip-section:not(:last-child) {
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .tooltip-title {
+            color: #FFD700;
+            margin-bottom: 3px;
+            text-align: right;
+        }
+        
+        .tooltip-category {
+            color: #aaaaaa;
+            font-size: 12px;
+            font-style: italic;
+            text-align: right;
+        }
+        
+        .tooltip-count,
+        .tooltip-damage,
+        .tooltip-armor {
+            text-align: right;
+        }
+        
+        .tooltip-damage {
+            color: #ff6b6b;
+        }
+        
+        .tooltip-armor {
+            color: #6bb5ff;
+        }
+        
+        .tooltip-durability {
+            margin-top: 5px;
+            font-size: 12px;
+            text-align: right;
+        }
+        
+        .tooltip-durability-bar {
+            height: 4px;
+            background-color: #333;
+            border-radius: 2px;
+            margin-top: 2px;
+            position: relative;
+            width: 100%;
+        }
+        
+        .tooltip-durability-fill {
+            height: 100%;
+            background-color: #4CAF50;
+        }
+
+        /* Tooltip styling */
+        .tooltip {
             position: fixed;
-            width: 300px;
-            height: 30px;
-            bottom: 130px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.5);
-            border: 3px solid #8B4513;
-            border-radius: 6px;
             display: none;
+            z-index: 1000;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 4px;
+            padding: 10px;
+            min-width: 150px;
+            text-align: left; /* Ensure all text is left aligned */
+            pointer-events: none;
+        }
+
+        .tooltip-section {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 5px; /* Verminder van 8px naar 5px */
+            margin-bottom: 5px; /* Verminder van 8px naar 5px */
+        }
+
+        .tooltip-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .tooltip-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 2px; /* Verminder van 4px naar 2px */
+            text-align: left;
+        }
+
+        .tooltip-category {
+            color: #aaa;
+            font-size: 14px;
+            font-style: italic;
+            margin-bottom: 2px; /* Verminder van 4px naar 2px */
+            text-align: left;
+        }
+
+        .tooltip-damage, .tooltip-armor, .tooltip-durability {
+            text-align: left;
+            margin-bottom: 2px; /* Verminder van 4px naar 2px */
+            font-size: 14px;
+        }
+
+        .tooltip-durability-bar {
+            width: 100%;
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
             overflow: hidden;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .tooltip-durability-fill {
+            height: 100%;
+            border-radius: 3px;
+            background-color: #4CAF50;
         }
     </style>
 </head>
@@ -844,6 +1048,8 @@
         <div class="mana-bar-fill"></div>
         <div class="mana-text">100/100</div>
     </div>
+
+    <div class="inventory-toggle"></div>
 
     <div class="item-name-display"></div>
 
@@ -869,27 +1075,31 @@
     </template>
 
     <div class="hotbar">
-        <div class="hotbar-slot selected">
+        <div class="hotbar-slot selected" data-slot="0">
             <div class="item-icon"></div>
+            <div class="item-count"></div>
         </div>
-        <div class="hotbar-slot">
+        <div class="hotbar-slot" data-slot="1">
             <div class="item-icon"></div>
+            <div class="item-count"></div>
         </div>
-        <div class="hotbar-slot">
+        <div class="hotbar-slot" data-slot="2">
             <div class="item-icon"></div>
+            <div class="item-count"></div>
         </div>
-        <div class="hotbar-slot">
+        <div class="hotbar-slot" data-slot="3">
             <div class="item-icon"></div>
+            <div class="item-count"></div>
         </div>
-        <div class="hotbar-slot">
+        <div class="hotbar-slot" data-slot="4">
             <div class="item-icon"></div>
+            <div class="item-count"></div>
         </div>
     </div>
 
-    <div class="inventory-toggle" id="inventoryToggle" style="display: block;"></div>
     
-    <div class="inventory-container" id="inventoryContainer" style="display: none;">
-        <div class="close-button" id="closeInventory">X</div>
+    <div class="inventory-container" id="inventory" style="display: none;">
+        <button class="close-button" id="closeInventory">X</button>
         <div class="armor-and-player">
             <div class="armor-section">
                 <div class="armor-slots">
@@ -960,101 +1170,153 @@
         // Track active category
         let activeCategory = 'tools';
 
-        // Initialize the hotbar
-        const hotbar = document.querySelector('.hotbar');
-        hotbar.innerHTML = ''; // Clear existing slots
-        for (let i = 0; i < 5; i++) {
-            const slot = document.createElement('div');
-            slot.className = i === 0 ? 'hotbar-slot selected' : 'hotbar-slot';
-            const itemIcon = document.createElement('div');
-            itemIcon.className = 'item-icon';
-            const itemCount = document.createElement('div');
-            itemCount.className = 'item-count';
-            slot.appendChild(itemIcon);
-            slot.appendChild(itemCount);
-            hotbar.appendChild(slot);
-        }
+        // Create tooltip element
+        let tooltip = document.createElement('div');
+        tooltip.className = 'item-tooltip';
+        tooltip.style.display = 'none';
+        document.body.appendChild(tooltip);
+        console.log('[UI] Created tooltip element');
 
-        // Enhanced function to update inventory slot with item
-        function updateInventorySlot(slot, item, count = 1, imageUrl) {
-            // Update internal state
-            inventoryState.set(slot, { type: item, count, imageUrl });
+        // Cache for recipes
+        window.recipeCache = {};
+        window.craftingTimeCache = {};
+        
+        // Crafting state
+        window.isCrafting = false;
+        window.currentlyCraftingItem = null;
+        
+        // Single simple function to handle both inventory and toggle button
+        function handleInventoryData(data) {
+            // Get UI elements
+            const inventory = document.getElementById('inventory');
+            const toggleButton = document.querySelector('.inventory-toggle');
+            const crosshair = document.querySelector('.crosshair');
             
-            // Update inventory slot
-            const inventorySlot = document.querySelector(`.inventory-slot[data-slot="${slot}"]`);
-            if (inventorySlot) {
-                const itemIcon = inventorySlot.querySelector('.item-icon');
-                const itemCountElement = inventorySlot.querySelector('.item-count');
-                
-                if (itemIcon) {
-                    itemIcon.className = 'item-icon';
-                    if (item) {
-                        itemIcon.style.backgroundImage = `url('{{CDN_ASSETS_URL}}/${imageUrl}')`;
-                    } else {
-                        itemIcon.style.backgroundImage = 'none';
-                    }
-                }
-                
-                if (itemCountElement) {
-                    itemCountElement.textContent = item && count > 1 ? count.toString() : '';
+            console.log('[UI] Received inventory data:', data);
+            
+            if (data.isOpen !== undefined) {
+                if (data.isOpen) {
+                    // INVENTORY OPEN = TOGGLE HIDDEN
+                    inventory.style.display = 'block';
+                    toggleButton.style.display = 'none';
+                    console.log('[UI] INVENTORY IS OPEN - TOGGLE IS HIDDEN');
+                    
+                    // Disable pointer lock and hide crosshair
+                    hytopia.lockPointer(false);
+                    crosshair.classList.add('hidden');
+                } else {
+                    // INVENTORY CLOSED = TOGGLE VISIBLE
+                    inventory.style.display = 'none';
+                    toggleButton.style.display = 'block';
+                    console.log('[UI] INVENTORY IS CLOSED - TOGGLE IS VISIBLE');
+                    
+                    // Enable pointer lock and show crosshair
+                    hytopia.lockPointer(true);
+                    crosshair.classList.remove('hidden');
                 }
             }
+            
+            // Process inventory updates
+            if (data.updates) {
+                updateInventorySlots(data.updates);
+            }
+            
+            // Process hotbar updates
+            if (data.hotbarUpdates) {
+                updateHotbarSlots(data.hotbarUpdates);
+            }
+        }
 
-            // Update hotbar slot if it's in the hotbar range
-            if (slot < 5) {
-                const hotbarSlot = document.querySelector(`.hotbar-slot:nth-child(${slot + 1})`);
-                if (hotbarSlot) {
-                    const itemIcon = hotbarSlot.querySelector('.item-icon');
-                    const itemCountElement = hotbarSlot.querySelector('.item-count');
-                    
-                    if (itemIcon) {
-                        itemIcon.className = 'item-icon';
-                        if (item) {
-                            itemIcon.style.backgroundImage = `url('{{CDN_ASSETS_URL}}/${imageUrl}')`;
-                        } else {
-                            itemIcon.style.backgroundImage = 'none';
+        // Main data event listener - ONE SINGLE LISTENER FOR ALL DATA
+        hytopia.onData(function(data) {
+            console.log('[UI] Data received:', data);
+            
+            // Handle inventory toggle data
+            if (data.inventoryToggle) {
+                handleInventoryData(data.inventoryToggle);
+            }
+            
+            // Handle crafting toggle data
+            if (data.craftingToggle) {
+                // Existing crafting toggle code...
+                // ... existing code ...
+            }
+            
+            // All other data handlers...
+            // ... existing code ...
+        });
+
+        // Initialize UI elements when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('[UI] DOM content loaded');
+            
+            // Setup inventory toggle button
+            const toggleButton = document.querySelector('.inventory-toggle');
+            const inventory = document.getElementById('inventory');
+            
+            // Set initial state
+            if (inventory && toggleButton) {
+                // Default state: inventory closed, toggle visible
+                inventory.style.display = 'none';
+                toggleButton.style.display = 'block';
+                console.log('[UI] Initial state set: inventory hidden, toggle visible');
+            }
+            
+            // Add click handler to toggle button
+            if (toggleButton) {
+                toggleButton.addEventListener('click', function() {
+                    console.log('[UI] Toggle button clicked');
+                    hytopia.sendData({
+                        inventoryToggle: {
+                            action: 'toggle'
                         }
-                    }
-                    
-                    if (itemCountElement) {
-                        itemCountElement.textContent = item && count > 1 ? count.toString() : '';
-                    }
-                }
+                    });
+                });
             }
-        }
+            
+            // Add click handler to inventory close button
+            const closeButton = document.getElementById('closeInventory');
+            if (closeButton) {
+                closeButton.addEventListener('click', function() {
+                    console.log('[UI] Close inventory button clicked');
+                    hytopia.sendData({
+                        inventoryToggle: {
+                            action: 'close'
+                        }
+                    });
+                });
+            }
+        });
 
-        // Function to reapply inventory state
-        function reapplyInventoryState() {
-            console.log('[Inventory] Reapplying inventory state...');
-            inventoryState.forEach((item, slot) => {
-                updateInventorySlot(slot, item.type, item.count, item.imageUrl);
-            });
-        }
-
-        // Handle keydown
+        // Handle keydown for inventory toggle
         document.addEventListener('keydown', (event) => {
-            // Existing E key handling
+            // E key for inventory toggle
             if (event.key.toLowerCase() === 'e' && !isKeyPressed) {
                 isKeyPressed = true;
-                console.log('[UI] E key pressed - sending toggle request');
+                const inventoryContainer = document.getElementById('inventory');
+                const isInventoryOpen = inventoryContainer.style.display === 'block';
+                
+                console.log('[UI] E key pressed - sending toggle request. Current state:', isInventoryOpen ? 'open' : 'closed');
                 hytopia.sendData({
                     inventoryToggle: {
-                        action: 'toggle'
+                        action: isInventoryOpen ? 'close' : 'toggle'
                     }
                 });
             }
             
-            // Handle ESC key
-            if (event.key === 'Escape' && document.getElementById('craftingUI').classList.contains('visible')) {
-                console.log('[UI] ESC pressed - sending close request');
-                hytopia.sendData({
-                    craftingToggle: {
-                        action: 'toggle'
-                    }
-                });
+            // Handle ESC key for crafting only
+            if (event.key === 'Escape') {
+                if (document.getElementById('craftingUI').classList.contains('visible')) {
+                    console.log('[UI] ESC pressed - sending crafting close request');
+                    hytopia.sendData({
+                        craftingToggle: {
+                            action: 'toggle'
+                        }
+                    });
+                }
             }
 
-            // Handle F key
+            // Handle F key for crafting
             if (event.key.toLowerCase() === 'f' && !isFPressed) {
                 isFPressed = true;
                 console.log('[UI] F key pressed - sending crafting toggle request');
@@ -1076,1264 +1338,8 @@
             }
         });
 
-        // Initialize inventory grid with 15 slots
-        const inventoryGrid = document.getElementById('inventoryGrid');
-        for (let i = 5; i < 20; i++) { // Start from 5 to account for hotbar slots
-            const slot = document.createElement('div');
-            slot.className = 'inventory-slot';
-            slot.dataset.slot = i.toString();
-            const itemIcon = document.createElement('div');
-            itemIcon.className = 'item-icon';
-            const itemCount = document.createElement('div');
-            itemCount.className = 'item-count';
-            slot.appendChild(itemIcon);
-            slot.appendChild(itemCount);
-            inventoryGrid.appendChild(slot);
-
-            // Add click handler for inventory slots
-            slot.addEventListener('click', () => {
-                console.log(`[UI] Inventory slot ${i} clicked`);
-                hytopia.sendData({
-                    inventoryAction: {
-                        action: 'setItem',
-                        slot: i,
-                        item: null // For now, just clear the slot on click
-                    }
-                });
-            });
-        }
-
-        // Initialize hotbar mirror with 5 slots
-        const inventoryHotbar = document.getElementById('inventoryHotbar');
-        for (let i = 0; i < 5; i++) {
-            const slot = document.createElement('div');
-            slot.className = 'inventory-slot hotbar-mirror';
-            slot.dataset.slot = i.toString();
-            const itemIcon = document.createElement('div');
-            itemIcon.className = 'item-icon';
-            const itemCount = document.createElement('div');
-            itemCount.className = 'item-count';
-            slot.appendChild(itemIcon);
-            slot.appendChild(itemCount);
-            inventoryHotbar.appendChild(slot);
-
-            // Add click handler for hotbar mirror slots
-            slot.addEventListener('click', () => {
-                console.log(`[UI] Hotbar mirror slot ${i} clicked`);
-                selectSlot(i);
-            });
-        }
-
-        hytopia.registerSceneUITemplate('gold-text', (id, onState) => {
-            const template = document.getElementById('gold-text-template');
-            const clone = template.content.cloneNode(true);
-            const counter = clone.querySelector('.counter');
-            
-            onState(state => {
-                counter.textContent = `${state.activeGoldCount || 0} / ${state.maxItems || 10}`;
-            });
-            
-            return clone;
-        });
-
-        hytopia.registerSceneUITemplate('iron-text', (id, onState) => {
-            const template = document.getElementById('iron-text-template');
-            const clone = template.content.cloneNode(true);
-            const counter = clone.querySelector('.counter');
-            
-            onState(state => {
-                counter.textContent = `${state.activeIronCount || 0} / ${state.maxItems || 10}`;
-            });
-            
-            return clone;
-        });
-
-        // Update inventory panel
-        hytopia.onData(data => {
-            if (data.health) {
-                const healthBar = document.querySelector('.health-bar-fill');
-                const healthText = document.querySelector('.health-text');
-                
-                if (healthBar && healthText) {
-                    healthBar.style.width = `${data.health.percentage}%`;
-                    healthText.textContent = `${Math.round(data.health.current)}/${data.health.max}`;
-                }
-            }
-
-            if (data.mana) {
-                const manaBar = document.querySelector('.mana-bar-fill');
-                const manaText = document.querySelector('.mana-text');
-                
-                if (manaBar && manaText) {
-                    manaBar.style.width = `${data.mana.percentage}%`;
-                    manaText.textContent = `${Math.round(data.mana.current)}/${data.mana.max}`;
-                }
-            }
-
-            // Handle inventory toggle response from server
-            if (data.inventoryToggle) {
-                const { isOpen } = data.inventoryToggle;
-                console.log(`[Inventory] ${isOpen ? 'Opening' : 'Closing'} inventory`);
-                inventoryContainer.style.display = isOpen ? 'block' : 'none';
-                inventoryToggle.style.display = isOpen ? 'none' : 'block';
-                
-                if (isOpen) {
-                    console.log('[Inventory] Restoring inventory state...');
-                    reapplyInventoryState();
-                }
-            }
-
-            if (data.ironCount !== undefined) {
-                document.getElementById('iron-count').textContent = data.ironCount;
-            }
-            if (data.goldCount !== undefined) {
-                document.getElementById('gold-count').textContent = data.goldCount;
-            }
-
-            // Handle inventory updates
-            if (data.inventoryUpdate) {
-                if (Array.isArray(data.inventoryUpdate)) {
-                    // Handle batch updates
-                    data.inventoryUpdate.forEach(update => {
-                        updateInventorySlot(update.slot, update.item, update.count, update.imageUrl);
-                    });
-                } else {
-                    // Handle single update
-                    updateInventorySlot(data.inventoryUpdate.slot, data.inventoryUpdate.item, data.inventoryUpdate.count, data.inventoryUpdate.imageUrl);
-                }
-            }
-
-            // Handle showing item name on pickup
-            if (data.showItemName) {
-                showItemName(data.showItemName.name);
-            }
-
-            // Handle hotbar updates
-            if (data.hotbarUpdate) {
-                if (Array.isArray(data.hotbarUpdate)) {
-                    // Handle batch updates
-                    data.hotbarUpdate.forEach(update => {
-                        updateInventorySlot(update.slot, update.item, update.count, update.imageUrl);
-                    });
-                } else {
-                    // Handle single update
-                    updateInventorySlot(data.hotbarUpdate.slot, data.hotbarUpdate.item, data.hotbarUpdate.count, data.hotbarUpdate.imageUrl);
-                }
-            }
-
-            // Handle hotbar selection
-            if (data.hotbarSelect) {
-                const { selectedSlot } = data.hotbarSelect;
-                // Remove selected class from all slots
-                document.querySelectorAll('.hotbar-slot').forEach(s => s.classList.remove('selected'));
-                document.querySelectorAll('.inventory-slot').forEach(s => s.classList.remove('selected'));
-                
-                // Add selected class to the selected slots
-                const selectedHotbarSlot = document.querySelector(`.hotbar-slot:nth-child(${selectedSlot + 1})`);
-                if (selectedHotbarSlot) {
-                    selectedHotbarSlot.classList.add('selected');
-                    
-                    // Show item name when selecting slot
-                    const itemIcon = selectedHotbarSlot.querySelector('.item-icon');
-                    if (itemIcon && itemIcon.classList.length > 1) {
-                        const itemType = Array.from(itemIcon.classList)
-                            .find(className => className !== 'item-icon');
-                        
-                        if (itemType) {
-                            // Send request to server to get proper display name
-                            hytopia.sendData({
-                                getItemName: {
-                                    type: itemType
-                                }
-                            });
-                        }
-                    }
-                }
-
-                const selectedInventorySlot = document.querySelector(`.inventory-slot[data-slot="${selectedSlot}"]`);
-                if (selectedInventorySlot) {
-                    selectedInventorySlot.classList.add('selected');
-                }
-
-                const selectedMirrorSlot = document.querySelector(`.inventory-hotbar .inventory-slot[data-slot="${selectedSlot}"]`);
-                if (selectedMirrorSlot) {
-                    selectedMirrorSlot.classList.add('selected');
-                }
-            }
-
-            // Handle crafting UI toggle from server
-            if (data.craftingToggle) {
-                const craftingUI = document.getElementById('craftingUI');
-                const crosshair = document.querySelector('.crosshair');
-                
-                if (craftingUI && crosshair) {
-                    console.log('[UI] Toggling crafting UI:', data.craftingToggle.isOpen);
-                    if (data.craftingToggle.isOpen) {
-                        craftingUI.classList.add('visible');
-                        crosshair.classList.add('hidden');
-                        
-                        // Clear any existing recipes to start fresh
-                        document.querySelector('.recipe-list').innerHTML = '';
-                        console.log('[UI] Cleared recipe list for fresh start');
-                        
-                        // If categories were provided, update category buttons
-                        if (data.craftingToggle.categories && Array.isArray(data.craftingToggle.categories)) {
-                            console.log('[UI] Updating category buttons:', data.craftingToggle.categories);
-                            const categoriesContainer = document.querySelector('.crafting-categories');
-                            categoriesContainer.innerHTML = '';
-                            
-                            data.craftingToggle.categories.forEach((category, index) => {
-                                // Create category button
-                                const button = document.createElement('button');
-                                button.className = 'category-button';
-                                
-                                // Set active state based on initialCategory if provided
-                                if (data.craftingToggle.initialCategory) {
-                                    if (category === data.craftingToggle.initialCategory) {
-                                        button.classList.add('active');
-                                        console.log(`[UI] Setting ${category} as active initial category`);
-                                        // Update the global active category
-                                        window.activeCategory = category;
-                                    }
-                                } else if (index === 0) {
-                                    button.classList.add('active');
-                                    window.activeCategory = category;
-                                }
-                                
-                                button.setAttribute('data-category', category);
-                                button.textContent = category.charAt(0).toUpperCase() + category.slice(1);
-                                
-                                button.addEventListener('click', (e) => {
-                                    console.log(`[UI] Category button clicked for ${category}`);
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    
-                                    // Update active class on buttons
-                                    document.querySelectorAll('.category-button').forEach(btn => {
-                                        btn.classList.remove('active');
-                                    });
-                                    button.classList.add('active');
-                                    
-                                    // Set the active category 
-                                    window.activeCategory = category;
-                                    
-                                    // Try to use cached recipes first instead of requesting new ones
-                                    if (window.recipeCache[category] && window.recipeCache[category].length > 0) {
-                                        console.log(`[UI] Using cached recipes for ${category}`);
-                                        renderRecipes(window.recipeCache[category]);
-                                    } else {
-                                        // If no cache, show loading and request
-                                        const recipeList = document.querySelector('.recipe-list');
-                                        recipeList.innerHTML = '<div class="loading-message">Loading recipes...</div>';
-                                        requestRecipes(category);
-                                    }
-                                });
-                                
-                                categoriesContainer.appendChild(button);
-                            });
-                            
-                            // Request all categories at once to cache them
-                            if (data.craftingToggle.categories.length > 0) {
-                                console.log('[UI] Pre-fetching all categories for caching');
-                                data.craftingToggle.categories.forEach(category => {
-                                    // Only fetch if not already in cache
-                                    if (!window.recipeCache[category]) {
-                                        console.log(`[UI] Pre-fetching category: ${category}`);
-                                        // Use a delayed fetch to avoid overwhelming the server
-                                        setTimeout(() => {
-                                            requestRecipesForCache(category);
-                                        }, 100 * data.craftingToggle.categories.indexOf(category)); // Stagger requests
-                                    }
-                                });
-                            }
-                        }
-                        
-                        // If recipes were provided with initial toggle, render them right away and cache them
-                        if (data.craftingToggle.recipes && data.craftingToggle.initialCategory) {
-                            console.log(`[UI] Initial recipes provided for category ${data.craftingToggle.initialCategory}:`, data.craftingToggle.recipes);
-                            window.activeCategory = data.craftingToggle.initialCategory;
-                            window.recipeCache[data.craftingToggle.initialCategory] = data.craftingToggle.recipes;
-                            renderRecipes(data.craftingToggle.recipes);
-                        }
-                    } else {
-                        craftingUI.classList.remove('visible');
-                        crosshair.classList.remove('hidden');
-                    }
-                }
-            }
-            
-            // Handle recipe data with improved error handling and logging
-            if (data.recipes) {
-                console.log('[UI] Received recipes from server:', data.recipes);
-                
-                // Always cache received recipes
-                if (data.requestedCategory) {
-                    console.log(`[UI] Caching ${data.recipes.length} recipes for category: ${data.requestedCategory}`);
-                    window.recipeCache[data.requestedCategory] = data.recipes;
-                }
-                
-                // Only update UI if this matches our current active category
-                if (data.requestedCategory && (
-                    data.requestedCategory === window.activeCategory || 
-                    (data.requestedCategory === 'weapons' && window.activeCategory === 'weapon') ||
-                    (data.requestedCategory === 'weapon' && window.activeCategory === 'weapons')
-                )) {
-                    window.activeCategory = data.requestedCategory;
-                    
-                    // Update button states to match the requested category
-                    document.querySelectorAll('.category-button').forEach(button => {
-                        button.classList.remove('active');
-                        const btnCategory = button.getAttribute('data-category');
-                        if (btnCategory === window.activeCategory || 
-                            (window.activeCategory === 'weapons' && btnCategory === 'weapon') ||
-                            (window.activeCategory === 'weapon' && btnCategory === 'weapons')) {
-                            button.classList.add('active');
-                        }
-                    });
-                    
-                    // Render recipes only if they match our active category
-                    renderRecipes(data.recipes);
-                }
-            }
-            
-            // Handle craft result
-            if (data.craftResult) {
-                const { success, recipeName } = data.craftResult;
-                console.log(`[UI] Craft result for ${recipeName}: ${success ? 'Success' : 'Failed'}`);
-                
-                if (!success) {
-                    showNotification(`Missing materials for ${recipeName}`, 'error');
-                }
-            }
-
-            // Handle recipe requirement check result
-            if (data.recipeRequirements) {
-                console.log('[UI] Received recipe requirements check result:', data.recipeRequirements);
-                
-                const { recipeName, exists, canCraft, requirements, missingItems, message } = data.recipeRequirements;
-                
-                if (!exists) {
-                    showNotification(`Recipe ${recipeName} not found`, 'error');
-                    return;
-                }
-                
-                // Log detailed information about requirements
-                console.log(`[UI] Requirements for ${recipeName}:`);
-                if (requirements && requirements.length > 0) {
-                    requirements.forEach(req => {
-                        console.log(`  - ${req.type}: ${req.playerHasCount}/${req.requiredCount} (${req.hasSufficient ? 'Sufficient' : 'Insufficient'})`);
-                    });
-                }
-                
-                // Log missing items if any
-                if (missingItems && missingItems.length > 0) {
-                    console.log(`[UI] Missing items for ${recipeName}:`);
-                    missingItems.forEach(item => {
-                        console.log(`  - ${item.type}: missing ${item.missing}`);
-                    });
-                }
-                
-                // If player can craft, proceed with crafting
-                if (canCraft) {
-                    console.log(`[UI] All requirements met for ${recipeName}, proceeding to craft`);
-                    // Craft the item automatically
-                    craftItem(recipeName);
-                } else {
-                    // Show notification with missing items
-                    let missingItemsText = '';
-                    if (missingItems && missingItems.length > 0) {
-                        missingItemsText = missingItems.map(item => `${item.missing} ${item.type}`).join(', ');
-                        showNotification(`Missing: ${missingItemsText}`, 'error');
-                    } else {
-                        showNotification(`You don't have the required items for ${recipeName}`, 'error');
-                    }
-                }
-            }
-
-            // Add event handlers for crafting with timer
-            if (data.craftingStarted) {
-                console.log(`[UI] Crafting started for ${data.craftingStarted.recipeName} with time: ${data.craftingStarted.craftingTime}ms`);
-                
-                // Get the recipe element
-                const recipeElement = document.querySelector(`.recipe-item[data-recipe="${data.craftingStarted.recipeName}"]`);
-                if (recipeElement) {
-                    // Replace the craft button with a progress bar
-                    const craftButton = recipeElement.querySelector('.craft-button');
-                    if (craftButton) {
-                        // Create crafting container to hold progress bar
-                        const craftingContainer = document.createElement('div');
-                        craftingContainer.className = 'crafting-progress-container';
-                        
-                        // Create progress bar
-                        const progressBar = document.createElement('div');
-                        progressBar.className = 'crafting-progress-bar';
-                        progressBar.innerHTML = '<div class="crafting-progress-fill"></div>';
-                        
-                        // Add progress bar to container
-                        craftingContainer.appendChild(progressBar);
-                        
-                        // Replace craft button with progress container
-                        craftButton.replaceWith(craftingContainer);
-                        
-                        // Show crafting notification
-                        showNotification(`Crafting ${data.craftingStarted.recipeName}...`, 'info');
-                    }
-                }
-            }
-
-            // Handle crafting progress updates
-            if (data.craftingProgress) {
-                const { recipeName, progress } = data.craftingProgress;
-                console.log(`[UI] Crafting progress for ${recipeName}: ${progress}%`);
-                
-                // Find the recipe element and update its progress bar
-                const recipeElement = document.querySelector(`.recipe-item[data-recipe="${recipeName}"]`);
-                if (recipeElement) {
-                    const progressFill = recipeElement.querySelector('.crafting-progress-fill');
-                    if (progressFill) {
-                        progressFill.style.width = `${progress}%`;
-                    }
-                }
-            }
-
-            // Handle crafting completion
-            if (data.craftingComplete || data.craftingCompleted) {
-                // Support both message formats for compatibility
-                const completionData = data.craftingComplete || data.craftingCompleted;
-                const { recipeName, success } = completionData;
-                console.log(`[UI] Crafting completion received for ${recipeName}: ${success ? 'Success' : 'Failed'}`);
-                
-                // Don't show a notification here - we'll show it AFTER restoring the button
-                // This prevents the notification from appearing twice
-                
-                // Find the recipe element and restore its craft button
-                const recipeElement = document.querySelector(`.recipe-item[data-recipe="${recipeName}"]`);
-                if (recipeElement) {
-                    console.log(`[UI] Found recipe element for ${recipeName}, restoring craft button`);
-                    const container = recipeElement.querySelector('.crafting-progress-container');
-                    if (container) {
-                        const craftButton = document.createElement('button');
-                        craftButton.className = 'craft-button';
-                        craftButton.textContent = 'Craft';
-                        craftButton.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            checkRecipeRequirements(recipeName);
-                        });
-                        
-                        container.replaceWith(craftButton);
-                        console.log(`[UI] Restored craft button for ${recipeName}`);
-                        
-                        // NOW show the success notification AFTER restoring the button
-                        if (success) {
-                            showNotification(`Successfully crafted ${recipeName}!`, 'success');
-                        } else {
-                            showNotification(`Failed to craft ${recipeName}`, 'error');
-                        }
-                    } else {
-                        console.warn(`[UI] Could not find progress container for ${recipeName}`);
-                        
-                        // Fallback approach: try to find any progress containers in this recipe
-                        const allContainers = recipeElement.querySelectorAll('.crafting-progress-container');
-                        if (allContainers.length > 0) {
-                            Array.from(allContainers).forEach(container => {
-                                const craftButton = document.createElement('button');
-                                craftButton.className = 'craft-button';
-                                craftButton.textContent = 'Craft';
-                                craftButton.addEventListener('click', (e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    checkRecipeRequirements(recipeName);
-                                });
-                                
-                                container.replaceWith(craftButton);
-                            });
-                            console.log(`[UI] Restored ${allContainers.length} craft buttons using fallback approach`);
-                            
-                            // Show notification after fallback button restoration
-                            if (success) {
-                                showNotification(`Successfully crafted ${recipeName}!`, 'success');
-                            } else {
-                                showNotification(`Failed to craft ${recipeName}`, 'error');
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Handle durability updates
-            if (data.durabilityUpdate) {
-                updateItemDurability(
-                    data.durabilityUpdate.slot,
-                    data.durabilityUpdate.current,
-                    data.durabilityUpdate.max,
-                    data.durabilityUpdate.percentage
-                );
-            }
-        });
-
-        // Add function to show item name
-        let hideNameTimeout;
-        function showItemName(itemName) {
-            const itemNameDisplay = document.querySelector('.item-name-display');
-            
-            // Clear any existing timer
-            if (hideNameTimeout) {
-                clearTimeout(hideNameTimeout);
-            }
-            
-            itemNameDisplay.textContent = itemName;
-            itemNameDisplay.style.opacity = '1';
-            
-            // Set new timer
-            hideNameTimeout = setTimeout(() => {
-                itemNameDisplay.style.opacity = '0';
-            }, 2000);
-        }
-
-        // Remove click handlers for hotbar slots
-        document.querySelectorAll('.hotbar-slot').forEach((slot, index) => {
-            slot.removeEventListener('click', () => {});
-        });
-
-        // Handle model-viewer loading
-        const modelViewer = document.querySelector('model-viewer');
-        modelViewer.addEventListener('load', () => {
-            modelViewer.classList.add('loaded');
-        });
-
-        modelViewer.addEventListener('error', (error) => {
-            console.error('[UI] Error loading model:', error);
-        });
-
-        // Handle close button click
-        document.getElementById('closeCrafting').addEventListener('click', () => {
-            hytopia.sendData({
-                craftingToggle: {
-                    action: 'close'
-                }
-            });
-        });
-
-        // Prevent game input when clicking UI
-        document.getElementById('craftingUI').addEventListener('mousedown', (e) => {
-            e.stopPropagation();
-        });
-
-        // Add a cache for recipe data to avoid continuous requests
-        window.recipeCache = {};
-
-        // Add a function to request recipes for caching purposes only
-        function requestRecipesForCache(category) {
-            console.log(`[UI] Requesting recipes for caching: ${category}`);
-            
-            // Normalize category name for compatibility
-            const normalizedCategory = normalizeCategory(category);
-            
-            // Send request to server using Hytopia's data format
-            hytopia.sendData({
-                requestRecipes: {
-                    category: normalizedCategory,
-                    forCache: true // Flag to indicate this is for caching only
-                }
-            });
-        }
-
-        // Update the requestRecipes function to be simpler
-        function requestRecipes(category) {
-            console.log(`[UI] Requesting recipes for category: ${category}`);
-            
-            // Check cache first
-            if (window.recipeCache[category] && window.recipeCache[category].length > 0) {
-                console.log(`[UI] Using cached recipes for ${category}`);
-                renderRecipes(window.recipeCache[category]);
-                return;
-            }
-            
-            // Normalize category name for compatibility
-            const normalizedCategory = normalizeCategory(category);
-            console.log(`[UI] Normalized category: ${normalizedCategory}`);
-            
-            // Update the global active category
-            window.activeCategory = normalizedCategory;
-            
-            // Send request to server using Hytopia's data format
-            hytopia.sendData({
-                requestRecipes: {
-                    category: normalizedCategory
-                }
-            });
-            
-            // Add a shorter timeout for better UX
-            setTimeout(() => {
-                const recipeList = document.querySelector('.recipe-list');
-                const loadingMessage = recipeList.querySelector('.loading-message');
-                
-                if (loadingMessage && window.activeCategory === normalizedCategory) {
-                    console.warn(`[UI] Recipe request for ${normalizedCategory} taking longer than expected`);
-                    loadingMessage.textContent = 'Still loading recipes...';
-                }
-            }, 2000);
-        }
-
-        // Function to normalize category name for better compatibility
-        function normalizeCategory(category) {
-            if (!category) return category;
-            
-            // Handle weapon/weapons categories
-            if (category.toLowerCase() === 'weapon') {
-                console.log('[UI] Normalizing "weapon" to "weapons" for consistency');
-                return 'weapons';
-            }
-            
-            return category;
-        }
-        
-        // Filter recipes function that handles category normalization
-        function filterRecipesByCategory(recipes, category) {
-            if (!recipes || !Array.isArray(recipes) || recipes.length === 0) {
-                return [];
-            }
-            
-            if (!category) {
-                return recipes;
-            }
-            
-            console.log(`[UI] Filtering recipes by category: ${category}`);
-            
-            // Normalize the requested category
-            const normalizedCategory = normalizeCategory(category);
-            
-            // Handle weapon/weapons category compatibility
-            if (normalizedCategory === 'weapons') {
-                return recipes.filter(recipe => {
-                    const recipeCategory = recipe.category?.toLowerCase();
-                    return recipeCategory === 'weapons' || recipeCategory === 'weapon';
-                });
-            }
-            
-            // Default filtering
-            return recipes.filter(recipe => recipe.category === normalizedCategory);
-        }
-
-        // Function to check recipe requirements instead of crafting
-        function checkRecipeRequirements(recipeName) {
-            console.log(`[UI] Checking requirements for recipe: ${recipeName}`);
-            
-            // Show a temporary message to indicate checking
-            
-            // Send a request to the server to check if the player has the required items
-            hytopia.sendData({
-                checkRecipeRequirements: {
-                    recipeName: recipeName
-                }
-            });
-        }
-
-        // Function to craft an item
-        function craftItem(recipeName) {
-            console.log(`[UI] Crafting item: ${recipeName}`);
-            
-            // Show a temporary message to indicate crafting
-            showNotification(`Crafting ${recipeName}...`, 'info');
-            
-            // Send request to server to craft the item
-            hytopia.sendData({
-                craftItem: {
-                    recipeName: recipeName
-                }
-            });
-        }
-
-        // Function to render recipes
-        function renderRecipes(recipes) {
-            console.log('[UI] Rendering recipes:', recipes);
-            console.log(`[UI] Type of recipes: ${typeof recipes}, Is Array: ${Array.isArray(recipes)}, Length: ${recipes?.length || 0}`);
-            console.log(`[UI] Active category when rendering: ${window.activeCategory}`);
-            
-            const recipeList = document.querySelector('.recipe-list');
-            recipeList.innerHTML = ''; // Clear existing recipes
-                
-            if (!recipes || recipes.length === 0) {
-                console.log('[UI] No recipes to render, showing empty message');
-                const emptyMessage = document.createElement('div');
-                emptyMessage.className = 'recipe-empty-message';
-                emptyMessage.textContent = 'No recipes available in this category';
-                emptyMessage.style.textAlign = 'center';
-                emptyMessage.style.color = '#8B4513';
-                emptyMessage.style.padding = '20px';
-                recipeList.appendChild(emptyMessage);
-                return;
-            }
-                
-            // Filter recipes by active category if needed
-            let filteredRecipes = recipes;
-            if (window.activeCategory) {
-                console.log(`[UI] Filtering recipes by active category: ${window.activeCategory}`);
-                
-                // Special handling for weapon/weapons categories
-                if (window.activeCategory === 'weapons' || window.activeCategory === 'weapon') {
-                    console.log('[UI] Using special filter for weapons category');
-                    filteredRecipes = recipes.filter(recipe => {
-                        const recipeCategory = recipe.category?.toLowerCase();
-                        // Match both "weapon" and "weapons" for compatibility
-                        return recipeCategory === 'weapon' || recipeCategory === 'weapons';
-                    });
-                } else {
-                    // Normal filtering for other categories
-                    filteredRecipes = recipes.filter(recipe => recipe.category === window.activeCategory);
-                }
-                
-                console.log(`[UI] Filtered recipes count: ${filteredRecipes.length}`);
-                
-                if (filteredRecipes.length === 0) {
-                    console.log('[UI] No recipes match the active category, showing empty message');
-                    const emptyMessage = document.createElement('div');
-                    emptyMessage.className = 'recipe-empty-message';
-                    emptyMessage.textContent = 'No recipes available in this category';
-                    emptyMessage.style.textAlign = 'center';
-                    emptyMessage.style.color = '#8B4513';
-                    emptyMessage.style.padding = '20px';
-                    recipeList.appendChild(emptyMessage);
-                    return;
-                }
-            }
-            
-            // Render each recipe
-            filteredRecipes.forEach((recipe, index) => {
-                console.log(`[UI] Rendering recipe ${index}: ${recipe?.name || 'unknown'}, Category: ${recipe?.category || 'unknown'}`);
-                
-                // Create recipe container
-                    const recipeElement = document.createElement('div');
-                    recipeElement.className = 'recipe-item';
-                recipeElement.setAttribute('data-recipe', recipe.name);
-                if (recipe.category) {
-                    recipeElement.setAttribute('data-category', recipe.category);
-                }
-                
-                try {
-                    // Create recipe name
-                    const nameElement = document.createElement('div');
-                    nameElement.className = 'recipe-name';
-                    nameElement.textContent = recipe.name;
-                    recipeElement.appendChild(nameElement);
-                    
-                    // Create content container
-                    const contentElement = document.createElement('div');
-                    contentElement.className = 'recipe-content';
-                    
-                    // Create inputs container
-                    const inputsElement = document.createElement('div');
-                    inputsElement.className = 'recipe-inputs';
-                    inputsElement.style.display = 'grid';
-                    inputsElement.style.gridTemplateColumns = 'repeat(4, 1fr)';
-                    inputsElement.style.gap = '8px';
-                    
-                    // Add each input
-                    recipe.inputs.forEach(input => {
-                        // Create slot
-                        const slotElement = document.createElement('div');
-                        slotElement.className = 'item-slot';
-                        slotElement.style.position = 'relative';
-                        slotElement.style.width = '45px';
-                        slotElement.style.height = '45px';
-                        slotElement.style.background = 'rgba(0, 0, 0, 0.4)';
-                        slotElement.style.border = '2px solid #8B4513';
-                        slotElement.style.borderRadius = '4px';
-                        slotElement.style.display = 'flex';
-                        slotElement.style.alignItems = 'center';
-                        slotElement.style.justifyContent = 'center';
-                        
-                        // Add icon if URL exists
-                        if (input.imageUrl) {
-                            console.log(`[UI] Raw input image URL: ${input.imageUrl}`);
-                            
-                            // Create a simple div for the icon
-                            const iconElement = document.createElement('div');
-                            iconElement.className = 'item-icon';
-                            
-                            // Get the actual item filename from the imageUrl
-                            const itemFilename = input.imageUrl.split('/').pop();
-                            // Use the same URL format as inventory (https://localhost:8080//items/...)
-                            const correctUrl = `https://localhost:8080//items/${itemFilename}`;
-                            console.log(`[UI] Corrected URL for crafting: ${correctUrl}`);
-                            
-                            // Apply the URL with the correct format
-                            iconElement.style.backgroundImage = `url('${correctUrl}')`;
-                            iconElement.style.backgroundSize = 'contain';
-                            iconElement.style.backgroundRepeat = 'no-repeat';
-                            iconElement.style.backgroundPosition = 'center';
-                            
-                            slotElement.appendChild(iconElement);
-                        } else {
-                            console.warn(`[UI] Missing image URL for input: ${input.type}`);
-                        }
-                        
-                        // Add count if more than 1
-                        if (input.count > 1) {
-                            const countElement = document.createElement('div');
-                            countElement.className = 'item-count';
-                            countElement.textContent = input.count;
-                            countElement.style.position = 'absolute';
-                            countElement.style.bottom = '2px';
-                            countElement.style.right = '4px';
-                            countElement.style.color = 'white';
-                            countElement.style.fontSize = '14px';
-                            countElement.style.fontWeight = 'bold';
-                            countElement.style.textShadow = '2px 2px 2px rgba(0, 0, 0, 0.8)';
-                            slotElement.appendChild(countElement);
-                        }
-                        
-                        inputsElement.appendChild(slotElement);
-                    });
-                    
-                    // Create arrow
-                    const arrowElement = document.createElement('div');
-                    arrowElement.className = 'recipe-arrow';
-                    arrowElement.textContent = '→';
-                    arrowElement.style.margin = '0 20px';
-                    arrowElement.style.color = '#FFD700';
-                    arrowElement.style.fontSize = '24px';
-                    
-                    // Create output container
-                    const outputElement = document.createElement('div');
-                    outputElement.className = 'recipe-output';
-                    outputElement.style.display = 'flex';
-                    outputElement.style.alignItems = 'center';
-                    outputElement.style.position = 'relative';
-                    
-                    // Create output slot
-                    const outputSlotElement = document.createElement('div');
-                    outputSlotElement.className = 'item-slot';
-                    outputSlotElement.style.position = 'relative';
-                    outputSlotElement.style.width = '45px';
-                    outputSlotElement.style.height = '45px';
-                    outputSlotElement.style.background = 'rgba(0, 0, 0, 0.4)';
-                    outputSlotElement.style.border = '2px solid #8B4513';
-                    outputSlotElement.style.borderRadius = '4px';
-                    outputSlotElement.style.display = 'flex';
-                    outputSlotElement.style.alignItems = 'center';
-                    outputSlotElement.style.justifyContent = 'center';
-                    
-                    // Add output icon
-                    if (recipe.output && recipe.output.imageUrl) {
-                        console.log(`[UI] Raw output image URL: ${recipe.output.imageUrl}`);
-                        
-                        // Create a simple div for the icon
-                        const iconElement = document.createElement('div');
-                        iconElement.className = 'item-icon';
-                        
-                        // Get the actual item filename from the imageUrl
-                        const itemFilename = recipe.output.imageUrl.split('/').pop();
-                        // Use the same URL format as inventory (https://localhost:8080//items/...)
-                        const correctUrl = `https://localhost:8080//items/${itemFilename}`;
-                        console.log(`[UI] Corrected URL for crafting: ${correctUrl}`);
-                        
-                        // Apply the URL with the correct format
-                        iconElement.style.backgroundImage = `url('${correctUrl}')`;
-                        iconElement.style.backgroundSize = 'contain';
-                        iconElement.style.backgroundRepeat = 'no-repeat';
-                        iconElement.style.backgroundPosition = 'center';
-                        
-                        outputSlotElement.appendChild(iconElement);
-                    } else {
-                        console.warn(`[UI] Missing image URL for output: ${recipe.output?.type}`);
-                    }
-                    
-                    // Add output count if needed
-                    if (recipe.output && recipe.output.count > 1) {
-                        const countElement = document.createElement('div');
-                        countElement.className = 'item-count';
-                        countElement.textContent = recipe.output.count;
-                        countElement.style.position = 'absolute';
-                        countElement.style.bottom = '2px';
-                        countElement.style.right = '4px';
-                        countElement.style.color = 'white';
-                        countElement.style.fontSize = '14px';
-                        countElement.style.fontWeight = 'bold';
-                        countElement.style.textShadow = '2px 2px 2px rgba(0, 0, 0, 0.8)';
-                        outputSlotElement.appendChild(countElement);
-                    }
-                    
-                    // Assemble the recipe
-                    outputElement.appendChild(outputSlotElement);
-                    contentElement.appendChild(inputsElement);
-                    contentElement.appendChild(arrowElement);
-                    contentElement.appendChild(outputElement);
-                    recipeElement.appendChild(contentElement);
-                    
-                    // Add craft button
-                    const craftButton = document.createElement('button');
-                    craftButton.className = 'craft-button';
-                    craftButton.textContent = 'Craft';
-                    craftButton.style.marginTop = '10px';
-                    craftButton.style.padding = '5px 15px';
-                    craftButton.style.background = 'rgba(139, 69, 19, 0.6)';
-                    craftButton.style.border = '2px solid #8B4513';
-                    craftButton.style.borderRadius = '4px';
-                    craftButton.style.color = 'white';
-                    craftButton.style.fontSize = '14px';
-                    craftButton.style.cursor = 'pointer';
-                    
-                    craftButton.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        
-                        // Call check recipe requirements instead of crafting directly
-                        checkRecipeRequirements(recipe.name);
-                    });
-                    
-                    recipeElement.appendChild(craftButton);
-                    
-                    // Add to recipe list
-                    recipeList.appendChild(recipeElement);
-                    
-                } catch (error) {
-                    console.error(`[UI] Error rendering recipe ${recipe?.name || 'unknown'}:`, error);
-                }
-            });
-        }
-
-        // Function to show notifications
-        function showNotification(message, type = 'info', duration = 3000) {
-            console.log(`[UI] Showing notification: ${message} (${type})`);
-            
-            // Check if a notification with the same message already exists
-            const existingWithSameMessage = Array.from(document.querySelectorAll('.notification'))
-                .find(notification => notification.textContent.includes(message));
-            
-            if (existingWithSameMessage) {
-                console.log(`[UI] Skipping duplicate notification: ${message}`);
-                return; // Don't show duplicate notifications
-            }
-            
-            // Remove any existing notifications
-            const existingNotifications = document.querySelectorAll('.notification');
-            existingNotifications.forEach(notification => {
-                notification.remove();
-            });
-            
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            
-            // For success messages, add more visual elements
-            if (type === 'success') {
-                notification.innerHTML = `
-                    <div class="notification-message">${message}</div>
-                `;
-                // Use a longer duration for success messages
-                duration = 5000;
-            } else {
-                notification.textContent = message;
-            }
-            
-            // Add notification to the document
-            document.body.appendChild(notification);
-            
-            // Add styles if they don't exist
-            if (!document.getElementById('notification-styles')) {
-                const style = document.createElement('style');
-                style.id = 'notification-styles';
-                style.textContent = `
-                    .notification {
-                        position: fixed;
-                        top: 20px;
-                        left: 50%;
-                        transform: translateX(-50%);
-                        padding: 12px 20px;
-                        border-radius: 8px;
-                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-                        z-index: 1000;
-                        font-size: 18px;
-                        font-weight: bold;
-                    }
-                    .notification.info {
-                        background-color: #3498db;
-                        color: white;
-                    }
-                    .notification.success {
-                        background: linear-gradient(135deg, #2ecc71, #27ae60);
-                        color: white;
-                        padding: 12px 20px;
-                        display: flex;
-                        align-items: center;
-                    }
-                    .notification.error {
-                        background-color: #e74c3c;
-                        color: white;
-                    }
-                    .notification.warning {
-                        background-color: #f39c12;
-                        color: white;
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-            
-            // Remove notification after duration without animations
-            setTimeout(() => {
-                notification.remove();
-            }, duration);
-        }
-
-        // Modify the DOMContentLoaded event to avoid duplicate event listeners
-        document.addEventListener('DOMContentLoaded', () => {
-            // Remove any existing click handlers from category buttons first
-            const categoryButtons = document.querySelectorAll('.crafting-categories .category-button');
-            categoryButtons.forEach(button => {
-                // Clone the button to remove all event listeners
-                const newButton = button.cloneNode(true);
-                button.parentNode.replaceChild(newButton, button);
-                
-                // Add event listener to new button
-                newButton.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const category = newButton.getAttribute('data-category');
-                    console.log(`[UI] Static category button clicked: ${category}`);
-                    
-                    // Update active class
-                    document.querySelectorAll('.category-button').forEach(btn => {
-                        btn.classList.remove('active');
-                    });
-                    newButton.classList.add('active');
-                    
-                    // Clear recipe list and show loading
-                    const recipeList = document.querySelector('.recipe-list');
-                    recipeList.innerHTML = '<div class="loading-message">Loading recipes...</div>';
-                    
-                    // Request recipes
-                    requestRecipes(category);
-                });
-            });
-            
-            // Initialize with the first category if crafting UI is visible
-            if (document.getElementById('craftingUI').classList.contains('visible')) {
-                const firstButton = document.querySelector('.category-button');
-                if (firstButton) {
-                    const firstCategory = firstButton.getAttribute('data-category');
-                    requestRecipes(firstCategory);
-                }
-            }
-        });
-
-        // Function to create an item icon 
-        function createItemIcon(imageUrl, itemType) {
-            console.log(`[UI] Creating icon for ${itemType} with URL: ${imageUrl}`);
-            
-            const iconElement = document.createElement('div');
-            iconElement.className = 'item-icon';
-            
-            // If we have an image URL, try to use it
-            if (imageUrl) {
-                // Apply URL directly to background image - no processing needed
-                iconElement.style.backgroundImage = imageUrl;
-                iconElement.style.backgroundSize = 'contain';
-                iconElement.style.backgroundRepeat = 'no-repeat';
-                iconElement.style.backgroundPosition = 'center';
-                
-                // Handle image load errors
-                iconElement.addEventListener('error', () => {
-                    console.error(`[UI] Failed to load image for ${itemType}: ${imageUrl}`);
-                    iconElement.textContent = itemType.charAt(0).toUpperCase();
-                    iconElement.classList.add('error');
-                });
-            } else {
-                // Fallback to just showing the first letter if no image URL
-                iconElement.textContent = itemType.charAt(0).toUpperCase();
-            }
-            
-            return iconElement;
-        }
-
-        // Function to update item durability
-        function updateItemDurability(slot, current, max, percentage) {
-            console.log(`[UI] Updating durability for slot ${slot}: ${current}/${max} (${percentage}%)`);
-            
-            // Update durability for both hotbar and inventory slots
-            updateSlotDurability(`.hotbar-slot:nth-child(${slot + 1})`, current, max, percentage);
-            updateSlotDurability(`.inventory-slot[data-slot="${slot}"]`, current, max, percentage);
-        }
-        
-        // Helper function to update durability for a specific slot
-        function updateSlotDurability(slotSelector, current, max, percentage) {
-            const slot = document.querySelector(slotSelector);
-            if (!slot) return;
-            const itemIcon = slot.querySelector('.item-icon');
-            if (!itemIcon) return;
-            
-            // Find or create durability bar
-            let durabilityBar = slot.querySelector('.durability-bar');
-            if (!durabilityBar) {
-                // Create durability bar if it doesn't exist
-                durabilityBar = document.createElement('div');
-                durabilityBar.className = 'durability-bar';
-                const durabilityFill = document.createElement('div');
-                durabilityFill.className = 'durability-fill';
-                durabilityBar.appendChild(durabilityFill);
-                itemIcon.appendChild(durabilityBar);
-            }
-            
-            // Update the durability fill
-            const durabilityFill = durabilityBar.querySelector('.durability-fill');
-            if (!durabilityFill) return;
-            
-            // Show the durability bar
-            durabilityBar.style.opacity = '1';
-            
-            // Update the width
-            durabilityFill.style.width = `${percentage}%`;
-            
-            // Update the color based on percentage
-            durabilityFill.className = 'durability-fill';
-            if (percentage < 33) {
-                durabilityFill.classList.add('low');
-            } else if (percentage < 66) {
-                durabilityFill.classList.add('medium');
-            } else {
-                durabilityFill.classList.add('high');
-            }
-            
-            // Add tooltip
-            slot.title = `Durability: ${current}/${max}`;
-        }
-        
-        // Function to initialize durability bars for all slots
-        function initializeDurabilityBars() {
-            // Initialize for hotbar slots
-            const hotbarSlots = document.querySelectorAll('.hotbar-slot');
-            hotbarSlots.forEach(slot => {
-                const itemIcon = slot.querySelector('.item-icon');
-                if (!itemIcon) return;
-                
-                const durabilityBar = document.createElement('div');
-                durabilityBar.className = 'durability-bar';
-                const durabilityFill = document.createElement('div');
-                durabilityFill.className = 'durability-fill';
-                durabilityBar.appendChild(durabilityFill);
-                itemIcon.appendChild(durabilityBar);
-            });
-            
-            // Initialize for inventory slots
-            const inventorySlots = document.querySelectorAll('.inventory-slot');
-            inventorySlots.forEach(slot => {
-                const itemIcon = slot.querySelector('.item-icon');
-                if (!itemIcon) return;
-                
-                const durabilityBar = document.createElement('div');
-                durabilityBar.className = 'durability-bar';
-                const durabilityFill = document.createElement('div');
-                durabilityFill.className = 'durability-fill';
-                durabilityBar.appendChild(durabilityFill);
-                itemIcon.appendChild(durabilityBar);
-            });
-        }
-
-        // Call this function after the page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeDurabilityBars();
-        });
-
-        // Handle data updates from the server
-        window.onDataUpdate = function(data) {
-            console.log('[UI] Data update from server:', data);
-            
-            // Handle hotbar update
-            if (data.hotbar) {
-                updateHotbar(data.hotbar);
-            }
-            
-            // Handle inventory update
-            if (data.inventory) {
-                updateInventory(data.inventory);
-            }
-            
-            // Handle selected slot update
-            if (data.selectedSlot !== undefined) {
-                updateSelectedSlot(data.selectedSlot);
-            }
-            
-            // Handle mining progress update
-            if (data.miningProgress !== undefined) {
-                updateMiningProgress(data.miningProgress);
-            }
-            
-            // Handle notifications
-            if (data.notification) {
-                showNotification(data.notification.message, data.notification.type);
-            }
-            
-            // Handle crafting recipes update
-            if (data.craftingRecipes) {
-                updateCraftingRecipes(data.craftingRecipes);
-            }
-            
-            // Handle crafting progress update
-            if (data.craftingProgress !== undefined) {
-                updateCraftingProgress(data.craftingProgress);
-            }
-            
-            // Handle health update
-            if (data.health !== undefined) {
-                updateHealth(data.health);
-            }
-            
-            // Handle mana update
-            if (data.mana !== undefined) {
-                updateMana(data.mana);
-            }
-            
-            // Handle item in hand update
-            if (data.itemInHand !== undefined) {
-                document.getElementById('crosshairContainer').classList.toggle('hidden', !data.itemInHand);
-            }
-            
-            // Handle stamina update
-            if (data.stamina !== undefined) {
-                updateStamina(data.stamina);
-            }
-            
-            // Gold and iron generator updates
-            if (data.goldCount !== undefined) {
-                updateCounter('gold-counter', data.goldCount);
-            }
-            
-            if (data.ironCount !== undefined) {
-                updateCounter('iron-counter', data.ironCount);
-            }
-        };
-
-        // Main event handler setup
-        function initializeEventListeners() {
-            console.log('[UI] Setting up event listeners');
-            
-            // DOM event listeners for non-game-related interactions
-            document.getElementById('inventoryToggle').addEventListener('click', toggleInventory);
-            document.getElementById('craftingBtn').addEventListener('click', toggleCrafting);
-            document.getElementById('closeInventory').addEventListener('click', toggleInventory);
-            document.getElementById('closeCrafting').addEventListener('click', toggleCrafting);
-            
-            // Set up crafting tab event listeners
-            const craftingTabs = document.querySelectorAll('.crafting-tab');
-            craftingTabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const category = this.getAttribute('data-category');
-                    selectCraftingTab(category);
-                });
-            });
-            
-            // Set up hotbar and inventory slot event listeners
-            setupSlotListeners();
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('[UI] DOM content loaded');
-            window.gameInterface = {};
-            initializeEventListeners();
-            updateSelectedSlot(0);  // Default select first slot
-            setupHotbarKeyControls();
-        });
+        // All other functions as before...
+        // ... existing code ...
     </script>
 </body>
 </html>

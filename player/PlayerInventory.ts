@@ -249,45 +249,32 @@ export class PlayerInventory {
         this.isProcessingToggle = true;
         this.isInventoryOpen = !this.isInventoryOpen;
         
+        console.log(`[PlayerInventory] Toggling inventory: ${this.isInventoryOpen ? 'OPEN' : 'CLOSED'}`);
+        
+        // Send inventory state to UI
+        this.playerEntity.player.ui.sendData({
+            inventoryToggle: {
+                isOpen: this.isInventoryOpen
+            }
+        });
+
+        // If opening, send current inventory state
         if (this.isInventoryOpen) {
-            const updates = this.slots.map((item, slot) => {
-                // Get durability info if available
-                let durabilityInfo = {};
-                if (item.instance?.instanceId) {
-                    const instance = item.instance;
-                    if (instance && instance.durability !== undefined && instance.maxDurability !== undefined) {
-                        durabilityInfo = {
-                            durability: instance.durability,
-                            maxDurability: instance.maxDurability,
-                            durabilityPercentage: Math.floor((instance.durability / instance.maxDurability) * 100)
-                        };
-                    }
-                }
-                
-                return {
-                    slot,
-                    item: item.type,
-                    count: item.count,
-                    imageUrl: item.type ? getItemConfig(item.type).imageUrl : undefined,
-                    instanceId: item.instance?.instanceId,
-                    ...durabilityInfo
-                };
-            });
+            const updates = this.slots.map((slot, index) => ({
+                slot: index,
+                item: slot.type,
+                count: slot.count,
+                imageUrl: slot.type ? getItemConfig(slot.type).imageUrl : undefined,
+                instanceId: slot.instance?.instanceId
+            }));
 
             this.playerEntity.player.ui.sendData({
-                inventoryToggle: { isOpen: true },
                 inventoryUpdate: updates,
-                hotbarUpdate: updates.slice(0, 5)
-            });
-        } else {
-            this.playerEntity.player.ui.sendData({
-                inventoryToggle: { isOpen: false }
+                hotbarUpdate: updates.filter(update => update.slot < 5)
             });
         }
         
-        setTimeout(() => {
-            this.isProcessingToggle = false;
-        }, 200);
+        this.isProcessingToggle = false;
     }
 
     /**
@@ -570,5 +557,10 @@ export class PlayerInventory {
         }
         
         return success;
+    }
+
+    // Add public getter
+    public getIsInventoryOpen(): boolean {
+        return this.isInventoryOpen;
     }
 } 

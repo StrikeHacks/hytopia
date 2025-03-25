@@ -126,6 +126,10 @@ export class PlayerManager {
 			if (data.craftingToggle?.action === 'close') {
 				this.closeCrafting();
 			} 
+			// Handle inventory close
+			else if (data.inventoryToggle?.action === 'close') {
+				this.closeInventory();
+			}
 			// Handle hotbar selection
 			else if (data.hotbarSelect) {
 				const { slot } = data.hotbarSelect;
@@ -194,10 +198,12 @@ export class PlayerManager {
 					this.isQPressed = false;
 				}
 
-				// Handle inventory toggle (E) - only trigger on key down
+				// Handle inventory toggle (E) - only trigger on key down to open
 				if (input["e"] && !this.isEPressed) {
 					this.isEPressed = true;
-					this.playerInventory.handleInventoryToggle();
+					if (!this.playerInventory.getIsInventoryOpen()) {
+						this.openInventory();
+					}
 				} else if (!input["e"]) {
 					this.isEPressed = false;
 				}
@@ -205,9 +211,7 @@ export class PlayerManager {
 				// Handle F key for crafting UI
 				if (input["f"] && !this.isFPressed) {
 					this.isFPressed = true;
-					if (this.isCraftingOpen) {
-						this.closeCrafting();
-					} else {
+					if (!this.isCraftingOpen) {
 						this.openCrafting();
 					}
 				} else if (!input["f"]) {
@@ -252,13 +256,6 @@ export class PlayerManager {
 				}
 			}
 		);
-
-		// Listen for UI data from client
-		this.player.ui.on(PlayerUIEvent.DATA, ({ data }: { data: any }) => {
-			if (data.craftingToggle?.action === 'close') {
-				this.closeCrafting();
-			}
-		});
 	}
 
 	private startMining(playerEntity: PlayerEntity): void {
@@ -350,6 +347,20 @@ export class PlayerManager {
 		this.isCraftingOpen = false;
 		this.toggleCraftingUI(this.player.id, false);
 		this.player.ui.lockPointer(true);
+	}
+
+	private openInventory(): void {
+		console.log('[PlayerManager] Opening inventory...');
+		this.player.ui.lockPointer(false);
+		console.log('[PlayerManager] POINTLOCK IS DISABLED');
+		this.playerInventory.handleInventoryToggle();
+	}
+
+	private closeInventory(): void {
+		console.log('[PlayerManager] Closing inventory...');
+		this.player.ui.lockPointer(true);
+		console.log('[PlayerManager] POINTLOCK IS ENABLED');
+		this.playerInventory.handleInventoryToggle();
 	}
 
 	// Public methods for health management

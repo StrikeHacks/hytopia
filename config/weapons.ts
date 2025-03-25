@@ -25,10 +25,10 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         },
         handOffset: WEAPONS_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'items/sword-diamond.png',
+        imageUrl: 'items/diamond-sword.png',
         durability: 1500,
         maxDurability: 1500,
-        damage: 7
+        damage: 6
     },
     'sword-stone': {
         type: 'sword-stone',
@@ -45,10 +45,10 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         },
         handOffset: WEAPONS_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'items/sword-stone.png',
+        imageUrl: 'items/stone-sword.png',
         durability: 800,
         maxDurability: 800,
-        damage: 5
+        damage: 4
     },
     'sword-golden': {
         type: 'sword-golden',
@@ -65,10 +65,30 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         },
         handOffset: WEAPONS_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'items/sword-golden.png',
+        imageUrl: 'items/golden-sword.png',
         durability: 300,
         maxDurability: 300,
         damage: 4
+    },
+    'sword-wood': {
+        type: 'sword-wood',
+        modelUri: 'models/items/sword-wood.gltf',
+        displayName: 'Wooden Sword',
+        category: 'weapon',
+        maxStackSize: 1,
+        scale: 0.5,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.2,
+            y: HEAVY_COLLIDER_HEIGHT,
+            z: 0.2
+        },
+        handOffset: WEAPONS_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/wooden-sword.png',
+        durability: 100,
+        maxDurability: 100,
+        damage: 2
     }
 };
 

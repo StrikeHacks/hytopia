@@ -95,6 +95,9 @@ export class AnimalManager {
                 (animal as any)._hitEffectTimers = [];
             }
             (animal as any)._hitEffectTimers.push(hitTimer);
+
+            // Start panic mode
+            this.startPanicMode(animal);
         }
 
         console.log('[AnimalManager] Applied knockback to animal:', {
@@ -175,5 +178,80 @@ export class AnimalManager {
             }
             this.unregisterAnimal(animalId);
         }, this.DEATH_EFFECT_DURATION);
+    }
+
+    private startPanicMode(animal: Entity): void {
+        // Get the pathfinding controller
+        const controller = animal.controller as PathfindingEntityController;
+        if (!controller) return;
+
+        // Cancel any existing panic mode
+        if ((animal as any)._panicModeInterval) {
+            clearInterval((animal as any)._panicModeInterval);
+        }
+
+        // Start running animation IMMEDIATELY
+        animal.stopModelAnimations(['idle']);
+        animal.startModelLoopedAnimations(['walk']);
+
+        // Panic mode settings - BETERE HOOGTEVERSCHIL HANDLING
+        const PANIC_DURATION = 2500; // 2.5 seconden paniek
+        const PANIC_SPEED = 10; // Snelle snelheid
+        const MIN_PANIC_DISTANCE = 4; // Kortere minimum voor snellere reacties
+        const MAX_PANIC_DISTANCE = 8; // Kortere maximum voor snellere reacties
+        const DIRECTION_CHANGE_INTERVAL = 250; // Veel snellere richting verandering (4x per seconde)
+
+        // Start IMMEDIATE movement in a random direction
+        const startMovement = () => {
+            if (!animal.isSpawned) {
+                clearInterval((animal as any)._panicModeInterval);
+                return;
+            }
+
+            const currentPos = animal.position;
+            const angle = Math.random() * Math.PI * 2; // Random richting
+            
+            // Random afstand tussen MIN en MAX
+            const distance = MIN_PANIC_DISTANCE + (Math.random() * (MAX_PANIC_DISTANCE - MIN_PANIC_DISTANCE));
+            
+            const newPos = {
+                x: currentPos.x + Math.cos(angle) * distance,
+                y: currentPos.y,
+                z: currentPos.z + Math.sin(angle) * distance
+            };
+
+            // Move to the new position met verbeterde hoogteverschil handling
+            controller.pathfind(newPos, PANIC_SPEED, {
+                maxJump: 1.5, // 1.5 blokken springen
+                maxFall: 2, // 2 blokken vallen
+                verticalPenalty: 1.2, // Kleine penalty voor verticale beweging -> voorkeur voor horizontaal bewegen
+                waypointTimeoutMs: 300, // Meer tijd voor complexe paden
+                maxOpenSetIterations: 100 // Meer iteraties voor betere paden bij hoogteverschillen
+            });
+
+            // Direct naar de nieuwe richting kijken
+            const dx = newPos.x - currentPos.x;
+            const dz = newPos.z - currentPos.z;
+            const rotationAngle = Math.atan2(dx, dz);
+            animal.setRotation(Quaternion.fromEuler(0, (rotationAngle * 180 / Math.PI) + 180, 0));
+        };
+
+        // Start moving immediately
+        startMovement();
+
+        // Continue with regular interval changes
+        (animal as any)._panicModeInterval = setInterval(startMovement, DIRECTION_CHANGE_INTERVAL);
+
+        // Stop panic mode after duration
+        setTimeout(() => {
+            if ((animal as any)._panicModeInterval) {
+                clearInterval((animal as any)._panicModeInterval);
+            }
+            // Stop running animation when panic is over
+            if (animal.isSpawned) {
+                animal.stopModelAnimations(['walk']);
+                animal.startModelLoopedAnimations(['idle']);
+            }
+        }, PANIC_DURATION);
     }
 } 

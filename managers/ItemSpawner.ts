@@ -143,9 +143,9 @@ export class ItemSpawner {
             
             const randomAngle = Math.random() * Math.PI * 2;
             const direction = {
-                x: Math.cos(randomAngle) * 1.5,
-                y: 0.3,
-                z: Math.sin(randomAngle) * 1.5
+                x: Math.cos(randomAngle) * 2,
+                y: 0.4,
+                z: Math.sin(randomAngle) * 2
             };
             
             const items = this.activeItems.get(itemType) || [];

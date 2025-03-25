@@ -6,7 +6,9 @@ import {
     DEFAULT_HAND_OFFSET, 
     DEFAULT_HAND_ROTATION,
     GIGA_DROP_FORCE,
-    SIDEWAYS_HAND_ROTATION
+    SIDEWAYS_HAND_ROTATION,
+    MID_DROP_FORCE,
+    HEAVY_DROP_FORCE
 } from './constants';
 
 // Resource item configurations
@@ -117,11 +119,11 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
         category: 'resource',
         maxStackSize: 64,
         scale: 0.7,
-        dropForce: DEFAULT_DROP_FORCE,
+        dropForce: MID_DROP_FORCE,
         colliderSize: {
-            x: 0.2,
+            x: 0.25,
             y: 0.25,
-            z: 0.2
+            z: 0.25
         },        handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
         imageUrl: 'items/log.png'
