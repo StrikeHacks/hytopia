@@ -32,9 +32,15 @@ class SpawnArea {
             clearInterval(this.spawnTimer);
         }
 
+        // Use a longer spawn interval for better performance
+        const optimizedInterval = Math.max(this.config.spawnInterval, 8000);
+        
         this.spawnTimer = setInterval(() => {
-            this.trySpawnAnimal();
-        }, this.config.spawnInterval);
+            // Only try to spawn if players are nearby
+            if (this.world.entityManager.getAllPlayerEntities().length > 0) {
+                this.trySpawnAnimal();
+            }
+        }, optimizedInterval);
     }
 
     public stopSpawning(): void {
@@ -166,14 +172,15 @@ class SpawnArea {
         minZ += buffer;
         maxZ -= buffer;
 
-        // Maximum hoogte waar we vanaf gaan zoeken naar de grond
+        // Maximum height to start searching for ground
         const maxY = Math.max(...corners.map(c => c.y)) + 10;
 
-        for (let i = 0; i < 10; i++) {
+        // Limit raycast attempts for better performance
+        for (let i = 0; i < 5; i++) {
             const x = minX + Math.random() * (maxX - minX);
             const z = minZ + Math.random() * (maxZ - minZ);
             
-            // Raycast vanaf boven naar beneden om de grond te vinden
+            // Raycast from above to find the ground
             const raycastResult = this.world.simulation.raycast(
                 { x, y: maxY, z },
                 { x: 0, y: -1, z: 0 },
@@ -181,10 +188,10 @@ class SpawnArea {
             );
 
             if (raycastResult?.hitBlock) {
-                // Spawn net boven de grond
+                // Spawn just above the ground
                 const position = {
                     x,
-                    y: raycastResult.hitPoint.y + 0.5, // 0.5 blokken boven de grond
+                    y: raycastResult.hitPoint.y + 0.5, // 0.5 blocks above ground
                     z
                 };
 
@@ -198,7 +205,8 @@ class SpawnArea {
     }
 
     private addAnimalBehavior(entity: Entity): void {
-        const movementInterval = 1000 + Math.floor(Math.random() * 2000);
+        // Use a longer movement interval for better performance
+        const movementInterval = 3000 + Math.floor(Math.random() * 3000);
         const controller = entity.controller as PathfindingEntityController;
         
         const intervalId = setInterval(() => {
@@ -207,12 +215,13 @@ class SpawnArea {
                 return;
             }
 
-            if (Math.random() > 0.8) {
+            // Reduce movement frequency
+            if (Math.random() > 0.5) {
                 return;
             }
 
             const currentPos = entity.position;
-            const moveDistance = 4 + Math.random() * 5;
+            const moveDistance = 4 + Math.random() * 3; // Reduced movement distance
             const angle = Math.random() * Math.PI * 2;
             
             const newX = currentPos.x + Math.cos(angle) * moveDistance;
@@ -232,12 +241,12 @@ class SpawnArea {
                 entity.startModelLoopedAnimations([idleAnim]);
             }
 
-            controller.pathfind(newPos, 3, { // Hogere snelheid voor beter momentum
-                maxJump: 2,         // Maximum spring hoogte blijft 2
-                maxFall: 2,        // Maximum val hoogte blijft 2
-                verticalPenalty: 0, // Geen penalty voor verticale beweging
-                waypointTimeoutMs: 2500, // Meer tijd voor het springen
-                maxOpenSetIterations: 400, // Meer iteraties voor betere paden
+            controller.pathfind(newPos, 3, {
+                maxJump: 2,
+                maxFall: 2,
+                verticalPenalty: 0,
+                waypointTimeoutMs: 3000, // More time for jumps
+                maxOpenSetIterations: 200, // Reduced for better performance
                 waypointMoveCompleteCallback: (waypoint, index) => {
                     // Switch to walk animation when moving between waypoints
                     if (walkAnim && idleAnim) {

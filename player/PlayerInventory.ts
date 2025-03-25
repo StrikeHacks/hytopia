@@ -12,10 +12,11 @@ export class PlayerInventory {
     private isInventoryOpen: boolean = false;
     private batchUpdateTimeout: ReturnType<typeof setTimeout> | null = null;
     private lastUpdateTime: number = 0;
-    private readonly UPDATE_THROTTLE = 50; // Minimum time between updates in ms
+    private readonly UPDATE_THROTTLE = 150; // Increased from 50ms to 150ms for better performance
     private pendingUpdates = new Map<number, { type: string | null; count: number; instanceId?: string }>();
     private nameRequestTimeout: ReturnType<typeof setTimeout> | null = null;
     private readonly DEFAULT_MAX_STACK_SIZE = 64; // Default max stack size
+    private lastSentUIState: Record<number, { type: string | null, count: number, instanceId?: string }> = {};
 
     constructor(
         private playerEntity: PlayerEntity
@@ -52,6 +53,7 @@ export class PlayerInventory {
 
     public selectSlot(slot: number): void {
         if (slot < 0 || slot >= this.slots.length) return;
+        if (this.selectedSlot === slot) return; // Added early return if already selected
 
         // Unequip current item if any
         const currentItem = this.slots[this.selectedSlot];
@@ -68,7 +70,7 @@ export class PlayerInventory {
             this.showItemName(newItem.type);
         }
 
-        // Update UI
+        // Update UI - only send what changed
         this.playerEntity.player.ui.sendData({
             hotbarSelect: {
                 selectedSlot: slot
@@ -178,11 +180,27 @@ export class PlayerInventory {
         const item = this.slots[slot];
         const instanceId = item.instance?.instanceId;
         
+        // Skip update if there's no meaningful change
+        const lastState = this.lastSentUIState[slot];
+        if (lastState && 
+            lastState.type === item.type && 
+            lastState.count === item.count && 
+            lastState.instanceId === instanceId) {
+            return;
+        }
+        
         this.pendingUpdates.set(slot, { 
             type: item.type, 
             count: item.count,
             instanceId
         });
+        
+        // Update last sent state
+        this.lastSentUIState[slot] = {
+            type: item.type,
+            count: item.count,
+            instanceId
+        };
         
         this.scheduleBatchUpdate();
     }
@@ -233,10 +251,13 @@ export class PlayerInventory {
 
         const hotbarUpdates = updates.filter(update => update.slot < 5);
 
-        this.playerEntity.player.ui.sendData({
-            inventoryUpdate: updates,
-            ...(hotbarUpdates.length > 0 && { hotbarUpdate: hotbarUpdates })
-        });
+        // Only send updates if there are any
+        if (updates.length > 0) {
+            this.playerEntity.player.ui.sendData({
+                inventoryUpdate: updates,
+                ...(hotbarUpdates.length > 0 && { hotbarUpdate: hotbarUpdates })
+            });
+        }
 
         this.pendingUpdates.clear();
         this.batchUpdateTimeout = null;
@@ -249,8 +270,6 @@ export class PlayerInventory {
         this.isProcessingToggle = true;
         this.isInventoryOpen = !this.isInventoryOpen;
         
-        console.log(`[PlayerInventory] Toggling inventory: ${this.isInventoryOpen ? 'OPEN' : 'CLOSED'}`);
-        
         // Send inventory state to UI
         this.playerEntity.player.ui.sendData({
             inventoryToggle: {
@@ -260,13 +279,24 @@ export class PlayerInventory {
 
         // If opening, send current inventory state
         if (this.isInventoryOpen) {
-            const updates = this.slots.map((slot, index) => ({
-                slot: index,
-                item: slot.type,
-                count: slot.count,
-                imageUrl: slot.type ? getItemConfig(slot.type).imageUrl : undefined,
-                instanceId: slot.instance?.instanceId
-            }));
+            const updates = this.slots.map((slot, index) => {
+                const item = {
+                    slot: index,
+                    item: slot.type,
+                    count: slot.count,
+                    imageUrl: slot.type ? getItemConfig(slot.type).imageUrl : undefined,
+                    instanceId: slot.instance?.instanceId
+                };
+                
+                // Update last sent state
+                this.lastSentUIState[index] = {
+                    type: slot.type,
+                    count: slot.count,
+                    instanceId: slot.instance?.instanceId
+                };
+                
+                return item;
+            });
 
             this.playerEntity.player.ui.sendData({
                 inventoryUpdate: updates,
@@ -297,6 +327,7 @@ export class PlayerInventory {
         if (amount <= 0) return true;
         
         let remainingToRemove = amount;
+        let needsUpdate = false;
         
         // First try to remove from non-hotbar slots
         for (let i = 5; i < this.slots.length && remainingToRemove > 0; i++) {
@@ -304,6 +335,7 @@ export class PlayerInventory {
                 const toRemove = Math.min(this.slots[i].count, remainingToRemove);
                 this.slots[i].count -= toRemove;
                 remainingToRemove -= toRemove;
+                needsUpdate = true;
                 
                 if (this.slots[i].count <= 0) {
                     // Delete the item instance if it exists
@@ -325,6 +357,7 @@ export class PlayerInventory {
                 const toRemove = Math.min(this.slots[i].count, remainingToRemove);
                 this.slots[i].count -= toRemove;
                 remainingToRemove -= toRemove;
+                needsUpdate = true;
                 
                 if (this.slots[i].count <= 0) {
                     // Delete the item instance if it exists
@@ -343,6 +376,15 @@ export class PlayerInventory {
                 
                 this.updateSlotUI(i);
             }
+        }
+        
+        // If we made changes and updates are pending, force a batch update
+        if (needsUpdate && this.pendingUpdates.size > 0) {
+            if (this.batchUpdateTimeout) {
+                clearTimeout(this.batchUpdateTimeout);
+                this.batchUpdateTimeout = null;
+            }
+            this.sendBatchUpdate();
         }
         
         return remainingToRemove === 0;
@@ -375,6 +417,7 @@ export class PlayerInventory {
         
         // For non-stackable items or items with durability, handle differently
         const hasDurability = instance.durability !== undefined;
+        let needsUpdate = false;
         
         if (!isStackable || hasDurability) {
             // Find the first empty slot
@@ -405,7 +448,14 @@ export class PlayerInventory {
                         remaining--;
                     }
                     
+                    needsUpdate = true;
                     this.updateSlotUI(i);
+                    
+                    // If this is the currently selected slot in the hotbar, equip it immediately
+                    if (i === this.selectedSlot && i < 5) {
+                        this.equipmentManager.equipItem(itemType);
+                        this.showItemName(itemType);
+                    }
                     
                     if (firstAddedSlot === undefined) {
                         firstAddedSlot = i;
@@ -417,6 +467,7 @@ export class PlayerInventory {
             for (let i = 0; i < this.slots.length && remaining > 0; i++) {
                 if (this.slots[i].type === itemType && this.slots[i].count < maxStackSize) {
                     const canAdd = Math.min(remaining, maxStackSize - this.slots[i].count);
+                    const wasEmpty = this.slots[i].count === 0;
                     this.slots[i].count += canAdd;
                     
                     // Update the instance count or create if not exists
@@ -430,7 +481,14 @@ export class PlayerInventory {
                     }
                     
                     remaining -= canAdd;
+                    needsUpdate = true;
                     this.updateSlotUI(i);
+                    
+                    // If this was an empty slot that is currently selected in the hotbar, equip it immediately
+                    if (wasEmpty && i === this.selectedSlot && i < 5) {
+                        this.equipmentManager.equipItem(itemType);
+                        this.showItemName(itemType);
+                    }
                     
                     if (firstAddedSlot === undefined) {
                         firstAddedSlot = i;
@@ -449,13 +507,29 @@ export class PlayerInventory {
                     };
                     
                     remaining -= canAdd;
+                    needsUpdate = true;
                     this.updateSlotUI(i);
+                    
+                    // If this is the currently selected slot in the hotbar, equip it immediately
+                    if (i === this.selectedSlot && i < 5) {
+                        this.equipmentManager.equipItem(itemType);
+                        this.showItemName(itemType);
+                    }
                     
                     if (firstAddedSlot === undefined) {
                         firstAddedSlot = i;
                     }
                 }
             }
+        }
+        
+        // If we made changes and updates are pending, force a batch update
+        if (needsUpdate && this.pendingUpdates.size > 0) {
+            if (this.batchUpdateTimeout) {
+                clearTimeout(this.batchUpdateTimeout);
+                this.batchUpdateTimeout = null;
+            }
+            this.sendBatchUpdate();
         }
         
         return { 
@@ -465,11 +539,14 @@ export class PlayerInventory {
     }
 
     public updateMiningProgressUI(progress: number): void {
-        this.playerEntity.player.ui.sendData({
-            miningProgress: {
-                progress: Math.min(100, Math.max(0, progress))
-            }
-        });
+        // Only update if significant change
+        if (progress === 0 || progress === 100 || progress % 5 === 0) {
+            this.playerEntity.player.ui.sendData({
+                miningProgress: {
+                    progress: Math.min(100, Math.max(0, progress))
+                }
+            });
+        }
     }
     
     /**
@@ -484,17 +561,33 @@ export class PlayerInventory {
         const instanceId = item.instance.instanceId;
         const success = ItemInstanceManager.getInstance().decreaseDurability(instanceId, amount);
         
-        // Haal de bijgewerkte instance op om zeker te zijn van de juiste waarden
+        // Get the updated instance for current values
         const updatedInstance = ItemInstanceManager.getInstance().getInstance(instanceId);
         if (updatedInstance && updatedInstance.durability !== undefined) {
-            // Synchroniseer de waarden met onze lokale instance
+            // Only update UI if durability changes by more than 5% or critical levels
+            const oldDurability = item.instance.durability || 0;
+            const newDurability = updatedInstance.durability;
+            const maxDurability = updatedInstance.maxDurability || 100;
+            
+            const oldPercent = Math.floor((oldDurability / maxDurability) * 100);
+            const newPercent = Math.floor((newDurability / maxDurability) * 100);
+            
+            // Sync the values with our local instance
             item.instance.durability = updatedInstance.durability;
             
-            // Direct UI bijwerken om inconsistenties te voorkomen
-            this.updateSlotUI(slot);
-            
-            // Forceer een onmiddellijke batch update voor kritieke durability wijzigingen
-            this.sendBatchUpdate();
+            // Only update UI for significant durability changes or low durability
+            if (Math.abs(oldPercent - newPercent) >= 5 || newPercent <= 25 || newPercent === 0) {
+                this.updateSlotUI(slot);
+                
+                // Force an immediate batch update for critical durability changes
+                if (this.pendingUpdates.size > 0) {
+                    if (this.batchUpdateTimeout) {
+                        clearTimeout(this.batchUpdateTimeout);
+                        this.batchUpdateTimeout = null;
+                    }
+                    this.sendBatchUpdate();
+                }
+            }
         }
         
         return success;
@@ -509,19 +602,25 @@ export class PlayerInventory {
         const item = this.slots[slot];
         if (!item.type || !item.instance?.instanceId) return null;
         
-        // Haal altijd de laatste durability direct uit de ItemInstanceManager
+        // Get the latest durability directly from the ItemInstanceManager
         const instance = ItemInstanceManager.getInstance().getInstance(item.instance.instanceId);
         if (!instance || instance.durability === undefined || instance.maxDurability === undefined) {
             return null;
         }
         
-        // Update de lokale instance met de laatste waarden om consistentie te garanderen
-        if (item.instance) {
+        // Update the local instance with the latest values to ensure consistency
+        if (item.instance && (
+            item.instance.durability !== instance.durability || 
+            item.instance.maxDurability !== instance.maxDurability
+        )) {
             item.instance.durability = instance.durability;
             item.instance.maxDurability = instance.maxDurability;
             
-            // Trigger UI update voor dit slot
-            this.updateSlotUI(slot);
+            // Only trigger UI update for significant changes
+            const durabilityPercentage = Math.floor((instance.durability / instance.maxDurability) * 100);
+            if (durabilityPercentage <= 25 || durabilityPercentage % 10 === 0) {
+                this.updateSlotUI(slot);
+            }
         }
         
         return {

@@ -27,13 +27,15 @@ export class PlayerManager {
 	private isLeftMousePressed: boolean = false;
 	private leftMouseHoldStartTime: number = 0;
 	private miningInterval: NodeJS.Timer | null = null;
-	private readonly MINING_INTERVAL_MS = 300; // Time between mining attempts when holding the button
-	private readonly MINING_COOLDOWN_MS = 250; // Minimum time between mining attempts (even for clicks)
+	private readonly MINING_INTERVAL_MS = 450; // Increased mining interval for better performance (was 300)
+	private readonly MINING_COOLDOWN_MS = 350; // Increased cooldown between mining attempts (was 250)
 	private lastMiningTime: number = 0; // Track the last time mining was attempted
 	private isCraftingOpen: boolean = false;
 	private isQPressed: boolean = false;
 	private isEPressed: boolean = false;
 	private isFPressed: boolean = false;
+	private currentModelRotation: number = 0; // Current rotation angle for model placement
+	private readonly ROTATION_INCREMENT = Math.PI / 4; // Rotate by 45 degrees (π/4 radians)
 
 	constructor(
 		private world: World,
@@ -171,7 +173,7 @@ export class PlayerManager {
 	}
 
 	private setupInputHandling(playerEntity: PlayerEntity): void {
-		// Enable debug raycasting for development
+		// Enable debug raycasting for development visualization
 		this.world.simulation.enableDebugRaycasting(true);
 
 		this.playerController.on(
@@ -216,6 +218,33 @@ export class PlayerManager {
 					}
 				} else if (!input["f"]) {
 					this.isFPressed = false;
+				}
+
+				// Handle right mouse button to interact with fixed models
+				if (input["mr"]) {
+					// Cancel the right click to prevent the default behavior
+					input["mr"] = false;
+					this.handleRightClick(playerEntity);
+				}
+
+				// Handle model rotation keys (R to rotate clockwise, T to rotate counter-clockwise)
+				if (input["r"]) {
+					this.currentModelRotation = (this.currentModelRotation + this.ROTATION_INCREMENT) % (Math.PI * 2);
+					this.player.ui.sendData({
+						showItemName: {
+							name: `Rotation: ${Math.round((this.currentModelRotation * 180 / Math.PI) % 360)}°`
+						}
+					});
+				}
+				
+				if (input["t"]) {
+					this.currentModelRotation = (this.currentModelRotation - this.ROTATION_INCREMENT) % (Math.PI * 2);
+					if (this.currentModelRotation < 0) this.currentModelRotation += Math.PI * 2;
+					this.player.ui.sendData({
+						showItemName: {
+							name: `Rotation: ${Math.round((this.currentModelRotation * 180 / Math.PI) % 360)}°`
+						}
+					});
 				}
 
 				// Handle mouse input
@@ -694,5 +723,91 @@ export class PlayerManager {
 				animalManager.handleAnimalHit(hitEntity, direction, damage);
 			}
 		}
+	}
+
+	// Add a method to place a fixed model where the player is looking
+	public placeFixedModel(modelId: string): boolean {
+		try {
+			const direction = this.playerEntity.player.camera.facingDirection;
+			const origin = {
+				x: this.playerEntity.position.x,
+				y: this.playerEntity.position.y + 1,
+				z: this.playerEntity.position.z,
+			};
+
+			// Cast a ray to find where to place the model
+			const raycastResult = this.world.simulation.raycast(origin, direction, 4, {
+				filterExcludeRigidBody: this.playerEntity.rawRigidBody
+			});
+
+			if (raycastResult?.hitBlock || raycastResult?.hitPoint) {
+				// Get the hit position
+				const hitPosition = raycastResult.hitPoint;
+				
+				// Place the model slightly above the hit position
+				const placePosition = {
+					x: hitPosition.x,
+					y: hitPosition.y + 0.5, // Place half a block above the hit point
+					z: hitPosition.z
+				};
+				
+				// Use the FixedModelManager to place the model with the current rotation
+				const fixedModelManager = this.gameManager.getFixedModelManager();
+				fixedModelManager.placeModel(modelId, placePosition, this.currentModelRotation);
+				
+				return true;
+			}
+			
+			return false;
+		} catch (error) {
+			console.error('[PlayerManager] Error placing fixed model:', error);
+			return false;
+		}
+	}
+
+	private handleRightClick(playerEntity: PlayerEntity): void {
+		try {
+			const direction = playerEntity.player.camera.facingDirection;
+			const origin = {
+				x: playerEntity.position.x,
+				y: playerEntity.position.y + playerEntity.player.camera.offset.y,
+				z: playerEntity.position.z,
+			};
+
+			// Cast a ray to detect what's in front of the player
+			const raycastResult = this.world.simulation.raycast(origin, direction, 5, {
+				filterExcludeRigidBody: playerEntity.rawRigidBody
+			});
+
+			if (raycastResult?.hitEntity) {
+				const hitEntity = raycastResult.hitEntity;
+				
+				// Check if the entity has a name that starts with our fixed model IDs
+				// For now we only have workbench, but this will work for any fixed model
+				if (hitEntity.name === 'workbench') {
+					console.log('===========================================================');
+					console.log(`[PlayerManager] Right-clicked on a workbench!`);
+					console.log(`Position: x=${hitEntity.position.x.toFixed(2)}, y=${hitEntity.position.y.toFixed(2)}, z=${hitEntity.position.z.toFixed(2)}`);
+					console.log(`Distance: ${this.calculateDistance(playerEntity.position, hitEntity.position).toFixed(2)} blocks`);
+					console.log(`Entity ID: ${hitEntity.id}`);
+					console.log('===========================================================');
+					
+					// Open the crafting UI when clicking on a workbench
+					this.openCrafting();
+					
+					// Visual feedback that interaction happened
+					playerEntity.startModelOneshotAnimations(["simple_interact"]);
+				}
+			}
+		} catch (error) {
+			console.error('[PlayerManager] Error in handleRightClick:', error);
+		}
+	}
+	
+	private calculateDistance(pos1: any, pos2: any): number {
+		const dx = pos1.x - pos2.x;
+		const dy = pos1.y - pos2.y;
+		const dz = pos1.z - pos2.z;
+		return Math.sqrt(dx * dx + dy * dy + dz * dz);
 	}
 }

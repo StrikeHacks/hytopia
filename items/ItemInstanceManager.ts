@@ -118,10 +118,8 @@ export class ItemInstanceManager {
         const currentDurability = instance.durability;
         const newDurability = Math.max(0, currentDurability - amount);
         
-        // Direct bijwerken van de instantie in de map om race conditions te voorkomen
+        // Direct update the instance in the map to avoid race conditions
         instance.durability = newDurability;
-        this.items.set(instanceId, instance);
-        
         
         return newDurability > 0;
     }

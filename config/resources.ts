@@ -119,15 +119,16 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
         category: 'resource',
         maxStackSize: 64,
         scale: 0.7,
-        dropForce: MID_DROP_FORCE,
+        dropForce: HEAVY_DROP_FORCE,
         colliderSize: {
             x: 0.25,
-            y: 0.25,
+            y: 0.3,
             z: 0.25
         },        handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
         imageUrl: 'items/log.png'
-    }
+    },
+    
 
 };
 
