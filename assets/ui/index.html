@@ -12,6 +12,54 @@
             font-family: 'Roboto', sans-serif;
         }
 
+        .inventory-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #8B4513;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .inventory-toggle::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            background: #8B4513;
+            border-radius: 2px;
+            opacity: 0.8;
+            transition: all 0.2s ease;
+        }
+
+        .inventory-toggle:hover {
+            background: rgba(0, 0, 0, 0.9);
+            border-color: #A65D1E;
+        }
+
+        .inventory-toggle:hover::before {
+            opacity: 1;
+            background: #A65D1E;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        /* Tooltip styles */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+
         /* Tooltip styles */
         .item-tooltip {
             position: absolute;
@@ -339,44 +387,7 @@
             pointer-events: none;
         }
 
-        .inventory-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #8B4513;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .inventory-toggle::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 24px;
-            height: 24px;
-            background: #8B4513;
-            border-radius: 2px;
-            opacity: 0.8;
-            transition: all 0.2s ease;
-        }
-
-        .inventory-toggle:hover {
-            background: rgba(0, 0, 0, 0.9);
-            border-color: #A65D1E;
-        }
-
-        .inventory-toggle:hover::before {
-            opacity: 1;
-            background: #A65D1E;
-            transform: translate(-50%, -50%) scale(1.1);
-        }
+        
 
         .inventory-container {
             display: none;
@@ -1036,6 +1047,8 @@
         <div class="mana-text">100/100</div>
     </div>
 
+    <div class="inventory-toggle"></div>
+
     <div class="item-name-display"></div>
 
     <div class="crosshair">
@@ -1082,10 +1095,9 @@
         </div>
     </div>
 
-    <div class="inventory-toggle" id="inventoryToggle" style="display: block;"></div>
     
-    <div class="inventory-container" id="inventoryContainer" style="display: none;">
-        <div class="close-button" id="closeInventory">X</div>
+    <div class="inventory-container" id="inventory" style="display: none;">
+        <button class="close-button" id="closeInventory">X</button>
         <div class="armor-and-player">
             <div class="armor-section">
                 <div class="armor-slots">
@@ -1576,28 +1588,36 @@
 
         // Handle keydown
         document.addEventListener('keydown', (event) => {
-            // Existing E key handling
-            if (event.key.toLowerCase() === 'e' && !isKeyPressed) {
+            // Check if crafting UI is open
+            const isCraftingOpen = document.getElementById('craftingUI').classList.contains('visible');
+            
+            // E key for inventory toggle - only if crafting is closed
+            if (event.key.toLowerCase() === 'e' && !isKeyPressed && !isCraftingOpen) {
                 isKeyPressed = true;
-                console.log('[UI] E key pressed - sending toggle request');
+                const inventoryContainer = document.getElementById('inventory');
+                const isInventoryOpen = inventoryContainer.style.display === 'block';
+                
+                console.log('[UI] E key pressed - sending toggle request. Current state:', isInventoryOpen ? 'open' : 'closed');
                 hytopia.sendData({
                     inventoryToggle: {
-                        action: 'toggle'
+                        action: isInventoryOpen ? 'close' : 'toggle'
                     }
                 });
             }
             
-            // Handle ESC key
-            if (event.key === 'Escape' && document.getElementById('craftingUI').classList.contains('visible')) {
-                console.log('[UI] ESC pressed - sending close request');
-                hytopia.sendData({
-                    craftingToggle: {
-                        action: 'toggle'
-                    }
-                });
+            // Handle ESC key for crafting only
+            if (event.key === 'Escape') {
+                if (document.getElementById('craftingUI').classList.contains('visible')) {
+                    console.log('[UI] ESC pressed - sending crafting close request');
+                    hytopia.sendData({
+                        craftingToggle: {
+                            action: 'toggle'
+                        }
+                    });
+                }
             }
 
-            // Handle F key
+            // Handle F key for crafting
             if (event.key.toLowerCase() === 'f' && !isFPressed) {
                 isFPressed = true;
                 console.log('[UI] F key pressed - sending crafting toggle request');
@@ -1725,20 +1745,48 @@
 
             // Handle inventory toggle response from server
             if (data.inventoryToggle) {
-                const { isOpen } = data.inventoryToggle;
-                console.log(`[Inventory] ${isOpen ? 'Opening' : 'Closing'} inventory`);
-                inventoryContainer.style.display = isOpen ? 'block' : 'none';
-                inventoryToggle.style.display = isOpen ? 'none' : 'block';
+                const { isOpen, updates, hotbar } = data.inventoryToggle;
+                const inventoryContainer = document.getElementById('inventory');
+                const crosshair = document.querySelector('.crosshair');
+                const inventoryToggleBtn = document.querySelector('.inventory-toggle');
                 
-                if (isOpen) {
-                    console.log('[Inventory] Restoring inventory state...');
-                    reapplyInventoryState();
+                if (inventoryContainer && crosshair) {
+                    console.log('[UI] Toggling inventory:', isOpen);
                     
-                    // Initialize tooltips for inventory slots after they are created
-                    setTimeout(() => {
-                        initializeTooltips();
-                        console.log('[Inventory] Initialized tooltips for inventory slots');
-                    }, 100);
+                    // Update inventory visibility and pointer lock
+                    if (isOpen) {
+                        console.log('[UI] INVENTORY IS OPEN');
+                        console.log('[UI] POINTLOCK IS DISABLED');
+                        inventoryContainer.style.display = 'block';
+                        crosshair.classList.add('hidden');
+                        hytopia.lockPointer(false);
+                        
+                        // Hide inventory toggle button when inventory is open
+                        if (inventoryToggleBtn) {
+                            inventoryToggleBtn.style.display = 'none';
+                        }
+                    } else {
+                        console.log('[UI] INVENTORY IS CLOSED');
+                        console.log('[UI] POINTLOCK IS ENABLED');
+                        inventoryContainer.style.display = 'none';
+                        crosshair.classList.remove('hidden');
+                        hytopia.lockPointer(true);
+                        
+                        // Show inventory toggle button when inventory is closed
+                        if (inventoryToggleBtn) {
+                            inventoryToggleBtn.style.display = 'block';
+                        }
+                    }
+                    
+                    // Update inventory slots if we have updates
+                    if (updates) {
+                        updateInventorySlots(updates);
+                    }
+                    
+                    // Update hotbar if we have hotbar updates
+                    if (hotbar) {
+                        updateHotbarSlots(hotbar);
+                    }
                 }
             }
 
@@ -1861,7 +1909,10 @@
             // Handle crafting UI toggle from server
             if (data.craftingToggle) {
                 const craftingUI = document.getElementById('craftingUI');
+                const inventoryContainer = document.getElementById('inventory');
                 const crosshair = document.querySelector('.crosshair');
+                const inventoryToggleBtn = document.querySelector('.inventory-toggle');
+                const closeInventoryBtn = document.getElementById('closeInventory');
                 
                 if (craftingUI && crosshair) {
                     console.log('[UI] Toggling crafting UI:', data.craftingToggle.isOpen);
@@ -1869,9 +1920,28 @@
                         craftingUI.classList.add('visible');
                         crosshair.classList.add('hidden');
                         
+                        // Also open inventory when crafting opens
+                        if (inventoryContainer) {
+                            console.log('[UI] Opening inventory with crafting');
+                            inventoryContainer.style.display = 'block';
+                            // Hide inventory toggle button
+                            if (inventoryToggleBtn) {
+                                inventoryToggleBtn.style.display = 'none';
+                            }
+                            // Disable inventory close button
+                            if (closeInventoryBtn) {
+                                closeInventoryBtn.style.pointerEvents = 'none';
+                                closeInventoryBtn.style.opacity = '0.5';
+                            }
+                        }
+                        
                         // Clear any existing recipes to start fresh
                         document.querySelector('.recipe-list').innerHTML = '';
                         console.log('[UI] Cleared recipe list for fresh start');
+                        
+                        // Disable pointer lock when opening crafting/inventory
+                        hytopia.lockPointer(false);
+                        console.log('[UI] POINTLOCK IS DISABLED');
                         
                         // If categories were provided, update category buttons
                         if (data.craftingToggle.categories && Array.isArray(data.craftingToggle.categories)) {
@@ -1955,6 +2025,25 @@
                     } else {
                         craftingUI.classList.remove('visible');
                         crosshair.classList.remove('hidden');
+                        
+                        // Also close inventory when crafting closes
+                        if (inventoryContainer) {
+                            console.log('[UI] Closing inventory with crafting');
+                            inventoryContainer.style.display = 'none';
+                            // Show inventory toggle button
+                            if (inventoryToggleBtn) {
+                                inventoryToggleBtn.style.display = 'block';
+                            }
+                            // Re-enable inventory close button
+                            if (closeInventoryBtn) {
+                                closeInventoryBtn.style.pointerEvents = 'auto';
+                                closeInventoryBtn.style.opacity = '1';
+                            }
+                        }
+                        
+                        // Enable pointer lock when closing crafting/inventory
+                        hytopia.lockPointer(true);
+                        console.log('[UI] POINTLOCK IS ENABLED');
                     }
                 }
             }
@@ -2175,6 +2264,17 @@
                     action: 'close'
                 }
             });
+        });
+
+        // Handle inventory close button click
+        document.getElementById('closeInventory').addEventListener('click', () => {
+            console.log('[UI] Inventory close button clicked');
+            hytopia.sendData({
+                inventoryToggle: {
+                    action: 'close'
+                }
+            });
+            return false;
         });
 
         // Prevent game input when clicking UI
@@ -2677,6 +2777,32 @@
 
         // Modify the DOMContentLoaded event to avoid duplicate event listeners
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('[UI] DOM content loaded');
+            
+            // Initialize inventory toggle button visibility
+            const inventoryToggleBtn = document.querySelector('.inventory-toggle');
+            const inventoryContainer = document.getElementById('inventory');
+            
+            if (inventoryToggleBtn && inventoryContainer) {
+                // Show toggle button only if inventory is hidden
+                inventoryToggleBtn.style.display = inventoryContainer.style.display === 'none' ? 'block' : 'none';
+            }
+            
+            // Set up recipe cache
+            window.recipeCache = {};
+            console.log('[UI] Recipe cache initialized');
+            
+            // Initialize inventory grid
+            initializeInventoryGrid();
+            
+            // Create event listener for inventory close button
+            document.getElementById('closeInventory').addEventListener('click', () => {
+                console.log('[UI] Inventory close button clicked');
+                hytopia.sendData({
+                    closeInventory: true
+                });
+            });
+            
             // Remove any existing click handlers from category buttons first
             const categoryButtons = document.querySelectorAll('.crafting-categories .category-button');
             categoryButtons.forEach(button => {
@@ -2874,6 +3000,134 @@
         document.addEventListener('DOMContentLoaded', () => {
             console.log('[UI] DOM loaded, initializing tooltips');
             initializeTooltips();
+        });
+
+        // Handle inventory close button click
+        document.getElementById('inventory-close').addEventListener('click', () => {
+            hytopia.sendData({
+                inventoryToggle: {
+                    action: 'close'
+                }
+            });
+        });
+
+        // Handle crafting close button click
+        document.getElementById('crafting-close').addEventListener('click', () => {
+            hytopia.sendData({
+                craftingToggle: {
+                    action: 'close'
+                }
+            });
+        });
+
+        // Handle data from server
+        hytopia.onData((data) => {
+            if (data.inventoryToggle) {
+                const { isOpen, updates, hotbar } = data.inventoryToggle;
+                
+                // Update inventory visibility
+                document.getElementById('inventory').style.display = isOpen ? 'block' : 'none';
+                
+                // Update inventory slots if we have updates
+                if (updates) {
+                    updateInventorySlots(updates);
+                }
+                
+                // Update hotbar if we have hotbar updates
+                if (hotbar) {
+                    updateHotbarSlots(hotbar);
+                }
+            }
+            
+            if (data.craftingToggle) {
+                const { isOpen } = data.craftingToggle;
+                document.getElementById('crafting').style.display = isOpen ? 'block' : 'none';
+                
+                if (isOpen) {
+                    // Update crafting UI with categories and recipes
+                    updateCraftingUI(data.craftingToggle);
+                }
+            }
+            
+            // ... rest of data handling ...
+        });
+
+        function updateInventorySlots(updates) {
+            updates.forEach(update => {
+                const slot = document.querySelector(`.inventory-slot[data-slot="${update.slot}"]`);
+                if (slot) {
+                    updateSlot(slot, update);
+                }
+            });
+        }
+
+        function updateHotbarSlots(updates) {
+            updates.forEach(update => {
+                const slot = document.querySelector(`.hotbar-slot[data-slot="${update.slot}"]`);
+                if (slot) {
+                    updateSlot(slot, update);
+                }
+            });
+        }
+
+		function handleInventoryData(data) {
+			if (data.isOpen !== undefined) {
+				console.log(`[UI] INVENTORY IS ${data.isOpen ? 'OPEN' : 'CLOSED'}`);
+				document.getElementById('inventory').style.display = data.isOpen ? 'block' : 'none';
+			}
+			if (data.updates) {
+				updateInventorySlots(data.updates);
+			}
+			if (data.hotbarUpdates) {
+				updateHotbarSlots(data.hotbarUpdates);
+			}
+		}
+
+        // Function to handle inventory data from server
+        function handleInventoryData(data) {
+            const inventoryContainer = document.getElementById('inventory');
+            if (!inventoryContainer) {
+                console.error('[UI] Inventory container not found!');
+                return;
+            }
+
+            console.log('[UI] Handling inventory data:', data);
+
+            if (data.isOpen !== undefined) {
+                console.log(`[UI] INVENTORY IS ${data.isOpen ? 'OPEN' : 'CLOSED'}`);
+                inventoryContainer.style.display = data.isOpen ? 'block' : 'none';
+                
+                // Update pointer lock based on inventory state
+                if (data.isOpen) {
+                    console.log('[UI] POINTLOCK IS DISABLED');
+                    hytopia.lockPointer(false);
+                } else {
+                    console.log('[UI] POINTLOCK IS ENABLED');
+                    hytopia.lockPointer(true);
+                }
+            }
+            if (data.updates) {
+                updateInventorySlots(data.updates);
+            }
+            if (data.hotbarUpdates) {
+                updateHotbarSlots(data.hotbarUpdates);
+            }
+        }
+
+        // Add event listener for data from server
+        hytopia.on('data', (data) => {
+            if (data.inventoryToggle) {
+                handleInventoryData(data.inventoryToggle);
+            }
+            // ... rest of the event handlers ...
+        });
+
+        // Add event listener for inventory close button
+        document.getElementById('closeInventory').addEventListener('click', () => {
+            console.log('[UI] Close inventory button clicked');
+            hytopia.sendData({
+                closeInventory: true
+            });
         });
     </script>
 </body>

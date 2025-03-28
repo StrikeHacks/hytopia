@@ -24,7 +24,6 @@ export class CraftingManager {
         private world: World,
         private playerInventories: Map<string, PlayerInventory>
     ) {
-        console.log('[CraftingManager] Initialized with recipes');
     }
 
     /**
@@ -46,11 +45,9 @@ export class CraftingManager {
      * Get recipes filtered by category
      */
     public getRecipesByCategory(category: string): RecipeItem[] {
-        console.log(`[CraftingManager] Getting recipes for category: ${category}`);
         
         // Handle potential naming discrepancy between 'weapon' and 'weapons'
         const normalizedCategory = this.normalizeCategory(category);
-        console.log(`[CraftingManager] Normalized category: ${normalizedCategory}`);
         
         // Check if the normalized category exists in our available categories
         const availableCategories = this.getAvailableCategories();
@@ -63,7 +60,6 @@ export class CraftingManager {
                 // Try the alternative spelling
                 const alternativeCategory = normalizedCategory === 'weapons' ? 'weapon' : 'weapons';
                 if (availableCategories.includes(alternativeCategory)) {
-                    console.log(`[CraftingManager] Using alternative category: ${alternativeCategory}`);
                     return this.getRecipesForCategory(alternativeCategory);
                 }
             }
@@ -81,13 +77,9 @@ export class CraftingManager {
         try {
             // Get raw recipes for the category
             const rawRecipes = getRecipesByCategory(category);
-            console.log(`[CraftingManager] Found ${rawRecipes.length} raw recipes for category: ${category}`);
             
             // Debug log each raw recipe
-            rawRecipes.forEach(recipe => {
-                console.log(`[CraftingManager] Raw recipe: ${recipe.name}, Category: ${recipe.category}`);
-            });
-            
+       
             // Format recipes for UI display
             const formattedRecipes = rawRecipes.map(recipe => {
                 try {
@@ -102,7 +94,6 @@ export class CraftingManager {
                 }
             }).filter(recipe => recipe !== null) as RecipeItem[];
             
-            console.log(`[CraftingManager] Returning ${formattedRecipes.length} formatted recipes for ${category}`);
             
             // Additional check for weapon recipes
             if ((category === 'weapon' || category === 'weapons') && formattedRecipes.length === 0) {
@@ -112,15 +103,8 @@ export class CraftingManager {
                 const weaponRecipes = getRecipesByCategory('weapons');
                 const weaponRecipes2 = getRecipesByCategory('weapon');
                 
-                console.log(`[CraftingManager] Manual check found ${weaponRecipes.length} 'weapons' recipes and ${weaponRecipes2.length} 'weapon' recipes`);
                 
-                if (weaponRecipes.length > 0) {
-                    weaponRecipes.forEach(r => console.log(`  - ${r.name} (${r.category})`));
-                }
                 
-                if (weaponRecipes2.length > 0) {
-                    weaponRecipes2.forEach(r => console.log(`  - ${r.name} (${r.category})`));
-                }
             }
             
             return formattedRecipes;
@@ -182,35 +166,28 @@ export class CraftingManager {
     public craftItem(playerId: string, recipeName: string): boolean {
         const inventory = this.playerInventories.get(playerId);
         if (!inventory) {
-            console.log(`[CraftingManager] No inventory found for player ${playerId}`);
             return false;
         }
 
         const recipe = getRecipeById(recipeName);
         if (!recipe) {
-            console.log(`[CraftingManager] No recipe found with name ${recipeName}`);
             return false;
         }
 
         // Check if can craft
         if (!this.canPlayerCraftRecipe(playerId, recipeName)) {
-            console.log(`[CraftingManager] Player ${playerId} doesn't have required materials for ${recipeName}`);
             return false;
         }
 
-        console.log(`[CraftingManager] Crafting ${recipeName} for player ${playerId}`);
-        console.log(`[CraftingManager] Required inputs:`, recipe.inputs);
-        console.log(`[CraftingManager] Output: ${recipe.output.type} x${recipe.output.count}`);
+        
 
         // Remove input items
         recipe.inputs.forEach(input => {
-            console.log(`[CraftingManager] Removing ${input.count}x ${input.type} from inventory`);
             inventory.removeItem(input.type, input.count);
         });
 
         // Add output item
         const addResult = inventory.addItem(recipe.output.type, recipe.output.count);
-        console.log(`[CraftingManager] Added ${recipe.output.count}x ${recipe.output.type} to inventory:`, addResult);
 
         return true;
     }
@@ -305,7 +282,6 @@ export class CraftingManager {
             }
         });
         
-        console.log(`[CraftingManager] Detailed requirements for ${recipeName}:`, result);
         return result;
     }
 
@@ -360,40 +336,32 @@ export class CraftingManager {
      * Start crafting process with timer
      */
     public startCrafting(playerId: string, recipeName: string): boolean {
-        console.log(`[CraftingManager] Starting crafting process for ${recipeName}`);
         
         // Check if player is already crafting
         if (this.isPlayerCrafting(playerId)) {
-            console.log(`[CraftingManager] Player ${playerId} is already crafting something`);
             return false;
         }
         
         const inventory = this.playerInventories.get(playerId);
         if (!inventory) {
-            console.log(`[CraftingManager] No inventory found for player ${playerId}`);
             return false;
         }
 
         const recipe = getRecipeById(recipeName);
         if (!recipe) {
-            console.log(`[CraftingManager] No recipe found with name ${recipeName}`);
             return false;
         }
 
         // Check if can craft
         if (!this.canPlayerCraftRecipe(playerId, recipeName)) {
-            console.log(`[CraftingManager] Player ${playerId} doesn't have required materials for ${recipeName}`);
             return false;
         }
         
         // Get crafting time for this recipe
         const craftingTime = recipe.craftingTime || DEFAULT_CRAFTING_TIME;
-        console.log(`[CraftingManager] Crafting time for ${recipeName}: ${craftingTime}ms`);
         
         // Remove input items immediately
-        console.log(`[CraftingManager] Removing materials for ${recipeName}`);
         recipe.inputs.forEach(input => {
-            console.log(`[CraftingManager] Removing ${input.count}x ${input.type} from inventory`);
             inventory.removeItem(input.type, input.count);
         });
         
@@ -431,12 +399,10 @@ export class CraftingManager {
      * Complete crafting process and give the item to the player
      */
     private completeCrafting(playerId: string, recipeName: string): void {
-        console.log(`[CraftingManager] Completing crafting of ${recipeName} for player ${playerId}`);
         
         // Clear timer info
         const craftingInfo = this.playerCraftingTimers.get(playerId);
         if (!craftingInfo) {
-            console.log(`[CraftingManager] No crafting info found for player ${playerId}`);
             return;
         }
         
@@ -445,20 +411,16 @@ export class CraftingManager {
         // Get inventory and recipe
         const inventory = this.playerInventories.get(playerId);
         if (!inventory) {
-            console.log(`[CraftingManager] No inventory found for player ${playerId}`);
             return;
         }
         
         const recipe = getRecipeById(recipeName);
         if (!recipe) {
-            console.log(`[CraftingManager] No recipe found with name ${recipeName}`);
             return;
         }
         
         // Add crafted item to inventory
-        console.log(`[CraftingManager] Adding ${recipe.output.count}x ${recipe.output.type} to inventory`);
         const addResult = inventory.addItem(recipe.output.type, recipe.output.count);
-        console.log(`[CraftingManager] Added item to inventory:`, addResult);
         
         // Get player entity instance using inventory
         let notificationSent = false;
@@ -470,7 +432,6 @@ export class CraftingManager {
                     // Try to access the player UI through any means possible
                     const playerEntity = (playerInventory as any).playerEntity;
                     if (playerEntity && playerEntity.player && playerEntity.player.ui) {
-                        console.log(`[CraftingManager] Found player entity, sending completion notification (Method 1)`);
                         try {
                             // Send both craftingComplete and craftingCompleted for compatibility
                             playerEntity.player.ui.sendData({
@@ -496,19 +457,16 @@ export class CraftingManager {
         
         // If notification couldn't be sent via the direct method, try broadcasting more aggressively
         if (!notificationSent) {
-            console.log(`[CraftingManager] Attempting stronger notification methods for completion of ${recipeName}`);
             
             try {
                 // Instead of trying to access entities directly (which causes type errors),
                 // let's try a simpler approach using the world reference we have
                 if (this.world) {
                     // Log that we're making this attempt
-                    console.log(`[CraftingManager] Attempting to broadcast completion via world object`);
                     
                     // We can't directly access entities due to type constraints,
                     // so we'll rely on the PlayerManager's interval to handle this instead
                     // and log that we need that fallback
-                    console.log(`[CraftingManager] Relying on PlayerManager's progress interval for notification`);
                 }
             } catch (error) {
                 console.error(`[CraftingManager] Error with alternative notification method:`, error);
@@ -527,7 +485,6 @@ export class CraftingManager {
      */
     public cancelCrafting(playerId: string): boolean {
         // Method kept but disabled since cancel button was removed
-        console.log(`[CraftingManager] cancelCrafting called, but this functionality is disabled`);
         return false;
     }
 

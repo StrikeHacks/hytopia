@@ -1,8 +1,8 @@
-import { startServer, PlayerEvent } from 'hytopia';
+import { startServer, PlayerEvent, World } from 'hytopia';
 import { GameManager } from './managers/GameManager';
 import { PlayerManager } from './managers/PlayerManager';
 
-startServer(world => {
+const world = startServer(world => {
     const gameManager = new GameManager(world);
 
     world.on(PlayerEvent.JOINED_WORLD, ({ player }) => {
@@ -21,4 +21,9 @@ startServer(world => {
         gameManager.cleanup(player.id);
         world.entityManager.getPlayerEntitiesByPlayer(player).forEach(entity => entity.despawn());
     });
+
+    return world;
 });
+
+// Export voor Hytopia
+export default world;

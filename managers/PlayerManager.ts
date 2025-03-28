@@ -27,11 +27,15 @@ export class PlayerManager {
 	private isLeftMousePressed: boolean = false;
 	private leftMouseHoldStartTime: number = 0;
 	private miningInterval: NodeJS.Timer | null = null;
-	private readonly MINING_INTERVAL_MS = 300; // Time between mining attempts when holding the button
+	private readonly MINING_INTERVAL_MS = 450; // Increased mining interval for better performance (was 300)
+	private readonly MINING_COOLDOWN_MS = 350; // Increased cooldown between mining attempts (was 250)
+	private lastMiningTime: number = 0; // Track the last time mining was attempted
 	private isCraftingOpen: boolean = false;
 	private isQPressed: boolean = false;
 	private isEPressed: boolean = false;
 	private isFPressed: boolean = false;
+	private currentModelRotation: number = 0; // Current rotation angle for model placement
+	private readonly ROTATION_INCREMENT = Math.PI / 4; // Rotate by 45 degrees (π/4 radians)
 
 	constructor(
 		private world: World,
@@ -124,6 +128,10 @@ export class PlayerManager {
 			if (data.craftingToggle?.action === 'close') {
 				this.closeCrafting();
 			} 
+			// Handle inventory close
+			else if (data.inventoryToggle?.action === 'close') {
+				this.closeInventory();
+			}
 			// Handle hotbar selection
 			else if (data.hotbarSelect) {
 				const { slot } = data.hotbarSelect;
@@ -131,12 +139,10 @@ export class PlayerManager {
 			}
 			// Handle recipe requirements check with crafting
 			else if (data.checkRecipeRequirements) {
-				console.log(`[PlayerManager] Received request to check recipe requirements: ${data.checkRecipeRequirements.recipeName}`);
 				this.handleCheckRecipeRequirements(this.player.id, data.checkRecipeRequirements.recipeName);
 			}
 			// Handle recipe requests
 			else if (data.requestRecipes) {
-				console.log(`[PlayerManager] Received request for recipes in category: ${data.requestRecipes.category}`);
 				
 				// Normalize the requested category for consistency
 				const requestedCategory = this.normalizeCategory(data.requestRecipes.category);
@@ -146,7 +152,6 @@ export class PlayerManager {
 				
 				// Is this a cache-only request?
 				const forCache = data.requestRecipes.forCache === true;
-				console.log(`[PlayerManager] Recipe request for ${requestedCategory} is for cache: ${forCache}`);
 				
 				// Send the recipes back to the client with the category
 				this.player.ui.sendData({
@@ -157,12 +162,10 @@ export class PlayerManager {
 			} 
 			// Handle item config requests for UI tooltips
 			else if (data.getItemConfig) {
-				console.log(`[PlayerManager] Received request for item config: ${data.getItemConfig.type}`);
 				this.handleItemConfigRequest(data.getItemConfig.type);
 			}
 			// Handle crafting requests directly (though we now use check first)
 			else if (data.craftItem) {
-				console.log(`[PlayerManager] Received request to craft: ${data.craftItem.recipeName}`);
 				this.startCrafting(this.player.id, data.craftItem.recipeName);
 			}
 			// Note: Cancel crafting functionality removed since there's no cancel button in UI
@@ -170,7 +173,7 @@ export class PlayerManager {
 	}
 
 	private setupInputHandling(playerEntity: PlayerEntity): void {
-		// Enable debug raycasting for development
+		// Enable debug raycasting for development visualization
 		this.world.simulation.enableDebugRaycasting(true);
 
 		this.playerController.on(
@@ -197,10 +200,12 @@ export class PlayerManager {
 					this.isQPressed = false;
 				}
 
-				// Handle inventory toggle (E) - only trigger on key down
+				// Handle inventory toggle (E) - only trigger on key down to open
 				if (input["e"] && !this.isEPressed) {
 					this.isEPressed = true;
-					this.playerInventory.handleInventoryToggle();
+					if (!this.playerInventory.getIsInventoryOpen()) {
+						this.openInventory();
+					}
 				} else if (!input["e"]) {
 					this.isEPressed = false;
 				}
@@ -208,26 +213,70 @@ export class PlayerManager {
 				// Handle F key for crafting UI
 				if (input["f"] && !this.isFPressed) {
 					this.isFPressed = true;
-					if (this.isCraftingOpen) {
-						this.closeCrafting();
-					} else {
+					if (!this.isCraftingOpen) {
 						this.openCrafting();
 					}
 				} else if (!input["f"]) {
 					this.isFPressed = false;
 				}
 
+				// Handle right mouse button to interact with fixed models
+				if (input["mr"]) {
+					// Cancel the right click to prevent the default behavior
+					input["mr"] = false;
+					this.handleRightClick(playerEntity);
+				}
+
+				// Handle model rotation keys (R to rotate clockwise, T to rotate counter-clockwise)
+				if (input["r"]) {
+					this.currentModelRotation = (this.currentModelRotation + this.ROTATION_INCREMENT) % (Math.PI * 2);
+					this.player.ui.sendData({
+						showItemName: {
+							name: `Rotation: ${Math.round((this.currentModelRotation * 180 / Math.PI) % 360)}°`
+						}
+					});
+				}
+				
+				if (input["t"]) {
+					this.currentModelRotation = (this.currentModelRotation - this.ROTATION_INCREMENT) % (Math.PI * 2);
+					if (this.currentModelRotation < 0) this.currentModelRotation += Math.PI * 2;
+					this.player.ui.sendData({
+						showItemName: {
+							name: `Rotation: ${Math.round((this.currentModelRotation * 180 / Math.PI) % 360)}°`
+						}
+					});
+				}
+
+				// Handle mouse input
 				if (input["ml"] && !this.isLeftMousePressed) {
 					// Mouse button was just pressed down
 					this.isLeftMousePressed = true;
 					this.leftMouseHoldStartTime = Date.now();
 
-					// Start mining immediately
-					this.startMining(playerEntity);
-				} else if (input["ml"] && this.isLeftMousePressed) {
-					// Mouse button is being held down, continue mining
-					if (!this.isMining) {
+					// Check if holding a tool
+					const selectedSlot = this.playerInventory.getSelectedSlot();
+					const heldItem = this.playerInventory.getItem(selectedSlot);
+					const isTool = heldItem && this.toolManager.isTool(heldItem);
+
+					if (isTool) {
+						// Start mining if holding a tool
 						this.startMining(playerEntity);
+					} else {
+						// Do attack if not holding a tool
+						this.playerEntity.startModelOneshotAnimations(["simple_interact"]);
+						this.tryAttack(playerEntity);
+					}
+				} else if (input["ml"] && this.isLeftMousePressed) {
+					// Mouse button is being held down
+					if (!this.isMining) {
+						// Check again if we should start mining
+						const selectedSlot = this.playerInventory.getSelectedSlot();
+						const heldItem = this.playerInventory.getItem(selectedSlot);
+						const isTool = heldItem && this.toolManager.isTool(heldItem);
+
+						if (isTool) {
+							this.startMining(playerEntity);
+						}
 					}
 				} else if (!input["ml"] && this.isLeftMousePressed) {
 					// Mouse button was released
@@ -236,13 +285,6 @@ export class PlayerManager {
 				}
 			}
 		);
-
-		// Listen for UI data from client
-		this.player.ui.on(PlayerUIEvent.DATA, ({ data }: { data: any }) => {
-			if (data.craftingToggle?.action === 'close') {
-				this.closeCrafting();
-			}
-		});
 	}
 
 	private startMining(playerEntity: PlayerEntity): void {
@@ -272,6 +314,16 @@ export class PlayerManager {
 	}
 
 	private tryMineBlock(playerEntity: PlayerEntity): void {
+		const currentTime = Date.now();
+		
+		// Check if we're within the cooldown period
+		if (currentTime - this.lastMiningTime < this.MINING_COOLDOWN_MS) {
+			return; // Still on cooldown, skip this mining attempt
+		}
+		
+		// Update last mining time
+		this.lastMiningTime = currentTime;
+		
 		this.playerEntity.startModelOneshotAnimations(["simple_interact"]);
 		const selectedSlot = this.playerInventory.getSelectedSlot();
 		const heldItem = this.playerInventory.getItem(selectedSlot);
@@ -326,6 +378,20 @@ export class PlayerManager {
 		this.player.ui.lockPointer(true);
 	}
 
+	private openInventory(): void {
+		console.log('[PlayerManager] Opening inventory...');
+		this.player.ui.lockPointer(false);
+		console.log('[PlayerManager] POINTLOCK IS DISABLED');
+		this.playerInventory.handleInventoryToggle();
+	}
+
+	private closeInventory(): void {
+		console.log('[PlayerManager] Closing inventory...');
+		this.player.ui.lockPointer(true);
+		console.log('[PlayerManager] POINTLOCK IS ENABLED');
+		this.playerInventory.handleInventoryToggle();
+	}
+
 	// Public methods for health management
 	public damage(amount: number): number {
 		return this.playerHealth.damage(amount);
@@ -367,7 +433,6 @@ export class PlayerManager {
 		
 		// Handle weapon/weapons categories
 		if (category.toLowerCase() === 'weapon') {
-			console.log('[PlayerManager] Normalizing "weapon" to "weapons" for consistency');
 			return 'weapons';
 		}
 		
@@ -378,12 +443,10 @@ export class PlayerManager {
 	 * Toggle the crafting UI for a player
 	 */
 	toggleCraftingUI(playerId: string, isOpen: boolean): void {
-		console.log(`[PlayerManager] Toggling crafting UI for player ${playerId}: ${isOpen ? 'open' : 'close'}`);
 		
 		if (isOpen) {
 			// Get the available categories for the UI
 			const categories = this.craftingManager.getAvailableCategories();
-			console.log(`[PlayerManager] Available crafting categories: ${JSON.stringify(categories)}`);
 			
 			// Normalize categories to ensure consistency
 			const normalizedCategories = categories.map(cat => {
@@ -396,12 +459,10 @@ export class PlayerManager {
 			
 			// Get initial recipes for the first category (typically 'tools')
 			const initialCategory = normalizedCategories[0] || 'tools';
-			console.log(`[PlayerManager] Getting initial recipes for category: ${initialCategory}`);
 			
 			try {
 				// Get recipes with error handling
 				const recipes = this.craftingManager.getRecipesByCategory(initialCategory);
-				console.log(`[PlayerManager] Got ${recipes.length} recipes for initial category ${initialCategory}`);
 				
 				// Ensure we have valid recipes data
 				const validRecipes = Array.isArray(recipes) ? recipes : [];
@@ -457,12 +518,10 @@ export class PlayerManager {
 	 * Handle recipe requirement check with crafting
 	 */
 	handleCheckRecipeRequirements(playerId: string, recipeName: string): void {
-		console.log(`[PlayerManager] Checking requirements for recipe: ${recipeName}`);
 		
 		// Get the recipe
 		const recipe = this.craftingManager.getRecipeById(recipeName);
 		if (!recipe) {
-			console.log(`[PlayerManager] Recipe not found: ${recipeName}`);
 			this.player.ui.sendData({
 				recipeRequirements: {
 					recipeName,
@@ -477,16 +536,11 @@ export class PlayerManager {
 		
 		// Check if player can craft
 		const canCraft = this.craftingManager.canPlayerCraftRecipe(playerId, recipeName);
-		console.log(`[PlayerManager] Can player craft ${recipeName}? ${canCraft}`);
 		
 		// Get detailed requirement information
 		const requirementDetails = this.craftingManager.getDetailedCraftingRequirements(playerId, recipeName);
 		
-		// Log the requirement details for debugging
-		console.log(`[PlayerManager] Requirements for ${recipeName}:`, requirementDetails.requirements);
-		if (requirementDetails.missingItems.length > 0) {
-			console.log(`[PlayerManager] Missing items:`, requirementDetails.missingItems);
-		}
+		
 		
 		// Send detailed information back to the UI
 		this.player.ui.sendData({
@@ -513,7 +567,6 @@ export class PlayerManager {
 	 * Start the crafting process for a player
 	 */
 	startCrafting(playerId: string, recipeName: string): void {
-		console.log(`[PlayerManager] Starting crafting process for ${recipeName}`);
 		
 		// Start the crafting process with a timer
 		const success = this.craftingManager.startCrafting(playerId, recipeName);
@@ -597,7 +650,6 @@ export class PlayerManager {
 			const { getItemConfig } = require('../config/items');
 			const itemConfig = getItemConfig(itemType);
 			
-			console.log(`[PlayerManager] Sending item config for ${itemType} to UI`);
 			
 			// Send the config back to the UI
 			this.player.ui.sendData({
@@ -618,5 +670,144 @@ export class PlayerManager {
 				}
 			});
 		}
+	}
+
+	private tryAttack(playerEntity: PlayerEntity): void {
+		const direction = playerEntity.player.camera.facingDirection;
+		const origin = {
+			x: playerEntity.position.x,
+			y: playerEntity.position.y + 1,
+			z: playerEntity.position.z,
+		};
+
+		const raycastResult = this.world.simulation.raycast(origin, direction, 3, {
+			filterExcludeRigidBody: playerEntity.rawRigidBody
+		});
+
+		if (raycastResult?.hitEntity) {
+			const hitEntity = raycastResult.hitEntity;
+			// Check if the hit entity is a cow by checking its name
+			if (hitEntity.name.toLowerCase().includes('cow')) {
+				// Get the selected item to determine damage
+				const selectedSlot = this.playerInventory.getSelectedSlot();
+				const heldItem = this.playerInventory.getItem(selectedSlot);
+				
+				let damage = 0.5; // Default hand damage verlaagd van 1.5 naar 0.5
+
+				if (heldItem) {
+					try {
+						const { getItemConfig } = require('../config/items');
+						const itemConfig = getItemConfig(heldItem);
+						
+						// Als het een wapen is, gebruik de schade van het wapen
+						if (itemConfig.category === 'weapons' || itemConfig.category === 'weapon') {
+							damage = itemConfig.damage || damage;
+						} else if (itemConfig.category === 'tools') {
+							// Tools doen geen schade
+							return;
+						}
+					} catch (error) {
+						console.error('[Combat] Error getting item config:', error);
+					}
+				}
+
+				console.log('[Combat] Hit a cow!', {
+					cowName: hitEntity.name,
+					position: hitEntity.position,
+					damage: damage,
+					weapon: heldItem || 'hand'
+				});
+
+				// Get the AnimalManager and handle the hit with damage
+				const animalManager = this.gameManager.getAnimalManager();
+				animalManager.handleAnimalHit(hitEntity, direction, damage);
+			}
+		}
+	}
+
+	// Add a method to place a fixed model where the player is looking
+	public placeFixedModel(modelId: string): boolean {
+		try {
+			const direction = this.playerEntity.player.camera.facingDirection;
+			const origin = {
+				x: this.playerEntity.position.x,
+				y: this.playerEntity.position.y + 1,
+				z: this.playerEntity.position.z,
+			};
+
+			// Cast a ray to find where to place the model
+			const raycastResult = this.world.simulation.raycast(origin, direction, 4, {
+				filterExcludeRigidBody: this.playerEntity.rawRigidBody
+			});
+
+			if (raycastResult?.hitBlock || raycastResult?.hitPoint) {
+				// Get the hit position
+				const hitPosition = raycastResult.hitPoint;
+				
+				// Place the model slightly above the hit position
+				const placePosition = {
+					x: hitPosition.x,
+					y: hitPosition.y + 0.5, // Place half a block above the hit point
+					z: hitPosition.z
+				};
+				
+				// Use the FixedModelManager to place the model with the current rotation
+				const fixedModelManager = this.gameManager.getFixedModelManager();
+				fixedModelManager.placeModel(modelId, placePosition, this.currentModelRotation);
+				
+				return true;
+			}
+			
+			return false;
+		} catch (error) {
+			console.error('[PlayerManager] Error placing fixed model:', error);
+			return false;
+		}
+	}
+
+	private handleRightClick(playerEntity: PlayerEntity): void {
+		try {
+			const direction = playerEntity.player.camera.facingDirection;
+			const origin = {
+				x: playerEntity.position.x,
+				y: playerEntity.position.y + playerEntity.player.camera.offset.y,
+				z: playerEntity.position.z,
+			};
+
+			// Cast a ray to detect what's in front of the player
+			const raycastResult = this.world.simulation.raycast(origin, direction, 5, {
+				filterExcludeRigidBody: playerEntity.rawRigidBody
+			});
+
+			if (raycastResult?.hitEntity) {
+				const hitEntity = raycastResult.hitEntity;
+				
+				// Check if the entity has a name that starts with our fixed model IDs
+				// For now we only have workbench, but this will work for any fixed model
+				if (hitEntity.name === 'workbench') {
+					console.log('===========================================================');
+					console.log(`[PlayerManager] Right-clicked on a workbench!`);
+					console.log(`Position: x=${hitEntity.position.x.toFixed(2)}, y=${hitEntity.position.y.toFixed(2)}, z=${hitEntity.position.z.toFixed(2)}`);
+					console.log(`Distance: ${this.calculateDistance(playerEntity.position, hitEntity.position).toFixed(2)} blocks`);
+					console.log(`Entity ID: ${hitEntity.id}`);
+					console.log('===========================================================');
+					
+					// Open the crafting UI when clicking on a workbench
+					this.openCrafting();
+					
+					// Visual feedback that interaction happened
+					playerEntity.startModelOneshotAnimations(["simple_interact"]);
+				}
+			}
+		} catch (error) {
+			console.error('[PlayerManager] Error in handleRightClick:', error);
+		}
+	}
+	
+	private calculateDistance(pos1: any, pos2: any): number {
+		const dx = pos1.x - pos2.x;
+		const dy = pos1.y - pos2.y;
+		const dz = pos1.z - pos2.z;
+		return Math.sqrt(dx * dx + dy * dy + dz * dz);
 	}
 }

@@ -6,7 +6,9 @@ import {
     DEFAULT_HAND_OFFSET, 
     DEFAULT_HAND_ROTATION,
     GIGA_DROP_FORCE,
-    SIDEWAYS_HAND_ROTATION
+    SIDEWAYS_HAND_ROTATION,
+    MID_DROP_FORCE,
+    HEAVY_DROP_FORCE
 } from './constants';
 
 // Resource item configurations
@@ -96,7 +98,37 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
         imageUrl: 'items/clock.png'
-    }
+    },
+    'bone': {
+        type: 'bone',
+        modelUri: 'models/items/bone.gltf',
+        displayName: 'Bone',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.5,
+        dropForce: DEFAULT_DROP_FORCE,
+        colliderSize: DEFAULT_COLLIDER_SIZE,
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/bone.png'
+    },
+    'log' : {
+        type: 'log',
+        modelUri: 'models/items/log.gltf',
+        displayName: 'Log',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.7,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.25,
+            y: 0.3,
+            z: 0.25
+        },        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/log.png'
+    },
+    
 
 };
 

@@ -20,7 +20,8 @@ export class ToolManager {
     private blockDamages: Map<string, { totalDamage: number; lastDamageTime: number }> = new Map();
     private lastHitBlock: string | null = null;
     private resetTimer: NodeJS.Timer | null = null;
-    private readonly RESET_DELAY = 1000; // Increased to 1 second to give more time between hits
+    private readonly RESET_DELAY = 1000; // Delay before resetting block damage
+    private readonly CLICK_PENALTY_THRESHOLD = 200; // Time threshold in ms to detect rapid clicking
     private respawnTimers: Map<string, NodeJS.Timer> = new Map();
 
     constructor(
@@ -31,6 +32,11 @@ export class ToolManager {
         
         // Ensure ItemInstanceManager is initialized
         ItemInstanceManager.getInstance();
+    }
+
+    public isTool(item: string): boolean {
+        const toolItem = getToolItem(item);
+        return !!toolItem;
     }
 
     private resetBlockDamage(inventory: PlayerInventory, blockKey: string | null = null): void {
@@ -186,9 +192,19 @@ export class ToolManager {
             console.log('[Mining] Started mining new block at:', currentBlockKey);
         }
 
-        // Apply damage
-        blockDamage.totalDamage += toolItem.damage;
-        blockDamage.lastDamageTime = Date.now();
+        const currentTime = Date.now();
+        const timeSinceLastHit = currentTime - blockDamage.lastDamageTime;
+        
+        // Apply damage with a penalty for rapid clicking
+        let damageToApply = toolItem.damage;
+        if (timeSinceLastHit < this.CLICK_PENALTY_THRESHOLD) {
+            // Reduce damage for rapid clicking
+            damageToApply = toolItem.damage * 0.5;
+            console.log('[Mining] Rapid clicking detected! Reducing damage');
+        }
+        
+        blockDamage.totalDamage += damageToApply;
+        blockDamage.lastDamageTime = currentTime;
 
         console.log('[Mining] Block damage:', {
             totalDamage: blockDamage.totalDamage,
