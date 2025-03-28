@@ -30,7 +30,6 @@ const INITIAL_ITEMS = [
     { type: 'stick', position: { x: 0, y: 3.7, z: 2 } },
     { type: 'bone', position: { x: -2, y: 3.7, z: 2 } },
     { type: 'log', position: { x: -4, y: 3.7, z: 2 } },
-    { type: 'workbench', position: { x: 0, y: 3.7, z: -5 } },
 ];
 
 export class ItemSpawner {

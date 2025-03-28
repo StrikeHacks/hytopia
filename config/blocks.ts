@@ -29,7 +29,7 @@ export const blockConfigs: Map<number, BlockConfig> = new Map([
     [23, {
         id: 23,
         name: 'Oak Log',
-        hp: 4, // Takes 8 clicks with axe
+        hp: 5, // Takes 8 clicks with axe
         drops: 'log'
     }]
 ]);
