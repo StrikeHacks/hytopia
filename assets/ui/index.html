@@ -1072,6 +1072,50 @@
         </div>
     </template>
 
+    <!-- Health bar template for boss entities -->
+    <template id="boss-health">
+      <div style="
+        padding: 3px;
+        color: white;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        min-width: 180px;
+      ">
+        <div style="
+          width: 100%;
+          height: 16px;
+          background: rgba(0, 0, 0, 0.5);
+          border-radius: 8px;
+          overflow: hidden;
+          box-shadow: 0 0 4px rgba(0, 0, 0, 0.7);
+          position: relative;
+        ">
+          <div class="boss-health-fill" style="
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, #ff0000, #ff5555);
+            transition: width 0.3s ease;
+          "></div>
+          <div style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            text-shadow: 1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000;
+            letter-spacing: 1px;
+          ">
+            <span class="boss-current-health">{{health}}</span>/<span class="boss-max-health">{{maxHealth}}</span>
+          </div>
+        </div>
+      </div>
+    </template>
+
     <div class="hotbar">
         <div class="hotbar-slot selected" data-slot="0">
             <div class="item-icon"></div>
@@ -1153,6 +1197,13 @@
 
     <script>
         console.log('Script loaded');
+        
+        // Prevent default context menu (right-click) behavior
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            console.log('[UI] Default context menu prevented');
+            return false;
+        });
         
         // Initialize global variables
         window.activeCategory = 'tools'; // Default category
@@ -2289,7 +2340,39 @@
         window.isCrafting = false;
         window.currentlyCraftingItem = null;
 
-        // Add a function to request recipes for caching purposes only
+        // Register the boss health template
+        hytopia.registerSceneUITemplate('boss-health', (id, onState) => {
+            const template = document.getElementById('boss-health');
+            const clone = template.content.cloneNode(true);
+            const healthBar = clone.querySelector('.boss-health-fill');
+            const currentHealth = clone.querySelector('.boss-current-health');
+            const maxHealth = clone.querySelector('.boss-max-health');
+            
+            onState(state => {
+                // Update the health text values
+                if (currentHealth) currentHealth.textContent = Math.round(state.health).toString();
+                if (maxHealth) maxHealth.textContent = Math.round(state.maxHealth).toString();
+                
+                // Update the health bar width based on percentage
+                if (healthBar) {
+                    const healthPercent = (state.health / state.maxHealth) * 100;
+                    healthBar.style.width = `${healthPercent}%`;
+                    
+                    // Change color based on health percentage
+                    if (healthPercent <= 25) {
+                        healthBar.style.background = 'linear-gradient(to right, #800000, #ff0000)';
+                    } else if (healthPercent <= 50) {
+                        healthBar.style.background = 'linear-gradient(to right, #ff3300, #ff6600)';
+                    } else {
+                        healthBar.style.background = 'linear-gradient(to right, #ff0000, #ff5555)';
+                    }
+                }
+            });
+            
+            return clone;
+        });
+
+        // Add function to request recipes for caching purposes only
         function requestRecipesForCache(category) {
             console.log(`[UI] Requesting recipes for caching: ${category}`);
             

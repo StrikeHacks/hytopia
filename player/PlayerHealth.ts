@@ -8,18 +8,67 @@ export interface HealthChangeEvent {
 }
 
 export class PlayerHealth {
-    private maxHealth: number = 100;
-    private currentHealth: number = 100;
+    private maxHealth: number = 1000;
+    private currentHealth: number = 700;
     private isDead: boolean = false;
+    
+    // Passive healing configuration
+    private readonly REGEN_AMOUNT: number = 5; // Amount of health to regenerate per tick
+    private readonly REGEN_INTERVAL_MS: number = 3000; // Regeneration interval in milliseconds (3 seconds)
+    private regenIntervalId: NodeJS.Timer | null = null;
+    private lastDamageTime: number = 0;
+    private readonly REGEN_DELAY_AFTER_DAMAGE_MS: number = 5000; // Delay regeneration for 5 seconds after taking damage
 
     constructor(
         private playerEntity: PlayerEntity,
         private onHealthChange?: (event: HealthChangeEvent) => void
-    ) {}
+    ) {
+        // Start the passive regeneration interval
+        this.startRegeneration();
+    }
 
+    // Start the health regeneration interval
+    private startRegeneration(): void {
+        // Clear any existing interval first
+        this.stopRegeneration();
+        
+        // Start a new interval for regeneration
+        this.regenIntervalId = setInterval(() => {
+            this.regenerateHealth();
+        }, this.REGEN_INTERVAL_MS);
+        
+        console.log('[PlayerHealth] Started health regeneration system');
+    }
+    
+    // Stop the health regeneration interval
+    private stopRegeneration(): void {
+        if (this.regenIntervalId) {
+            clearInterval(this.regenIntervalId);
+            this.regenIntervalId = null;
+        }
+    }
+    
+    // Handle regeneration tick
+    private regenerateHealth(): void {
+        // Skip regeneration if player is dead
+        if (this.isDead) return;
+        
+        // Skip regeneration if we recently took damage
+        const now = Date.now();
+        if (now - this.lastDamageTime < this.REGEN_DELAY_AFTER_DAMAGE_MS) return;
+        
+        // Skip if already at max health
+        if (this.currentHealth >= this.maxHealth) return;
+        
+        // Apply the regeneration
+        this.heal(this.REGEN_AMOUNT);
+    }
 
     public damage(amount: number): number {
         if (this.isDead || amount <= 0) return 0;
+
+        // Update last damage time for regeneration delay
+        this.lastDamageTime = Date.now();
 
         const previousHealth = this.currentHealth;
         this.currentHealth = Math.max(0, this.currentHealth - amount);
@@ -46,12 +95,14 @@ export class PlayerHealth {
         this.currentHealth = Math.min(this.maxHealth, this.currentHealth + amount);
         const actualHeal = this.currentHealth - previousHealth;
 
-        this.notifyHealthChange({
-            previousHealth,
-            currentHealth: this.currentHealth,
-            change: actualHeal,
-            type: 'heal'
-        });
+        if (actualHeal > 0) {
+            this.notifyHealthChange({
+                previousHealth,
+                currentHealth: this.currentHealth,
+                change: actualHeal,
+                type: 'heal'
+            });
+        }
 
         return actualHeal;
     }
@@ -98,7 +149,9 @@ export class PlayerHealth {
 
         this.isDead = false;
         this.setHealth(health ?? this.maxHealth);
-        // Additional revival logic can be added here
+        
+        // Restart regeneration when player revives
+        this.startRegeneration();
     }
 
     public getCurrentHealth(): number {
@@ -121,7 +174,8 @@ export class PlayerHealth {
 
     private die(): void {
         this.isDead = true;
-        // Additional death logic can be added here
+        // Stop regeneration when player dies
+        this.stopRegeneration();
     }
 
     private notifyHealthChange(event: HealthChangeEvent): void {
@@ -135,5 +189,10 @@ export class PlayerHealth {
                 percentage: this.getHealthPercentage()
             }
         });
+    }
+    
+    // Clean up resources when player is removed
+    public dispose(): void {
+        this.stopRegeneration();
     }
 } 

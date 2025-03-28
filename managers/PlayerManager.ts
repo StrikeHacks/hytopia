@@ -7,7 +7,10 @@ import {
 	PlayerEvent,
 	EntityEvent,
 	BaseEntityControllerEvent,
+	RigidBodyType,
+	Audio
 } from "hytopia";
+import type { Vector3Like } from "hytopia";
 import { ItemSpawner } from "./ItemSpawner";
 import { PlayerHealth } from "../player/PlayerHealth";
 import { PlayerInventory } from "../player/PlayerInventory";
@@ -16,6 +19,7 @@ import { GameManager } from "./GameManager";
 import { CraftingManager } from "./CraftingManager";
 import type { HealthChangeEvent } from "../player/PlayerHealth";
 import { getAvailableCategories } from '../config/recipes';
+import { StalkerBoss } from '../bosses/StalkerBoss';
 
 export class PlayerManager {
 	private playerEntity: PlayerEntity;
@@ -27,8 +31,8 @@ export class PlayerManager {
 	private isLeftMousePressed: boolean = false;
 	private leftMouseHoldStartTime: number = 0;
 	private miningInterval: NodeJS.Timer | null = null;
-	private readonly MINING_INTERVAL_MS = 450; // Increased mining interval for better performance (was 300)
-	private readonly MINING_COOLDOWN_MS = 350; // Increased cooldown between mining attempts (was 250)
+	private readonly MINING_INTERVAL_MS = 600; // Increased mining interval for better performance (was 450)
+	private readonly MINING_COOLDOWN_MS = 500; // Increased cooldown between mining attempts (was 350)
 	private lastMiningTime: number = 0; // Track the last time mining was attempted
 	private isCraftingOpen: boolean = false;
 	private isQPressed: boolean = false;
@@ -36,6 +40,18 @@ export class PlayerManager {
 	private isFPressed: boolean = false;
 	private currentModelRotation: number = 0; // Current rotation angle for model placement
 	private readonly ROTATION_INCREMENT = Math.PI / 4; // Rotate by 45 degrees (π/4 radians)
+
+	// Boss combat related properties
+	private _lastAttackTime: number = 0;
+	private _lastDamageTime: number = 0;
+	private _lastKnockbackTime: number = 0;
+	private _damageCooldown: number = 500; // 500ms cooldown tussen damage events
+	private _knockbackCooldown: number = 750; // 750ms cooldown tussen knockbacks
+	private readonly BOSS_IMMUNITY_DURATION: number = 750; // 750ms immuniteit na damage/knockback van een boss
+	private readonly ATTACK_RANGE: number = 4; // Attack range voor alle entities (was 3)
+	private readonly KNOCKBACK_FORCE: number = 12;
+	private readonly DAMAGE_ANIMATION_DURATION: number = 300;
+	private _isImmuneFromBoss: boolean = false; // Bijhouden of speler immune is van boss aanvallen
 
 	constructor(
 		private world: World,
@@ -55,10 +71,25 @@ export class PlayerManager {
 		this.setupInputHandling(this.playerEntity);
 		this.setupCamera();
 		this.spawnPlayer(this.playerEntity);
+
+		// Luister naar damage events op de player entity
+		this.playerEntity.on('damage', (data: any) => {
+			if (data && typeof data.amount === 'number') {
+				this.tryApplyDamage(data.amount);
+			}
+		});
+		
+		// Register this PlayerManager with the GameManager for efficient lookups
+		this.gameManager.registerPlayerManager(this.player.id, this);
 	}
 
 	public get playerController(): PlayerEntityController {
 		return this.playerEntity.controller as PlayerEntityController;
+	}
+
+	// Expose the playerHealth property for cleanup when player leaves
+	public getPlayerHealth(): PlayerHealth {
+		return this.playerHealth;
 	}
 
 	private createPlayerEntity(): PlayerEntity {
@@ -173,8 +204,8 @@ export class PlayerManager {
 	}
 
 	private setupInputHandling(playerEntity: PlayerEntity): void {
-		// Enable debug raycasting for development visualization
-		this.world.simulation.enableDebugRaycasting(true);
+		// Disable debug raycasting for better performance
+		this.world.simulation.enableDebugRaycasting(false);
 
 		this.playerController.on(
 			BaseEntityControllerEvent.TICK_WITH_PLAYER_INPUT,
@@ -379,16 +410,12 @@ export class PlayerManager {
 	}
 
 	private openInventory(): void {
-		console.log('[PlayerManager] Opening inventory...');
 		this.player.ui.lockPointer(false);
-		console.log('[PlayerManager] POINTLOCK IS DISABLED');
 		this.playerInventory.handleInventoryToggle();
 	}
 
 	private closeInventory(): void {
-		console.log('[PlayerManager] Closing inventory...');
 		this.player.ui.lockPointer(true);
-		console.log('[PlayerManager] POINTLOCK IS ENABLED');
 		this.playerInventory.handleInventoryToggle();
 	}
 
@@ -606,18 +633,26 @@ export class PlayerManager {
 			this.craftingProgressInterval = null;
 		}
 		
-		// Set up an interval to send progress updates (every 100ms)
+		// Set up an interval to send progress updates (every 200ms instead of 100ms for better performance)
 		this.craftingProgressInterval = setInterval(() => {
 			// Get current progress
 			const progress = this.craftingManager.getPlayerCraftingProgress(playerId);
 			
-			// Send progress update to the client
-			this.player.ui.sendData({
-				craftingProgress: {
-					recipeName,
-					progress
-				}
-			});
+			// Only send updates at certain thresholds to reduce UI updates
+			const shouldSendUpdate = 
+				progress % 10 === 0 || // Every 10%
+				progress === 100 ||    // At completion
+				progress === 1;        // At start
+			
+			if (shouldSendUpdate) {
+				// Send progress update to the client
+				this.player.ui.sendData({
+					craftingProgress: {
+						recipeName,
+						progress
+					}
+				});
+			}
 			
 			// If crafting is complete or not ongoing, stop sending updates
 			if (progress === 100 || !this.craftingManager.isPlayerCrafting(playerId)) {
@@ -639,7 +674,7 @@ export class PlayerManager {
 					}, 500); // Short delay to ensure progress bar shows 100% first
 				}
 			}
-		}, 100);
+		}, 200); // Increased from 100ms to 200ms for better performance
 	}
 
 	/**
@@ -647,13 +682,50 @@ export class PlayerManager {
 	 */
 	private handleItemConfigRequest(itemType: string): void {
 		try {
+			// Get the base item config
 			const { getItemConfig } = require('../config/items');
 			const itemConfig = getItemConfig(itemType);
 			
+			// Check if we need to add durability information
+			let durabilityInfo = {};
 			
-			// Send the config back to the UI
+			// If this item type can have durability (tools, weapons, armor)
+			if (itemConfig.category === 'tools' || itemConfig.category === 'tool' || 
+				itemConfig.category === 'weapons' || itemConfig.category === 'weapon' ||
+				itemConfig.category === 'armor') {
+				
+				// Find the item instance in the player's inventory
+				let itemInstance = null;
+				
+				// Search through all inventory slots to find this item type
+				for (let slot = 0; slot < 20; slot++) {
+					const slotItem = this.playerInventory.getItem(slot);
+					if (slotItem === itemType) {
+						// Found the item, get its instance with durability
+						itemInstance = this.playerInventory.getItemInstance(slot);
+						if (itemInstance?.durability !== undefined) {
+							// Get the latest durability info
+							const itemDurability = this.playerInventory.getItemDurability(slot);
+							if (itemDurability) {
+								durabilityInfo = {
+									durability: itemDurability.current,
+									maxDurability: itemDurability.max,
+									durabilityPercentage: Math.floor((itemDurability.current / itemDurability.max) * 100)
+								};
+								console.log(`[PlayerManager] Including durability in tooltip for ${itemType}: ${itemDurability.current}/${itemDurability.max} (${Math.floor((itemDurability.current / itemDurability.max) * 100)}%)`);
+							}
+							break;
+						}
+					}
+				}
+			}
+			
+			// Send the config back to the UI with durability info if available
 			this.player.ui.sendData({
-				itemConfig
+				itemConfig: {
+					...itemConfig,
+					...durabilityInfo
+				}
 			});
 		} catch (error) {
 			console.error(`[PlayerManager] Error fetching item config for ${itemType}:`, error);
@@ -673,6 +745,7 @@ export class PlayerManager {
 	}
 
 	private tryAttack(playerEntity: PlayerEntity): void {
+		// Raycast vanaf de spelerpositie in de kijkrichting
 		const direction = playerEntity.player.camera.facingDirection;
 		const origin = {
 			x: playerEntity.position.x,
@@ -680,19 +753,31 @@ export class PlayerManager {
 			z: playerEntity.position.z,
 		};
 
-		const raycastResult = this.world.simulation.raycast(origin, direction, 3, {
+		// Vergroot de raycast range naar 4 blokken
+		const raycastResult = this.world.simulation.raycast(origin, direction, this.ATTACK_RANGE, {
 			filterExcludeRigidBody: playerEntity.rawRigidBody
 		});
 
+		// Check voor cooldown
+		const now = Date.now();
+		if (now - this._lastAttackTime < 500) return; // 500ms cooldown
+		this._lastAttackTime = now;
+		
+		// Speel animatie af voor elke aanval
+		playerEntity.startModelOneshotAnimations(['attack']);
+
+		let entityHit = false;
+
+		// Als we een entity hebben geraakt
 		if (raycastResult?.hitEntity) {
 			const hitEntity = raycastResult.hitEntity;
-			// Check if the hit entity is a cow by checking its name
-			if (hitEntity.name.toLowerCase().includes('cow')) {
-				// Get the selected item to determine damage
+			
+			// Bepaal de damage op basis van uitgerust item
 				const selectedSlot = this.playerInventory.getSelectedSlot();
 				const heldItem = this.playerInventory.getItem(selectedSlot);
 				
-				let damage = 0.5; // Default hand damage verlaagd van 1.5 naar 0.5
+			let damage = 0.5; // Default hand damage
+			let bossDamage = 5; // Default boss damage met hand
 
 				if (heldItem) {
 					try {
@@ -702,27 +787,284 @@ export class PlayerManager {
 						// Als het een wapen is, gebruik de schade van het wapen
 						if (itemConfig.category === 'weapons' || itemConfig.category === 'weapon') {
 							damage = itemConfig.damage || damage;
+						bossDamage = itemConfig.damage || 10; // Gebruik weapon damage voor boss
 						} else if (itemConfig.category === 'tools') {
-							// Tools doen geen schade
-							return;
+						// Tools doen standaard weinig schade
+						damage = 1;
+						bossDamage = 2; // Tools doen ook weinig schade aan bosses
 						}
 					} catch (error) {
 						console.error('[Combat] Error getting item config:', error);
 					}
 				}
 
-				console.log('[Combat] Hit a cow!', {
-					cowName: hitEntity.name,
-					position: hitEntity.position,
-					damage: damage,
-					weapon: heldItem || 'hand'
-				});
+			// Check of het een dier is (zoals een koe)
+			if (hitEntity.name.toLowerCase().includes('cow') || hitEntity.name.toLowerCase().includes('animal')) {
+				
 
-				// Get the AnimalManager and handle the hit with damage
+				// Dier aanvallen via AnimalManager
 				const animalManager = this.gameManager.getAnimalManager();
 				animalManager.handleAnimalHit(hitEntity, direction, damage);
+				entityHit = true;
+				
+				// Als er een wapen is gebruikt, verlaag de durability
+				if (heldItem) {
+					try {
+						const { getItemConfig } = require('../config/items');
+						const itemConfig = getItemConfig(heldItem);
+						
+						// Alleen durability verlagen voor wapens
+						if (itemConfig.category === 'weapons' || itemConfig.category === 'weapon') {
+							// Verlaag durability met 1
+							console.log(`[Combat] Decreasing weapon durability for ${heldItem} after hitting animal`);
+							this.playerInventory.decreaseItemDurability(selectedSlot, 1);
+						}
+					} catch (error) {
+						console.error('[Combat] Error decreasing weapon durability:', error);
+					}
+				}
+			}
+			// Check of het een boss is
+			else if (hitEntity instanceof StalkerBoss) {
+				console.log(`[Combat] Hit a boss! ${hitEntity.name} op afstand ${this._getDistance(playerEntity.position, hitEntity.position)}`, {
+					weapon: heldItem || 'hand',
+					damage: bossDamage
+				});
+				
+				// Boss aanvallen met speciale damage
+				(hitEntity as StalkerBoss).takeDamage(bossDamage, true);
+				
+				// Knockback toepassen op de boss
+				(hitEntity as StalkerBoss).receiveKnockback(playerEntity.position, this.KNOCKBACK_FORCE);
+				entityHit = true;
+				
+				// Als er een wapen is gebruikt, verlaag de durability
+				if (heldItem) {
+					try {
+						const { getItemConfig } = require('../config/items');
+						const itemConfig = getItemConfig(heldItem);
+						
+						// Alleen durability verlagen voor wapens
+						if (itemConfig.category === 'weapons' || itemConfig.category === 'weapon') {
+							// Verlaag durability met 1
+							this.playerInventory.decreaseItemDurability(selectedSlot, 1);
+						}
+					} catch (error) {
+						console.error('[Combat] Error decreasing weapon durability:', error);
+					}
+				}
+			}
+			
+			// Speel hit sound als we een entity hebben geraakt
+			if (entityHit) {
+				this._playAttackHitSound(playerEntity.position);
 			}
 		}
+		
+		// Als geen entity direct geraakt is, zoek nog in een grotere radius (zoals voorheen voor bosses)
+		if (!entityHit) {
+			// Zoek naar alle bosses in de wereld
+			const allEntities = this.world.entityManager.getAllEntities();
+			const bosses = allEntities.filter(entity => entity instanceof StalkerBoss);
+			
+			// Vind de dichtstbijzijnde boss binnen attack range
+			let closestBoss: StalkerBoss | null = null;
+			let closestDistance = Infinity;
+			
+			for (const boss of bosses) {
+				if (boss instanceof StalkerBoss) {
+					const distance = this._getDistance(playerEntity.position, boss.position);
+					
+					// Alleen bosses binnen range overwegen
+					if (distance <= this.ATTACK_RANGE && distance < closestDistance) {
+						closestDistance = distance;
+						closestBoss = boss;
+					}
+				}
+			}
+			
+			// Als we een boss hebben gevonden binnen range, attack deze
+			if (closestBoss) {
+				
+				// Bepaal damage op basis van uitgerust item
+				const selectedSlot = this.playerInventory.getSelectedSlot();
+				const heldItem = this.playerInventory.getItem(selectedSlot);
+				
+				// Default boss damage
+				let bossDamage = 5;
+				
+				if (heldItem) {
+					try {
+						const { getItemConfig } = require('../config/items');
+						const itemConfig = getItemConfig(heldItem);
+						
+						// Als het een wapen is, gebruik de schade van het wapen
+						if (itemConfig.category === 'weapons' || itemConfig.category === 'weapon') {
+							bossDamage = itemConfig.damage || 10;
+						} else if (itemConfig.category === 'tools') {
+							// Tools doen weinig schade aan bosses
+							bossDamage = 2;
+						}
+					} catch (error) {
+						console.error('[Combat] Error getting item config for boss attack:', error);
+					}
+				}
+				
+				
+				// Deal schade aan de boss
+				closestBoss.takeDamage(bossDamage, true);
+				
+				// Gebruik de knockback functie
+				closestBoss.receiveKnockback(this.playerEntity.position, this.KNOCKBACK_FORCE);
+				
+				// Als er een wapen is gebruikt, verlaag de durability
+				if (heldItem) {
+					try {
+						const { getItemConfig } = require('../config/items');
+						const itemConfig = getItemConfig(heldItem);
+						
+						// Alleen durability verlagen voor wapens
+						if (itemConfig.category === 'weapons' || itemConfig.category === 'weapon') {
+							// Verlaag durability met 1
+							this.playerInventory.decreaseItemDurability(selectedSlot, 1);
+						}
+					} catch (error) {
+						console.error('[Combat] Error decreasing weapon durability:', error);
+					}
+				}
+				
+				// Speel hit sound voor boss hit via proximity check
+				this._playAttackHitSound(playerEntity.position);
+			}
+		}
+	}
+
+	private _getDistance(pos1: Vector3Like, pos2: Vector3Like): number {
+		const dx = pos1.x - pos2.x;
+		const dy = pos1.y - pos2.y;
+		const dz = pos1.z - pos2.z;
+		return Math.sqrt(dx*dx + dy*dy + dz*dz);
+	}
+
+	// Boss combat integrations
+
+	// Public API voor bosses om te controleren of speler damage kan krijgen
+	public canReceiveDamage(): boolean {
+		const now = Date.now();
+		// Check of speler immune is voor boss schade
+		if (this._isImmuneFromBoss) {
+			return false;
+		}
+		return now - this._lastDamageTime >= this._damageCooldown;
+	}
+
+	// Public API om te controleren of speler knockback kan krijgen
+	public canReceiveKnockback(): boolean {
+		const now = Date.now();
+		// Check of speler immune is voor boss knockback
+		if (this._isImmuneFromBoss) {
+			return false;
+		}
+		return now - this._lastKnockbackTime >= this._knockbackCooldown;
+	}
+
+	// Public API om damage toe te passen met cooldown check
+	public tryApplyDamage(amount: number, fromBoss: boolean = true): boolean {
+		if (this.canReceiveDamage()) {
+			// Use existing damage method
+			this.damage(amount);
+			this._lastDamageTime = Date.now();
+			
+			// Als de schade van een boss komt, activeer immuniteit
+			if (fromBoss) {
+				this._activateBossImmunity();
+			}
+			
+			// Visuele feedback voor damage
+			if (this.playerEntity.isSpawned) {
+				this.playerEntity.setOpacity(0.7);
+				
+				// Reset opacity na korte tijd
+				setTimeout(() => {
+					if (this.playerEntity?.isSpawned) {
+						this.playerEntity.setOpacity(1.0);
+					}
+				}, this.DAMAGE_ANIMATION_DURATION);
+				
+				// Speel hurt animatie af
+				try {
+					this.playerEntity.startModelOneshotAnimations(['hurt']);
+				} catch (e) {
+					console.warn("[PlayerManager] Kon hurt animatie niet afspelen:", e);
+				}
+				
+				// Speel damage sound voor de speler
+				try {
+					if (this.world) {
+						const damageSound = new Audio({
+							uri: 'audio/sfx/player/getDamage.mp3',
+							position: this.playerEntity.position,
+							volume: 0.4,
+							referenceDistance: 5,
+							playbackRate: 1.0
+						});
+						
+						damageSound.play(this.world);
+					}
+				} catch (error) {
+					console.error("[PlayerManager] Kon damage sound niet afspelen:", error);
+				}
+			}
+			
+			return true;
+		}
+		return false;
+	}
+	
+	// Public API om knockback toe te passen met cooldown check
+	public tryApplyKnockback(direction: { x: number, y: number, z: number }, force: number, fromBoss: boolean = true): boolean {
+		if (!this.playerEntity || !this.playerEntity.isSpawned) return false;
+		
+		if (!this.canReceiveKnockback()) {
+			return false;
+		}
+		
+		// Update laatste knockback tijd
+		this._lastKnockbackTime = Date.now();
+		
+		// Als de knockback van een boss komt, activeer immuniteit
+		if (fromBoss) {
+			this._activateBossImmunity();
+		}
+		
+		// Pas knockback toe
+		this.playerEntity.applyImpulse({
+			x: direction.x * force,
+			y: direction.y * force,
+			z: direction.z * force
+		});
+		
+		return true;
+	}
+	
+	// Activeer tijdelijke immuniteit voor boss aanvallen
+	private _activateBossImmunity(): void {
+		// Set de immune flag
+		this._isImmuneFromBoss = true;
+		
+		// Visuele indicatie van immuniteit (lichter van kleur)
+		if (this.playerEntity?.isSpawned) {
+			this.playerEntity.setOpacity(0.6);
+		}
+		
+		// Zet een timer om de immuniteit weer uit te schakelen na de gespecificeerde duur
+		setTimeout(() => {
+			this._isImmuneFromBoss = false;
+			// Reset visuele indicatie
+			if (this.playerEntity?.isSpawned) {
+				this.playerEntity.setOpacity(1.0);
+			}
+		}, this.BOSS_IMMUNITY_DURATION);
 	}
 
 	// Add a method to place a fixed model where the player is looking
@@ -785,12 +1127,7 @@ export class PlayerManager {
 				// Check if the entity has a name that starts with our fixed model IDs
 				// For now we only have workbench, but this will work for any fixed model
 				if (hitEntity.name === 'workbench') {
-					console.log('===========================================================');
-					console.log(`[PlayerManager] Right-clicked on a workbench!`);
-					console.log(`Position: x=${hitEntity.position.x.toFixed(2)}, y=${hitEntity.position.y.toFixed(2)}, z=${hitEntity.position.z.toFixed(2)}`);
-					console.log(`Distance: ${this.calculateDistance(playerEntity.position, hitEntity.position).toFixed(2)} blocks`);
-					console.log(`Entity ID: ${hitEntity.id}`);
-					console.log('===========================================================');
+					
 					
 					// Open the crafting UI when clicking on a workbench
 					this.openCrafting();
@@ -809,5 +1146,24 @@ export class PlayerManager {
 		const dy = pos1.y - pos2.y;
 		const dz = pos1.z - pos2.z;
 		return Math.sqrt(dx * dx + dy * dy + dz * dz);
+	}
+
+	// Speel attack hit sound af
+	private _playAttackHitSound(position: Vector3Like): void {
+		try {
+			if (this.world) {
+				const hitSound = new Audio({
+					uri: 'audio/sfx/player/attackDamage.mp3',
+					position: position,
+					volume: 0.4,
+					referenceDistance: 5,
+					playbackRate: 1.0
+				});
+				
+				hitSound.play(this.world);
+			}
+		} catch (error) {
+			console.error("[PlayerManager] Kon attack hit sound niet afspelen:", error);
+		}
 	}
 }

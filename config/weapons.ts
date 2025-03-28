@@ -28,7 +28,7 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         imageUrl: 'items/diamond-sword.png',
         durability: 1500,
         maxDurability: 1500,
-        damage: 6
+        damage: 35
     },
     'sword-stone': {
         type: 'sword-stone',
@@ -48,7 +48,7 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         imageUrl: 'items/stone-sword.png',
         durability: 800,
         maxDurability: 800,
-        damage: 4
+        damage: 15
     },
     'sword-golden': {
         type: 'sword-golden',
@@ -68,7 +68,7 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         imageUrl: 'items/golden-sword.png',
         durability: 300,
         maxDurability: 300,
-        damage: 4
+        damage: 20
     },
     'sword-wood': {
         type: 'sword-wood',
@@ -88,7 +88,7 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         imageUrl: 'items/wooden-sword.png',
         durability: 100,
         maxDurability: 100,
-        damage: 2
+        damage: 10
     }
 };
 

@@ -1,4 +1,4 @@
-import { World } from 'hytopia';
+import { World, Entity, EntityEvent, PlayerEntity } from 'hytopia';
 import { IronGenerator } from '../generators/IronGenerator';
 import { GoldGenerator } from '../generators/GoldGenerator';
 import { ironConfig, goldConfig } from '../config/generators';
@@ -13,8 +13,12 @@ import { AnimalManager } from './AnimalManager';
 import { FixedModelManager } from './FixedModelManager';
 import { predefinedModelPlacements } from '../config/fixedModels';
 
+// Statische singleton voor globale toegang tot ItemSpawner
+export let globalItemSpawner: ItemSpawner | null = null;
+
 export class GameManager {
     private playerInventories: Map<string, PlayerInventory> = new Map();
+    private playerManagers: Map<string, any> = new Map(); // Track PlayerManager instances
     private ironGenerator!: IronGenerator;
     private goldGenerator!: GoldGenerator;
     private itemSpawner: ItemSpawner;
@@ -37,6 +41,10 @@ export class GameManager {
         
         // Create one AnimalSpawner that manages all areas
         this.animalSpawner = new AnimalSpawner(world, this, spawnAreas);
+
+        // Maak de globale ItemSpawner beschikbaar
+        globalItemSpawner = this.itemSpawner;
+        console.log('[GameManager] Global ItemSpawner initialized:', globalItemSpawner ? 'success' : 'failed');
     }
 
     private setupWorld(): void {
@@ -120,6 +128,9 @@ export class GameManager {
         // Cleanup van speler inventories
         this.playerInventories.delete(playerId);
         
+        // Cleanup of player managers
+        this.playerManagers.delete(playerId);
+        
         // Als er geen spelers meer zijn, cleanup van animal spawner
         if (this.playerInventories.size === 0) {
             this.animalSpawner.cleanup();
@@ -143,5 +154,40 @@ export class GameManager {
      */
     public getFixedModelManager(): FixedModelManager {
         return this.fixedModelManager;
+    }
+
+    // Statische methode om de globale ItemSpawner te verkrijgen
+    public static getGlobalItemSpawner(): ItemSpawner | null {
+        return globalItemSpawner;
+    }
+
+    /**
+     * Register a PlayerManager instance for a player
+     */
+    public registerPlayerManager(playerId: string, playerManager: any): void {
+        this.playerManagers.set(playerId, playerManager);
+    }
+    
+    /**
+     * Get a PlayerManager instance by player ID
+     */
+    public getPlayerManagerById(playerId: string): any | null {
+        // First check our player managers map
+        if (this.playerManagers.has(playerId)) {
+            return this.playerManagers.get(playerId) || null;
+        }
+        
+        // Fallback to searching entities if not in our map
+        if (this.playerInventories.has(playerId)) {
+            const playerEntities = this.world.entityManager.getAllEntities()
+                .filter(entity => entity.name === `Player_${playerId}`);
+                
+            if (playerEntities.length > 0) {
+                const playerEntity = playerEntities[0];
+                return (playerEntity as any)._playerManager || null;
+            }
+        }
+        
+        return null;
     }
 } 

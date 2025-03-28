@@ -12,11 +12,11 @@ export class PlayerInventory {
     private isInventoryOpen: boolean = false;
     private batchUpdateTimeout: ReturnType<typeof setTimeout> | null = null;
     private lastUpdateTime: number = 0;
-    private readonly UPDATE_THROTTLE = 150; // Increased from 50ms to 150ms for better performance
-    private pendingUpdates = new Map<number, { type: string | null; count: number; instanceId?: string }>();
+    private readonly UPDATE_THROTTLE = 250; // Increased from 150ms to 250ms for better performance
+    private pendingUpdates = new Map<number, { type: string | null; count: number; instanceId?: string; durability?: number; maxDurability?: number }>();
     private nameRequestTimeout: ReturnType<typeof setTimeout> | null = null;
     private readonly DEFAULT_MAX_STACK_SIZE = 64; // Default max stack size
-    private lastSentUIState: Record<number, { type: string | null, count: number, instanceId?: string }> = {};
+    private lastSentUIState: Record<number, { type: string | null, count: number, instanceId?: string; durability?: number; maxDurability?: number }> = {};
 
     constructor(
         private playerEntity: PlayerEntity
@@ -180,26 +180,45 @@ export class PlayerInventory {
         const item = this.slots[slot];
         const instanceId = item.instance?.instanceId;
         
+        // Get latest durability info if this is an item with durability
+        if (instanceId) {
+            // Force sync with master instance to ensure we have latest durability
+            const latestInstance = ItemInstanceManager.getInstance().getInstance(instanceId);
+            if (latestInstance && item.instance) {
+                // Update local instance with latest values from ItemInstanceManager
+                item.instance.durability = latestInstance.durability;
+                item.instance.maxDurability = latestInstance.maxDurability;
+            }
+        }
+        
         // Skip update if there's no meaningful change
         const lastState = this.lastSentUIState[slot];
         if (lastState && 
             lastState.type === item.type && 
             lastState.count === item.count && 
-            lastState.instanceId === instanceId) {
+            lastState.instanceId === instanceId &&
+            // Don't skip if durability has changed
+            lastState.durability === item.instance?.durability) {
             return;
         }
+        
+        console.log(`[PlayerInventory] Updating UI for slot ${slot}, item: ${item.type}, durability: ${item.instance?.durability}/${item.instance?.maxDurability}`);
         
         this.pendingUpdates.set(slot, { 
             type: item.type, 
             count: item.count,
-            instanceId
+            instanceId,
+            durability: item.instance?.durability,
+            maxDurability: item.instance?.maxDurability
         });
         
         // Update last sent state
         this.lastSentUIState[slot] = {
             type: item.type,
             count: item.count,
-            instanceId
+            instanceId,
+            durability: item.instance?.durability,
+            maxDurability: item.instance?.maxDurability
         };
         
         this.scheduleBatchUpdate();
@@ -228,7 +247,7 @@ export class PlayerInventory {
         const updates = Array.from(this.pendingUpdates.entries()).map(([slot, item]) => {
             // Get durability info if available
             let durabilityInfo = {};
-            if (item.instanceId) {
+            if (item.type && item.instanceId) {
                 const instance = ItemInstanceManager.getInstance().getInstance(item.instanceId);
                 if (instance && instance.durability !== undefined && instance.maxDurability !== undefined) {
                     durabilityInfo = {
@@ -236,6 +255,7 @@ export class PlayerInventory {
                         maxDurability: instance.maxDurability,
                         durabilityPercentage: Math.floor((instance.durability / instance.maxDurability) * 100)
                     };
+                    console.log(`[PlayerInventory] Sending durability update for ${item.type}: ${instance.durability}/${instance.maxDurability} (${Math.floor((instance.durability / instance.maxDurability) * 100)}%)`);
                 }
             }
             
@@ -280,24 +300,49 @@ export class PlayerInventory {
         // If opening, send current inventory state
         if (this.isInventoryOpen) {
             const updates = this.slots.map((slot, index) => {
+                // Get durability info if available
+                let durabilityInfo = {};
+                if (slot.type && slot.instance?.instanceId) {
+                    // Get latest durability info from ItemInstanceManager
+                    const instance = ItemInstanceManager.getInstance().getInstance(slot.instance.instanceId);
+                    if (instance && instance.durability !== undefined && instance.maxDurability !== undefined) {
+                        // Update local instance with latest values
+                        if (slot.instance) {
+                            slot.instance.durability = instance.durability;
+                            slot.instance.maxDurability = instance.maxDurability;
+                        }
+                        
+                        durabilityInfo = {
+                            durability: instance.durability,
+                            maxDurability: instance.maxDurability,
+                            durabilityPercentage: Math.floor((instance.durability / instance.maxDurability) * 100)
+                        };
+                        console.log(`[PlayerInventory][inventory toggle] Including durability for ${slot.type} in slot ${index}: ${instance.durability}/${instance.maxDurability} (${Math.floor((instance.durability / instance.maxDurability) * 100)}%)`);
+                    }
+                }
+
                 const item = {
                     slot: index,
                     item: slot.type,
                     count: slot.count,
                     imageUrl: slot.type ? getItemConfig(slot.type).imageUrl : undefined,
-                    instanceId: slot.instance?.instanceId
+                    instanceId: slot.instance?.instanceId,
+                    ...durabilityInfo
                 };
                 
                 // Update last sent state
                 this.lastSentUIState[index] = {
                     type: slot.type,
                     count: slot.count,
-                    instanceId: slot.instance?.instanceId
+                    instanceId: slot.instance?.instanceId,
+                    durability: slot.instance?.durability,
+                    maxDurability: slot.instance?.maxDurability
                 };
                 
                 return item;
             });
 
+            console.log('[PlayerInventory] Sending complete inventory state with durability info');
             this.playerEntity.player.ui.sendData({
                 inventoryUpdate: updates,
                 hotbarUpdate: updates.filter(update => update.slot < 5)
@@ -559,24 +604,40 @@ export class PlayerInventory {
         if (!item.type || !item.instance?.instanceId) return false;
         
         const instanceId = item.instance.instanceId;
+        
+        // Log before decreasing durability
+        console.log(`[PlayerInventory] Decreasing durability for ${item.type} in slot ${slot} by ${amount}. Current: ${item.instance.durability}`);
+        
         const success = ItemInstanceManager.getInstance().decreaseDurability(instanceId, amount);
         
         // Get the updated instance for current values
         const updatedInstance = ItemInstanceManager.getInstance().getInstance(instanceId);
         if (updatedInstance && updatedInstance.durability !== undefined) {
-            // Only update UI if durability changes by more than 5% or critical levels
+            // Log the change in durability
             const oldDurability = item.instance.durability || 0;
             const newDurability = updatedInstance.durability;
             const maxDurability = updatedInstance.maxDurability || 100;
             
+            // Calculate percentages for threshold check
             const oldPercent = Math.floor((oldDurability / maxDurability) * 100);
             const newPercent = Math.floor((newDurability / maxDurability) * 100);
+            
+            console.log(`[PlayerInventory] Durability updated: ${oldDurability} -> ${newDurability}/${maxDurability} (${newPercent}%)`);
             
             // Sync the values with our local instance
             item.instance.durability = updatedInstance.durability;
             
-            // Only update UI for significant durability changes or low durability
-            if (Math.abs(oldPercent - newPercent) >= 5 || newPercent <= 25 || newPercent === 0) {
+            // Only update UI for significant changes (5% change) or critical thresholds
+            // This reduces UI updates while still showing important changes
+            if (Math.abs(oldPercent - newPercent) >= 5 || 
+                newPercent <= 25 || 
+                newPercent === 0 || 
+                oldPercent !== newPercent && (
+                  newPercent === 75 || 
+                  newPercent === 50 || 
+                  newPercent === 25 ||
+                  newPercent === 10
+                )) {
                 this.updateSlotUI(slot);
                 
                 // Force an immediate batch update for critical durability changes
@@ -608,19 +669,20 @@ export class PlayerInventory {
             return null;
         }
         
+        // Log durability info for debugging
+        console.log(`[PlayerInventory] getItemDurability for ${item.type} in slot ${slot}: ${instance.durability}/${instance.maxDurability}`);
+        
         // Update the local instance with the latest values to ensure consistency
         if (item.instance && (
             item.instance.durability !== instance.durability || 
             item.instance.maxDurability !== instance.maxDurability
         )) {
+            console.log(`[PlayerInventory] Syncing durability values: ${item.instance.durability} -> ${instance.durability}`);
             item.instance.durability = instance.durability;
             item.instance.maxDurability = instance.maxDurability;
             
-            // Only trigger UI update for significant changes
-            const durabilityPercentage = Math.floor((instance.durability / instance.maxDurability) * 100);
-            if (durabilityPercentage <= 25 || durabilityPercentage % 10 === 0) {
-                this.updateSlotUI(slot);
-            }
+            // Always trigger a UI update to ensure tooltip gets updated
+            this.updateSlotUI(slot);
         }
         
         return {
