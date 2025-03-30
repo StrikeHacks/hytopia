@@ -30,6 +30,13 @@ const INITIAL_ITEMS = [
     { type: 'stick', position: { x: 0, y: 3.7, z: 2 } },
     { type: 'bone', position: { x: -2, y: 3.7, z: 2 } },
     { type: 'log', position: { x: -4, y: 3.7, z: 2 } },
+    { type: 'dungeon-key', position: { x: -6, y: 3.7, z: 2 } },
+    { type: 'nails', position: { x: -8, y: 3.7, z: 2 } },
+    { type: 'iron-plate', position: { x: -10, y: 3.7, z: 2 } },
+    { type: 'rope', position: { x: -12, y: 3.7, z: 2 } },
+    { type: 'iron-ore', position: { x: -14, y: 3.7, z: 2 } },
+    { type: 'stone', position: { x: -16, y: 3.7, z: 2 } },
+
 ];
 
 export class ItemSpawner {

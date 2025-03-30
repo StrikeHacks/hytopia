@@ -52,7 +52,7 @@ export interface ItemGenerator {
     updateUI: () => void;
 }
 
-export type ItemCategory = 'resource' | 'resources' | 'tool' | 'tools' | 'weapon' | 'weapons' | 'armor' | 'food' | 'misc' | 'unknown';
+export type ItemCategory = 'resource' | 'resources' | 'tool' | 'tools' | 'weapon' | 'weapons' | 'armor' | 'food' | 'misc' | 'unknown' | 'key';
 
 export interface ItemProperties {
   type: string;
@@ -104,6 +104,12 @@ export interface FoodItemProperties extends ItemProperties {
   category: 'food';
   hunger: number;
   saturation: number;
+}
+
+// Keys
+export interface KeyItemProperties extends ItemProperties {
+  category: 'key';
+  // Key-specific properties can be added here
 }
 
 // Default item properties
@@ -164,4 +170,5 @@ export type ItemType =
     | ResourceItemProperties 
     | WeaponItemProperties 
     | ToolItemProperties 
-    | ArmorItemProperties; 
+    | ArmorItemProperties
+    | KeyItemProperties; 

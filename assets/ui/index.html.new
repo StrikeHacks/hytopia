@@ -1064,16 +1064,17 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
 
+       
+
         .traveler-categories {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 15px;
-            padding: 15px;
+            padding: 10px;
             background: rgba(139, 69, 19, 0.2);
             border-radius: 4px;
             justify-content: center;
-            border-bottom: 2px solid rgba(139, 69, 19, 0.5);
         }
 
         .traveler-categories .category-button {
@@ -1087,9 +1088,8 @@
             font-size: 16px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            min-width: 120px;
+            min-width: 100px;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .traveler-categories .category-button[data-category="daily"] {
@@ -1129,7 +1129,6 @@
             background: rgba(139, 69, 19, 0.8);
             border-color: #FFD700;
             box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-            transform: translateY(-2px);
         }
 
         .traveler-categories .category-button[data-category="daily"].active {
@@ -1152,32 +1151,12 @@
             grid-template-columns: repeat(1, 1fr);
             gap: 15px;
             overflow-y: auto;
-            padding: 15px;
+            padding: 10px;
             flex-grow: 1;
             max-height: 320px;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 8px;
             border: 1px solid rgba(139, 69, 19, 0.4);
-        }
-        
-        /* Custom scrollbar for traveler-items - exactly matching recipe-list */
-        .traveler-items::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .traveler-items::-webkit-scrollbar-track {
-            background: rgba(139, 69, 19, 0.2);
-            border-radius: 4px;
-        }
-
-        .traveler-items::-webkit-scrollbar-thumb {
-            background: rgba(139, 69, 19, 0.6);
-            border-radius: 4px;
-            border: 2px solid rgba(139, 69, 19, 0.2);
-        }
-
-        .traveler-items::-webkit-scrollbar-thumb:hover {
-            background: rgba(139, 69, 19, 0.8);
         }
 
         .trade-item {
@@ -1195,7 +1174,6 @@
             background: rgba(255, 255, 255, 0.1);
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            border-color: #FFD700;
         }
 
         .trade-name {
@@ -1225,9 +1203,8 @@
             background: rgba(0, 0, 0, 0.3);
             padding: 10px;
             border-radius: 6px;
-            border: 1px solid rgba(139, 69, 19, 0.3);
         }
-        
+
         .trade-inputs,
         .trade-outputs {
             flex: 1;
@@ -1242,7 +1219,6 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             text-align: center;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         .trade-resource {
@@ -1252,13 +1228,6 @@
             background: rgba(255, 255, 255, 0.05);
             padding: 5px;
             border-radius: 4px;
-            transition: all 0.2s ease;
-            border: 1px solid rgba(139, 69, 19, 0.2);
-        }
-
-        .trade-resource:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(139, 69, 19, 0.4);
         }
 
         .trade-resource img {
@@ -1266,11 +1235,9 @@
             height: 32px;
             margin-right: 10px;
             background: rgba(0, 0, 0, 0.3);
-            padding: 3px;
+            padding: 2px;
             border-radius: 4px;
             border: 1px solid rgba(139, 69, 19, 0.4);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            object-fit: contain;
         }
 
         .trade-arrow {
@@ -1279,7 +1246,34 @@
             font-size: 24px;
             text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
         }
-        
+
+        .trade-button {
+            background: rgba(139, 69, 19, 0.6);
+            border: 2px solid #8B4513;
+            border-radius: 4px;
+            color: white;
+            padding: 10px 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            margin-top: auto;
+            align-self: center;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .trade-button:hover {
+            background: rgba(139, 69, 19, 0.8);
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .trade-button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
         .trade-level {
             font-size: 14px;
             color: #FFD700;
@@ -1291,38 +1285,154 @@
             text-align: center;
             border: 1px solid #8B4513;
             align-self: center;
-            letter-spacing: 1px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
-        
-        .trade-button {
-            background: linear-gradient(to bottom, rgba(139, 69, 19, 0.6), rgba(139, 69, 19, 0.4));
+
+        .traveler-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #aaa;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .traveler-empty-state .icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+            color: #8B4513;
+        }
+
+        .traveler-empty-state .message {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .traveler-empty-state .sub-message {
+            font-size: 14px;
+            color: #777;
+        }
+
+        /* Update CSS selectors */
+        .traveler-ui {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px;
+            height: 500px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #8B4513;
+            border-radius: 8px;
             color: white;
-            border: 1px solid #8B4513;
+            padding: 30px;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .traveler-ui h2 {
+            font-size: 24px;
+            color: #FFD700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .traveler-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(139, 69, 19, 0.2);
             border-radius: 4px;
-            padding: 8px 15px;
+            justify-content: center;
+        }
+
+        .traveler-categories .category-button {
+            background: rgba(139, 69, 19, 0.4);
+            border: 2px solid #8B4513;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
             cursor: pointer;
             transition: all 0.2s ease;
             font-size: 16px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-top: auto;
-            align-self: center;
-            min-width: 120px;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            min-width: 100px;
+            text-align: center;
         }
-        
-        .trade-button:hover {
-            background: linear-gradient(to bottom, rgba(139, 69, 19, 0.8), rgba(139, 69, 19, 0.6));
+
+        .traveler-categories .category-button[data-category="daily"] {
+            background: rgba(65, 105, 225, 0.4);
+            border-color: royalblue;
+        }
+
+        .traveler-categories .category-button[data-category="weekly"] {
+            background: rgba(60, 179, 113, 0.4);
+            border-color: mediumseagreen;
+        }
+
+        .traveler-categories .category-button[data-category="special"] {
+            background: rgba(255, 69, 0, 0.4);
+            border-color: orangered;
+        }
+
+        .traveler-categories .category-button:hover {
+            background: rgba(139, 69, 19, 0.6);
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            border-color: #FFD700;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
-        
-        .trade-button:active {
-            transform: translateY(0);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+
+        .traveler-categories .category-button[data-category="daily"]:hover {
+            background: rgba(65, 105, 225, 0.6);
+        }
+
+        .traveler-categories .category-button[data-category="weekly"]:hover {
+            background: rgba(60, 179, 113, 0.6);
+        }
+
+        .traveler-categories .category-button[data-category="special"]:hover {
+            background: rgba(255, 69, 0, 0.6);
+        }
+
+        .traveler-categories .category-button.active {
+            background: rgba(139, 69, 19, 0.8);
+            border-color: #FFD700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .traveler-categories .category-button[data-category="daily"].active {
+            background: rgba(65, 105, 225, 0.8);
+            border-color: gold;
+        }
+
+        .traveler-categories .category-button[data-category="weekly"].active {
+            background: rgba(60, 179, 113, 0.8);
+            border-color: gold;
+        }
+
+        .traveler-categories .category-button[data-category="special"].active {
+            background: rgba(255, 69, 0, 0.8);
+            border-color: gold;
+        }
+
+        .traveler-items {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 15px;
+            overflow-y: auto;
+            padding: 10px;
+            flex-grow: 1;
+            max-height: 320px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(139, 69, 19, 0.4);
         }
 
         .traveler-empty-state {
@@ -1334,10 +1444,10 @@
             text-align: center;
             color: #aaa;
             font-style: italic;
-            height: 200px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            border: 1px dashed rgba(139, 69, 19, 0.4);
+        }
+
+        .traveler-empty-state .sub-message {
+            font-size: 14px;
         }
 
         .traveler-empty-state .icon {
@@ -1348,12 +1458,6 @@
         .traveler-empty-state .message {
             font-size: 18px;
             margin-bottom: 5px;
-            color: #ccc;
-        }
-        
-        .traveler-empty-state .sub-message {
-            font-size: 14px;
-            color: #999;
         }
     </style>
 </head>
@@ -2689,18 +2793,6 @@
             if (data.trades) {
                 console.log(`[UI] Received ${data.trades.length} trades:`, data.trades);
                 renderTrades(data.trades);
-            }
-            
-            // Handle trade results
-            if (data.tradeResult) {
-                console.log('[UI] Received trade result:', data.tradeResult);
-                const { success, message } = data.tradeResult;
-                
-                if (success) {
-                    showNotification(message, 'success');
-                } else {
-                    showNotification(message, 'error');
-                }
             }
         });
 
@@ -4128,66 +4220,6 @@
                 });
             }
         });
-
-        // CONSOLIDATED UI SETUP - Single place to initialize all UI event listeners
-        // This prevents duplicate event listeners and consolidates all UI setup in one place
-        function setupUIEventHandlers() {
-            console.log('[UI] Setting up consolidated UI event handlers');
-            
-            // Close button handlers - each using the standard pattern
-            const closeButtons = [
-                { id: 'closeTraveler', event: 'travelerToggle', action: 'close' },
-                { id: 'closeInventory', event: 'inventoryToggle', action: 'close' },
-                { id: 'closeCrafting', event: 'craftingToggle', action: 'close' }
-            ];
-            
-            // Set up each close button with a consistent pattern
-            closeButtons.forEach(button => {
-                const element = document.getElementById(button.id);
-                if (element) {
-                    console.log(`[UI] Setting up ${button.id} handler`);
-                    
-                    // Remove any existing listeners to prevent duplicates
-                    const newElement = element.cloneNode(true);
-                    element.parentNode.replaceChild(newElement, element);
-                    
-                    // Add the new listener with consistent pattern
-                    newElement.addEventListener('click', () => {
-                        console.log(`[UI] ${button.id} clicked`);
-                        const data = {};
-                        data[button.event] = { action: button.action };
-                        hytopia.sendData(data);
-                        return false;
-                    });
-                } else {
-                    console.warn(`[UI] Could not find ${button.id} element`);
-                }
-            });
-            
-            // Set up tooltips
-            initializeTooltips();
-            
-            // Initialize inventory grid
-            if (typeof initializeInventoryGrid === 'function') {
-                initializeInventoryGrid();
-            }
-            
-            // Set up recipe cache
-            window.recipeCache = window.recipeCache || {};
-            
-            // Prevent game input when clicking crafting UI
-            const craftingUI = document.getElementById('craftingUI');
-            if (craftingUI) {
-                craftingUI.addEventListener('mousedown', (e) => {
-                    e.stopPropagation();
-                });
-            }
-            
-            console.log('[UI] Consolidated UI event handlers setup complete');
-        }
-
-        // Call setup once on DOMContentLoaded (replaces multiple scattered initialization)
-        document.addEventListener('DOMContentLoaded', setupUIEventHandlers);
     </script>
 </body>
 </html>

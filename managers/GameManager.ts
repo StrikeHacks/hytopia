@@ -12,6 +12,7 @@ import { spawnAreas } from '../config/spawners';
 import { AnimalManager } from './AnimalManager';
 import { FixedModelManager } from './FixedModelManager';
 import { predefinedModelPlacements } from '../config/fixedModels';
+import { TravelerManager } from './TravelerManager';
 
 // Statische singleton voor globale toegang tot ItemSpawner
 export let globalItemSpawner: ItemSpawner | null = null;
@@ -27,6 +28,7 @@ export class GameManager {
     private animalSpawner: AnimalSpawner;
     private animalManager: AnimalManager;
     private fixedModelManager: FixedModelManager;
+    private travelerManager: TravelerManager;
 
     constructor(private world: World) {
         this.setupWorld();
@@ -35,6 +37,7 @@ export class GameManager {
         this.craftingManager = new CraftingManager(world, this.playerInventories);
         this.animalManager = new AnimalManager(world, this.itemSpawner, this);
         this.fixedModelManager = new FixedModelManager(world);
+        this.travelerManager = new TravelerManager(world, this);
         this.setupGenerators();
         this.spawnInitialItems();
         this.placeFixedModels();
@@ -189,5 +192,9 @@ export class GameManager {
         }
         
         return null;
+    }
+
+    public getTravelerManager(): TravelerManager {
+        return this.travelerManager;
     }
 } 

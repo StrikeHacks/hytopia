@@ -128,7 +128,86 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
         handRotation: DEFAULT_HAND_ROTATION,
         imageUrl: 'items/log.png'
     },
-    
+    'nails' : {
+        type: 'nails',
+        modelUri: 'models/items/nails.gltf',
+        displayName: 'Nails',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.7,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.25,
+            y: 0.3,
+            z: 0.25
+        },        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/nails.png'
+    },
+    'iron-plate' : {
+        type: 'iron-plate',
+        modelUri: 'models/items/iron-plate.gltf',
+        displayName: 'Iron Plate',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.7,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.25,
+            y: 0.3,
+            z: 0.25
+        },        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/iron-plate.png'
+    },
+    'iron-ore' : {
+        type: 'iron-ore',
+        modelUri: 'models/items/iron-ore.gltf',
+        displayName: 'Iron Ore',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.7,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.25,
+            y: 0.3,
+            z: 0.25
+        },        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/iron-ore.png'
+    },
+    'stone' : {
+        type: 'stone',
+        modelUri: 'models/items/stone.gltf',
+        displayName: 'Stone',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.7,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.25,
+            y: 0.3,
+            z: 0.25
+        },        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/stone.png'
+    },
+    'rope' : {
+        type: 'rope',
+        modelUri: 'models/items/rope.gltf',
+        displayName: 'Rope',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.7,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.25,
+            y: 0.3,
+            z: 0.25
+        },        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/rope.png'
+    },
 
 };
 

@@ -20,6 +20,7 @@ import { CraftingManager } from "./CraftingManager";
 import type { HealthChangeEvent } from "../player/PlayerHealth";
 import { getAvailableCategories } from '../config/recipes';
 import { StalkerBoss } from '../bosses/StalkerBoss';
+import { getTradesByCategory, formatTradeForUI } from '../config/travelerTrades';
 
 export class PlayerManager {
 	private playerEntity: PlayerEntity;
@@ -38,6 +39,7 @@ export class PlayerManager {
 	private isQPressed: boolean = false;
 	private isEPressed: boolean = false;
 	private isFPressed: boolean = false;
+	private isCPressed: boolean = false;
 	private currentModelRotation: number = 0; // Current rotation angle for model placement
 	private readonly ROTATION_INCREMENT = Math.PI / 4; // Rotate by 45 degrees (π/4 radians)
 
@@ -90,6 +92,20 @@ export class PlayerManager {
 	// Expose the playerHealth property for cleanup when player leaves
 	public getPlayerHealth(): PlayerHealth {
 		return this.playerHealth;
+	}
+
+	// Expose the playerInventory property for the TravelerManager
+	public getPlayerInventory(): PlayerInventory {
+		return this.playerInventory;
+	}
+
+	/**
+	 * Gets the player's current level
+	 * Default implementation returns level 1
+	 * Override this in game-specific implementations if level system is implemented
+	 */
+	public getPlayerLevel(): number {
+		return 1; // Default implementation - level 1
 	}
 
 	private createPlayerEntity(): PlayerEntity {
@@ -163,6 +179,10 @@ export class PlayerManager {
 			else if (data.inventoryToggle?.action === 'close') {
 				this.closeInventory();
 			}
+			// Handle traveler UI close
+			else if (data.travelerToggle?.action === 'close') {
+				this.toggleTraveler();
+			}
 			// Handle hotbar selection
 			else if (data.hotbarSelect) {
 				const { slot } = data.hotbarSelect;
@@ -191,6 +211,25 @@ export class PlayerManager {
 					forCache: forCache
 				});
 			} 
+			// Handle trade requests
+			else if (data.requestTrades) {
+				const category = data.requestTrades.category;
+				const travelerManager = this.gameManager.getTravelerManager();
+				if (travelerManager) {
+					const trades = getTradesByCategory(category).map(formatTradeForUI);
+					this.player.ui.sendData({
+						trades: trades
+					});
+				}
+			}
+			// Handle trade action
+			else if (data.trade) {
+				const tradeId = data.trade.id;
+				const travelerManager = this.gameManager.getTravelerManager();
+				if (travelerManager) {
+					travelerManager.handleTradeRequest(this.player.id, tradeId);
+				}
+			}
 			// Handle item config requests for UI tooltips
 			else if (data.getItemConfig) {
 				this.handleItemConfigRequest(data.getItemConfig.type);
@@ -249,6 +288,15 @@ export class PlayerManager {
 					}
 				} else if (!input["f"]) {
 					this.isFPressed = false;
+				}
+				
+				// Handle C key for traveler UI
+				if (input["c"] && !this.isCPressed) {
+					this.isCPressed = true;
+					console.log('[PlayerManager] C key pressed - toggling traveler UI');
+					this.toggleTraveler();
+				} else if (!input["c"]) {
+					this.isCPressed = false;
 				}
 
 				// Handle right mouse button to interact with fixed models
@@ -1164,6 +1212,20 @@ export class PlayerManager {
 			}
 		} catch (error) {
 			console.error("[PlayerManager] Kon attack hit sound niet afspelen:", error);
+		}
+	}
+
+	// Add as a new public method with other UI toggle methods
+	public toggleTraveler(): void {
+		console.log('[PlayerManager] Toggling traveler UI');
+		
+		// Get the traveler manager from game manager
+		const travelerManager = this.gameManager.getTravelerManager();
+		if (travelerManager) {
+			// Call the toggle method on the traveler manager
+			travelerManager.toggleTraveler(this);
+		} else {
+			console.error('[PlayerManager] Cannot toggle traveler UI: travelerManager not found');
 		}
 	}
 }

@@ -3,6 +3,7 @@ import { getResourceItem } from './resources';
 import { getWeaponItem } from './weapons';
 import { getToolItem } from './tools';
 import { getArmorItem } from './armor';
+import { getKeyItem } from './keys';
 import {
     DEFAULT_ITEM_SCALE,
     PICKUP_COOLDOWN,
@@ -54,6 +55,9 @@ export function getItemConfig(itemType: string): ItemProperties {
     const armorItem = getArmorItem(itemType);
     if (armorItem) return armorItem;
     
+    const keyItem = getKeyItem(itemType);
+    if (keyItem) return keyItem;
+    
     console.error(`[Items] No configuration found for item type: "${itemType}"`);
     // Return a default config instead of throwing an error
     return getFallbackItem(itemType);
@@ -81,6 +85,8 @@ export function getItemsByCategory(category: string): string[] {
         result = Object.keys(require('./tools').toolItems);
     } else if (category === 'armor') {
         result = Object.keys(require('./armor').armorItems);
+    } else if (category === 'key') {
+        result = Object.keys(require('./keys').keyItems);
     }
     
     return result;

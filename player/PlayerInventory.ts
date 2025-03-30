@@ -113,9 +113,15 @@ export class PlayerInventory {
         return this.slots[slot].instance;
     }
 
-    public getItemCount(slot: number): number {
-        if (slot < 0 || slot >= this.slots.length) return 0;
-        return this.slots[slot].count;
+    public getItemCount(slotOrType: number | string): number {
+        // If a number is passed, treat it as a slot index
+        if (typeof slotOrType === 'number') {
+            if (slotOrType < 0 || slotOrType >= this.slots.length) return 0;
+            return this.slots[slotOrType].count;
+        }
+        
+        // If a string is passed, treat it as an item type and sum across all slots
+        return this.getCountOfItem(slotOrType);
     }
 
     public setItem(slot: number, item: string | null, count: number = 1): void {

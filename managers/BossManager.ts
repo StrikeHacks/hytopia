@@ -33,7 +33,6 @@ export class BossManager {
   
   constructor(world: World) {
     this._world = world;
-    console.log('BossManager constructor called');
     
     // Zoek naar de GameManager in de wereld
     setTimeout(() => {
@@ -42,7 +41,6 @@ export class BossManager {
     
     // Event listener voor speler join om bosses te activeren
     this._world.on(PlayerEvent.JOINED_WORLD, ({ player }: { player: Player }) => {
-      console.log(`[BossManager] Player joined, checking if bosses need to be spawned...`);
       this._checkAndSpawnBosses();
     });
     
@@ -50,7 +48,6 @@ export class BossManager {
     this._updateInterval = 1000; // Verhoog van 500ms naar 1000ms voor betere performance
     this._updateIntervalId = setInterval(() => this._updateBossTargets(), this._updateInterval);
     
-    console.log('BossManager initialized');
   }
   
   // Zoek de GameManager in de wereld
@@ -64,7 +61,6 @@ export class BossManager {
       
       if (gameManagers.length > 0) {
         this._gameManager = gameManagers[0];
-        console.log('[BossManager] GameManager found:', this._gameManager.name);
       } else {
         console.warn('[BossManager] GameManager not found in entity list');
       }
@@ -88,25 +84,21 @@ export class BossManager {
   
   // Initialize the boss system - centralized point for starting the boss system
   public init(): void {
-    console.log('Boss system initialized and ready');
     
     // Setup default boss spawners
     this.setupDefaultBosses();
-    console.log(`After default setup - registered spawners: ${this._activeSpawners.size}`);
     
     // Start met spawnen van initial bosses
     this.spawnBosses();
     
     // Luister naar player join event
     this._world.on('player-join', (event) => {
-      console.log('[BossManager] Player joined, checking if bosses need to be spawned');
       this._checkAndSpawnBosses();
     });
     
     // Start een timer om elke 10 seconden een fast-stalker te spawnen
     this._startFastStalkerSpawnTimer();
     
-    console.log('BossManager initialized');
   }
   
   // Update waar bosses naar toe bewegen (volgen dichtstbijzijnde speler)
@@ -202,12 +194,10 @@ export class BossManager {
     }
     
     this.despawnAllBosses();
-    console.log('BossManager destroyed');
   }
   
   // Spawn alle geregistreerde bosses
   public spawnBosses(): void {
-    console.log('Manually spawning all registered bosses...');
     this._checkAndSpawnBosses();
   }
   
@@ -219,12 +209,10 @@ export class BossManager {
     // Despawn alle bosses
     this.despawnAllBosses();
     
-    console.log('[BossManager] Disposed');
   }
   
   // Setup de standaard boss spawners
   public setupDefaultBosses(): void {
-    console.log("[BossManager] Setting up default boss spawners");
     try {
       // Boss 1: Fast Stalker - Snel en agressief
       this.registerBossSpawner("stalker_boss", {
@@ -340,7 +328,6 @@ export class BossManager {
         }
       });
       
-      console.log("[BossManager] Default boss spawners set up successfully!");
     } catch (error) {
       console.error("[BossManager] Error in setupDefaultBosses:", error);
     }
@@ -349,52 +336,41 @@ export class BossManager {
   // Registreer een spawner op een locatie
   public registerBossSpawner(id: string, location: BossSpawnLocation): void {
     this._activeSpawners.set(id, location);
-    console.log(`Registered boss spawner '${id}' at position (${location.position.x}, ${location.position.y}, ${location.position.z})`);
   }
   
   // Verwijder een bossspawner
   public unregisterBossSpawner(id: string): void {
     if (this._activeSpawners.has(id)) {
       this._activeSpawners.delete(id);
-      console.log(`Unregistered boss spawner '${id}'`);
     }
   }
   
   // Check of bosses gespawned moeten worden (bijvoorbeeld wanneer een speler joint)
   private _checkAndSpawnBosses(): void {
-    console.log('[BossManager] Checking if bosses need to be spawned...');
-    console.log(`[BossManager] Active bosses: ${this._activeBosses.size}`);
-    console.log(`[BossManager] Registered spawners: ${this._activeSpawners.size}`);
+
     
     // Log all registered spawners for debugging
     this._activeSpawners.forEach((spawner, id) => {
-      console.log(`[BossManager] Registered spawner: ${id}, type: ${spawner.type}, position: (${spawner.position.x}, ${spawner.position.y}, ${spawner.position.z})`);
     });
     
     // Spawn alleen als er nog geen actieve bosses zijn
     if (this._activeBosses.size === 0) {
-      console.log('[BossManager] No active bosses, spawning new ones...');
       for (const [id, spawner] of this._activeSpawners) {
         const bossId = `${spawner.type}-${this._nextBossId++}`;
-        console.log(`[BossManager] Attempting to spawn boss with ID: ${bossId} of type: ${spawner.type}`);
         this._spawnBoss(bossId, spawner);
       }
-    } else {
-      console.log(`[BossManager] Not spawning new bosses as there are already ${this._activeBosses.size} active`);
     }
   }
   
   // Spawn een specifieke boss
   private _spawnBoss(bossId: string, spawner: BossSpawnLocation): Boss | null {
     try {
-      console.log(`[BossManager] Spawning boss with ID ${bossId} and type ${spawner.type}`);
       
       let boss: Boss | null = null;
       
       // De boss aanmaken op basis van het type
       switch(spawner.type) {
         case 'StalkerBoss':
-          console.log('[BossManager] Creating a StalkerBoss');
           
         boss = new StalkerBoss({
           name: spawner.options?.name || `Stalker Boss ${this._nextBossId - 1}`,
@@ -405,7 +381,6 @@ export class BossManager {
             // Registreer health update event
             boss.on('health-update', (data) => {
               if (data && data.health !== undefined && data.maxHealth !== undefined) {
-                console.log(`[BossManager] Health update van boss: ${data.health}/${data.maxHealth}`);
                 
                 // Stuur update naar alle spelers
                 this._sendBossHealthUpdateToPlayers(boss as Boss, data.health, data.maxHealth);
@@ -413,7 +388,6 @@ export class BossManager {
             });
             
             // Spawn de boss in de wereld
-            console.log('[BossManager] Spawning boss in world at position:', spawner.position);
             boss.spawn(this._world, spawner.position);
             
             // Voeg toe aan active bosses
@@ -422,7 +396,6 @@ export class BossManager {
             // We maken geen health bar meer aan vanuit de BossManager, omdat StalkerBoss dit zelf al doet
             // this._createBossHealthSceneUI(boss);
             
-            console.log(`[BossManager] Boss ${bossId} successfully spawned and added to active bosses. Total active bosses: ${this._activeBosses.size}`);
           }
         break;
         
@@ -479,7 +452,6 @@ export class BossManager {
   
   // Verwijder alle actieve bosses
   public despawnAllBosses(): void {
-    console.log(`Despawning all ${this._activeBosses.size} active bosses`);
     
     for (const [id, boss] of this._activeBosses) {
       if (boss && boss.isSpawned) {
@@ -502,7 +474,6 @@ export class BossManager {
   
   // Start de spawn timer voor fast-stalker bosses
   private _startFastStalkerSpawnTimer(): void {
-    console.log('[BossManager] Starting fast-stalker spawn timer (10 seconds)');
     
     // Voorkom meerdere timers
     if (this._spawnTimerId !== null) {
@@ -525,7 +496,6 @@ export class BossManager {
     if (this._spawnTimerId !== null) {
       clearInterval(this._spawnTimerId);
       this._spawnTimerId = null;
-      console.log('[BossManager] Fast-stalker spawn timer stopped');
     }
   }
   
@@ -546,7 +516,6 @@ export class BossManager {
     };
     
     const bossId = `fast-stalker-${this._fastStalkerSpawnCounter}`;
-    console.log(`[BossManager] Spawning additional fast-stalker #${this._fastStalkerSpawnCounter} at position:`, spawnPosition);
     
     // The modelScale for fast stalkers is 1.0, so no height adjustment is needed
     
@@ -598,7 +567,6 @@ export class BossManager {
     
     // Voeg de boss toe aan de active bosses
     const bossId = `callback-${this._nextBossId++}`;
-    console.log(`[BossManager] Spawning boss from callback with ID ${bossId}`);
     
     // Spawn de boss in de wereld
     boss.spawn(this._world, position);
@@ -609,7 +577,6 @@ export class BossManager {
         const health = data.health;
         const maxHealth = data.maxHealth;
         
-        console.log(`[BossManager] Health update van boss via callback: ${health}/${maxHealth}`);
         
         // Stuur update naar alle spelers
         this._sendBossHealthUpdateToPlayers(boss, health, maxHealth);
