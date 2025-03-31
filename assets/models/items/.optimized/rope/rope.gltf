@@ -7,23 +7,23 @@
     {
       "type": "SCALAR",
       "componentType": 5123,
-      "count": 360,
+      "count": 612,
       "bufferView": 0,
       "byteOffset": 0
     },
     {
       "type": "VEC3",
       "componentType": 5126,
-      "count": 240,
+      "count": 408,
       "max": [
-        0.2559819519519806,
-        -0.3686806261539459,
-        0.2559819519519806
+        0.2694808542728424,
+        0.2694808542728424,
+        0.5115295052528381
       ],
       "min": [
-        -0.37099751830101013,
-        -0.7563194036483765,
-        -0.2559819519519806
+        -0.2706133723258972,
+        -0.2706133723258972,
+        -0.5115295052528381
       ],
       "bufferView": 1,
       "byteOffset": 0
@@ -31,14 +31,14 @@
     {
       "type": "VEC3",
       "componentType": 5126,
-      "count": 240,
+      "count": 408,
       "bufferView": 1,
       "byteOffset": 12
     },
     {
       "type": "VEC2",
       "componentType": 5126,
-      "count": 240,
+      "count": 408,
       "bufferView": 1,
       "byteOffset": 24
     }
@@ -47,13 +47,13 @@
     {
       "buffer": 0,
       "byteOffset": 0,
-      "byteLength": 720,
+      "byteLength": 1224,
       "target": 34963
     },
     {
       "buffer": 0,
-      "byteOffset": 720,
-      "byteLength": 7680,
+      "byteOffset": 1224,
+      "byteLength": 13056,
       "byteStride": 32,
       "target": 34962
     }
@@ -81,7 +81,7 @@
   "buffers": [
     {
       "uri": "rope.bin",
-      "byteLength": 8400
+      "byteLength": 14280
     }
   ],
   "materials": [
@@ -117,13 +117,13 @@
       "name": "octagon",
       "translation": [
         0.5,
-        0.7625,
+        0.253993125,
         0.5
       ],
       "rotation": [
         0,
-        -0.3826834323650898,
         0,
+        -0.3826834323650898,
         0.9238795325112867
       ],
       "mesh": 0

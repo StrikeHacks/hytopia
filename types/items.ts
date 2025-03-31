@@ -81,6 +81,7 @@ export interface ToolItemProperties extends ItemProperties {
   damage: number;
   canBreak: string[];
   miningSpeed?: number;
+  soulbound?: boolean;
 }
 
 // Weapons
@@ -89,6 +90,7 @@ export interface WeaponItemProperties extends ItemProperties {
   durability: number;
   maxDurability: number;
   damage: number;
+  soulbound?: boolean;
 }
 
 // Armor
@@ -143,6 +145,7 @@ export interface BaseItemProperties {
     readonly maxStackSize: number;
     readonly scale?: number;
     readonly imageUrl?: string;
+    readonly soulbound?: boolean;
     readonly dropForce?: {
         horizontal: number;
         vertical: number;

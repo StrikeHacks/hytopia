@@ -7,23 +7,23 @@
     {
       "type": "SCALAR",
       "componentType": 5123,
-      "count": 396,
+      "count": 216,
       "bufferView": 0,
       "byteOffset": 0
     },
     {
       "type": "VEC3",
       "componentType": 5126,
-      "count": 264,
+      "count": 144,
       "max": [
-        0.13235130906105042,
-        -0.541388750076294,
-        -0.11712958663702011
+        0.08453121036291122,
+        -0.6020137667655945,
+        -0.1503632813692093
       ],
       "min": [
-        -0.32695284485816956,
-        -0.7893750071525574,
-        -0.712431788444519
+        -0.2968929409980774,
+        -0.7881249785423279,
+        -0.5782727003097534
       ],
       "bufferView": 1,
       "byteOffset": 0
@@ -31,14 +31,14 @@
     {
       "type": "VEC3",
       "componentType": 5126,
-      "count": 264,
+      "count": 144,
       "bufferView": 1,
       "byteOffset": 12
     },
     {
       "type": "VEC2",
       "componentType": 5126,
-      "count": 264,
+      "count": 144,
       "bufferView": 1,
       "byteOffset": 24
     }
@@ -47,13 +47,13 @@
     {
       "buffer": 0,
       "byteOffset": 0,
-      "byteLength": 792,
+      "byteLength": 432,
       "target": 34963
     },
     {
       "buffer": 0,
-      "byteOffset": 792,
-      "byteLength": 8448,
+      "byteOffset": 432,
+      "byteLength": 4608,
       "byteStride": 32,
       "target": 34962
     }
@@ -81,7 +81,7 @@
   "buffers": [
     {
       "uri": "nails.bin",
-      "byteLength": 9240
+      "byteLength": 5040
     }
   ],
   "materials": [
@@ -116,9 +116,9 @@
     {
       "name": "octagon",
       "translation": [
-        0.263756875,
+        0.328404375,
         0.7625,
-        0.86374375
+        0.8088825
       ],
       "rotation": [
         0,

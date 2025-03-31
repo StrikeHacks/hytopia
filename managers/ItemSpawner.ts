@@ -36,6 +36,7 @@ const INITIAL_ITEMS = [
     { type: 'rope', position: { x: -12, y: 3.7, z: 2 } },
     { type: 'iron-ore', position: { x: -14, y: 3.7, z: 2 } },
     { type: 'stone', position: { x: -16, y: 3.7, z: 2 } },
+    { type: 'iron-ingot', position: { x: -18, y: 3.7, z: 2 } },
 
 ];
 
@@ -48,6 +49,15 @@ export class ItemSpawner {
         private world: World,
         private playerInventories: Map<string, PlayerInventory>
     ) {}
+
+    // Add getter methods
+    public getPlayerInventories(): Map<string, PlayerInventory> {
+        return this.playerInventories;
+    }
+
+    public getActiveItems(): Map<string, BaseItem[]> {
+        return this.activeItems;
+    }
 
     public spawnInitialItems(): void {
         INITIAL_ITEMS.forEach(({ type, position }) => {

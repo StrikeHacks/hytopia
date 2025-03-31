@@ -26,9 +26,10 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         handOffset: WEAPONS_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
         imageUrl: 'items/diamond-sword.png',
-        durability: 1500,
-        maxDurability: 1500,
-        damage: 35
+        durability: 3,
+        maxDurability: 3,
+        damage: 35,
+        soulbound: true
     },
     'sword-stone': {
         type: 'sword-stone',

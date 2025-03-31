@@ -33,7 +33,7 @@ export const toolItems: Record<string, ToolItemProperties> = {
         durability: 800,
         maxDurability: 800,
         damage: 0.5,  // Damage per click
-        canBreak: ['1', '21']  // Stone and iron ore block IDs
+        canBreak: ['1', '21'],  // Stone and iron ore block IDs
     },
     'axe-stone': {
         type: 'axe-stone',
@@ -51,10 +51,10 @@ export const toolItems: Record<string, ToolItemProperties> = {
         handOffset: TOOLS_HAND_OFFSET,
         handRotation: TOOLS_HAND_ROTATION,
         imageUrl: 'items/axe-stone.png',
-        durability: 10,
-        maxDurability: 10,
+        durability: 2,
+        maxDurability: 2,
         damage: 1,  // Damage per click
-        canBreak: ['23']  // Log blocks
+        canBreak: ['23'],  // Log blocks
     },'pickaxe-wood': {
         type: 'pickaxe-wood',
         modelUri: 'models/items/pickaxe-wood.gltf',
@@ -74,7 +74,7 @@ export const toolItems: Record<string, ToolItemProperties> = {
         durability: 40,
         maxDurability: 40,
         damage: 0.5,  // Damage per click
-        canBreak: ['1', '21']  // Stone and iron ore block IDs
+        canBreak: ['1', '21'],  // Stone and iron ore block IDs
     },
     'axe-wood': {
         type: 'axe-wood',
@@ -95,7 +95,7 @@ export const toolItems: Record<string, ToolItemProperties> = {
         durability: 40,
         maxDurability: 40,
         damage: 0.5,  // Damage per click
-        canBreak: ['23']  // Log blocks
+        canBreak: ['23'],  // Log blocks
     },
     'pickaxe-iron': {
         type: 'pickaxe-iron',
@@ -116,7 +116,7 @@ export const toolItems: Record<string, ToolItemProperties> = {
         durability: 300,
         maxDurability: 300,
         damage: 1.5,  // Damage per click
-        canBreak: ['1', '21']  // Stone and iron ore block IDs
+        canBreak: ['1', '21'],  // Stone and iron ore block IDs
     },
     'axe-iron': {
         type: 'axe-iron',
@@ -137,7 +137,7 @@ export const toolItems: Record<string, ToolItemProperties> = {
         durability: 300,
         maxDurability: 300,
         damage: 1.5,  // Damage per click
-        canBreak: ['23']  // Log blocks
+        canBreak: ['23'],  // Log blocks
     },
     'fishing-rod': {
         type: 'fishing-rod',
@@ -158,7 +158,7 @@ export const toolItems: Record<string, ToolItemProperties> = {
         durability: 500,
         maxDurability: 500,
         damage: 1,
-        canBreak: []
+        canBreak: [],
     }
 };
 

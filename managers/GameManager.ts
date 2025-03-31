@@ -1,7 +1,7 @@
 import { World, Entity, EntityEvent, PlayerEntity } from 'hytopia';
-import { IronGenerator } from '../generators/IronGenerator';
-import { GoldGenerator } from '../generators/GoldGenerator';
-import { ironConfig, goldConfig } from '../config/generators';
+// import { IronGenerator } from '../generators/IronGenerator';
+// import { GoldGenerator } from '../generators/GoldGenerator';
+//import { ironConfig, goldConfig } from '../config/generators';
 import { PlayerInventory } from '../player/PlayerInventory';
 import worldMap from '../assets/terrain4.json';
 import { ItemSpawner } from './ItemSpawner';
@@ -20,8 +20,8 @@ export let globalItemSpawner: ItemSpawner | null = null;
 export class GameManager {
     private playerInventories: Map<string, PlayerInventory> = new Map();
     private playerManagers: Map<string, any> = new Map(); // Track PlayerManager instances
-    private ironGenerator!: IronGenerator;
-    private goldGenerator!: GoldGenerator;
+    // private ironGenerator!: IronGenerator;
+    // private goldGenerator!: GoldGenerator;
     private itemSpawner: ItemSpawner;
     private toolManager: ToolManager;
     private craftingManager: CraftingManager;
@@ -38,7 +38,7 @@ export class GameManager {
         this.animalManager = new AnimalManager(world, this.itemSpawner, this);
         this.fixedModelManager = new FixedModelManager(world);
         this.travelerManager = new TravelerManager(world, this);
-        this.setupGenerators();
+        //this.setupGenerators();
         this.spawnInitialItems();
         this.placeFixedModels();
         
@@ -55,21 +55,21 @@ export class GameManager {
         this.world.simulation.setGravity({ x: 0, y: -37, z: 0 });
     }
 
-    private setupGenerators(): void {
-        this.ironGenerator = new IronGenerator(this.world, ironConfig);
-        this.goldGenerator = new GoldGenerator(this.world, goldConfig);
+    // private setupGenerators(): void {
+    //     this.ironGenerator = new IronGenerator(this.world, ironConfig);
+    //     this.goldGenerator = new GoldGenerator(this.world, goldConfig);
 
-        // Increase interval times for better performance
-        const ironInterval = Math.max(8000, ironConfig.spawnInterval); // At least 8 seconds
-        const goldInterval = Math.max(15000, goldConfig.spawnInterval); // At least 15 seconds
+    //     // Increase interval times for better performance
+    //     const ironInterval = Math.max(8000, ironConfig.spawnInterval); // At least 8 seconds
+    //     const goldInterval = Math.max(15000, goldConfig.spawnInterval); // At least 15 seconds
 
-        setInterval(() => this.ironGenerator.create(), ironInterval);
-        setInterval(() => this.goldGenerator.create(), goldInterval);
+    //     setInterval(() => this.ironGenerator.create(), ironInterval);
+    //     setInterval(() => this.goldGenerator.create(), goldInterval);
 
-        // Initial creation
-        this.ironGenerator.create();
-        this.goldGenerator.create();
-    }
+    //     // Initial creation
+    //     this.ironGenerator.create();
+    //     this.goldGenerator.create();
+    // }
 
     private spawnInitialItems(): void {
         this.itemSpawner.spawnInitialItems();
@@ -116,12 +116,12 @@ export class GameManager {
         return this.itemSpawner;
     }
 
-    public getGeneratorCounts() {
-        return {
-            activeIronCount: this.ironGenerator.getActiveCount(),
-            activeGoldCount: this.goldGenerator.getActiveCount()
-        };
-    }
+    // public getGeneratorCounts() {
+    //     return {
+    //         activeIronCount: this.ironGenerator.getActiveCount(),
+    //         activeGoldCount: this.goldGenerator.getActiveCount()
+    //     };
+    // }
 
     public getAnimalSpawner(): AnimalSpawner {
         return this.animalSpawner;

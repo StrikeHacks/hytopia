@@ -32,7 +32,7 @@ const world = startServer(world => {
       gameManager
     );
     
-    player.ui.sendData(gameManager.getGeneratorCounts());
+    //player.ui.sendData(gameManager.getGeneratorCounts());
   });
 
   // Event handler voor wanneer een speler de wereld verlaat

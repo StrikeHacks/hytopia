@@ -8,7 +8,10 @@ import {
 	EntityEvent,
 	BaseEntityControllerEvent,
 	RigidBodyType,
-	Audio
+	Audio,
+	Entity,
+	ColliderShape,
+	CollisionGroup
 } from "hytopia";
 import type { Vector3Like } from "hytopia";
 import { ItemSpawner } from "./ItemSpawner";
@@ -21,6 +24,7 @@ import type { HealthChangeEvent } from "../player/PlayerHealth";
 import { getAvailableCategories } from '../config/recipes';
 import { StalkerBoss } from '../bosses/StalkerBoss';
 import { getTradesByCategory, formatTradeForUI } from '../config/travelerTrades';
+import { BaseItem } from '../items/BaseItem';
 
 export class PlayerManager {
 	private playerEntity: PlayerEntity;
@@ -36,12 +40,17 @@ export class PlayerManager {
 	private readonly MINING_COOLDOWN_MS = 500; // Increased cooldown between mining attempts (was 350)
 	private lastMiningTime: number = 0; // Track the last time mining was attempted
 	private isCraftingOpen: boolean = false;
+	private isTravelerOpen: boolean = false;
+	private isInventoryOpen: boolean = false;
 	private isQPressed: boolean = false;
 	private isEPressed: boolean = false;
 	private isFPressed: boolean = false;
 	private isCPressed: boolean = false;
 	private currentModelRotation: number = 0; // Current rotation angle for model placement
 	private readonly ROTATION_INCREMENT = Math.PI / 4; // Rotate by 45 degrees (π/4 radians)
+	private healingInterval: NodeJS.Timer | null = null;
+	private readonly HEAL_AMOUNT = 5;
+	private readonly HEAL_INTERVAL_MS = 3000; // 3 seconds
 
 	// Boss combat related properties
 	private _lastAttackTime: number = 0;
@@ -73,6 +82,7 @@ export class PlayerManager {
 		this.setupInputHandling(this.playerEntity);
 		this.setupCamera();
 		this.spawnPlayer(this.playerEntity);
+		this.startHealing(); // Start the healing system
 
 		// Luister naar damage events op de player entity
 		this.playerEntity.on('damage', (data: any) => {
@@ -138,24 +148,84 @@ export class PlayerManager {
 
 	private onHealthChange(event: HealthChangeEvent): void {
 		// Handle health change events
-		if (event.type === "damage" && this.playerHealth.getIsDead()) {
-			this.handlePlayerDeath();
+		if (event.type === "damage" && event.currentHealth <= 0) {
+			// Double check if player is actually dead
+			if (this.playerHealth.getIsDead()) {
+				console.log("[PlayerManager] Player died, handling death...");
+				this.handlePlayerDeath();
+			}
 		}
 	}
 
 	private handlePlayerDeath(): void {
-		// Auto-revive after 3 seconds
-		setTimeout(() => {
-			if (this.playerHealth.getIsDead()) {
-				this.playerHealth.revive();
-				this.respawnPlayer();
+		const { getItemConfig } = require('../config/items');
+		
+		// Calculate base drop position where the player died
+		const dropPosition = {
+			x: this.playerEntity.position.x,
+			y: this.playerEntity.position.y + 0.1, // Tiny offset to prevent ground clipping
+			z: this.playerEntity.position.z
+		};
+		
+		// Drop all non-soulbound items from entire inventory
+		for (let slot = 0; slot < 20; slot++) {
+			const itemType = this.playerInventory.getItem(slot);
+			if (itemType) {
+				try {
+					const itemConfig = getItemConfig(itemType);
+					
+					// Only drop items that are not soulbound
+					if (!itemConfig.soulbound) {
+						// Get the item count and instance before removing
+						const count = this.playerInventory.getItemCount(slot);
+						const itemInstance = this.playerInventory.getItemInstance(slot);
+						
+						// Remove items from inventory first
+						this.playerInventory.removeItem(itemType, count);
+						
+						// Drop all items with a small spread
+						for (let i = 0; i < count; i++) {
+							// Add small random spread (max 0.5 blocks)
+							const spreadPosition = {
+								x: dropPosition.x + (Math.random() * 1.0 - 0.5), // -0.5 to 0.5
+								y: dropPosition.y,
+								z: dropPosition.z + (Math.random() * 1.0 - 0.5)  // -0.5 to 0.5
+							};
+							
+							// Create the item with small spread
+							const droppedItem = new BaseItem(this.world, spreadPosition, this.itemSpawner.getPlayerInventories(), itemType, i === 0 ? itemInstance : undefined);
+							droppedItem.spawn();
+							
+							// Drop with only vertical force for gravity
+							const direction = { x: 0, y: 0.1, z: 0 };
+							droppedItem.drop(spreadPosition, direction);
+							
+							// Add to active items
+							const items = this.itemSpawner.getActiveItems().get(itemType) || [];
+							items.push(droppedItem);
+							this.itemSpawner.getActiveItems().set(itemType, items);
+						}
+					}
+				} catch (error) {
+					console.error('[PlayerManager] Error checking item soulbound status during death:', error);
+				}
 			}
-		}, 3000);
+		}
+
+		// Instant respawn at spawn point
+		this.respawnPlayer();
 	}
 
 	private respawnPlayer(): void {
-		// Respawn the player at the spawn point
+		// Respawn the player at the spawn point with a slight height offset to prevent falling through ground
 		this.playerEntity.setPosition({ x: 5, y: 10, z: 5 });
+		
+		// Reset any movement/velocity
+		this.playerEntity.setLinearVelocity({ x: 0, y: 0, z: 0 });
+		this.playerEntity.setAngularVelocity({ x: 0, y: 0, z: 0 });
+
+		// Revive player with full health
+		this.playerHealth.revive();
 	}
 
 	private setupInventory(): void {
@@ -265,7 +335,36 @@ export class PlayerManager {
 				if (input["q"] && !this.isQPressed) {
 					const isShiftHeld = input.sh || false;
 					this.isQPressed = true;
-					this.itemSpawner.handleItemDrop(playerEntity, isShiftHeld);
+					
+					// Get the selected item
+					const selectedSlot = this.playerInventory.getSelectedSlot();
+					const selectedItem = this.playerInventory.getItem(selectedSlot);
+					
+					if (selectedItem) {
+						try {
+							const { getItemConfig } = require('../config/items');
+							const itemConfig = getItemConfig(selectedItem);
+							
+							// Check if item is soulbound
+							if (!itemConfig.soulbound) {
+								this.itemSpawner.handleItemDrop(playerEntity, isShiftHeld);
+							} else {
+								// Notify player that item cannot be dropped
+								this.player.ui.sendData({
+									showItemName: {
+										name: "This item is soulbound"
+									}
+								});
+							}
+						} catch (error) {
+							console.error('[PlayerManager] Error checking item soulbound status:', error);
+							// If there's an error, default to allowing the drop
+							this.itemSpawner.handleItemDrop(playerEntity, isShiftHeld);
+						}
+					} else {
+						// No item selected, proceed with normal drop
+						this.itemSpawner.handleItemDrop(playerEntity, isShiftHeld);
+					}
 				} else if (!input["q"]) {
 					this.isQPressed = false;
 				}
@@ -406,6 +505,38 @@ export class PlayerManager {
 		this.playerEntity.startModelOneshotAnimations(["simple_interact"]);
 		const selectedSlot = this.playerInventory.getSelectedSlot();
 		const heldItem = this.playerInventory.getItem(selectedSlot);
+
+		// Check if the held item is broken
+		if (heldItem && this.playerInventory.isItemBroken(selectedSlot)) {
+			try {
+				const { getItemConfig } = require('../config/items');
+				const itemConfig = getItemConfig(heldItem);
+				
+				// Show appropriate message for soulbound items
+				if (itemConfig.soulbound) {
+					this.player.ui.sendData({
+						showItemName: {
+							name: "This soulbound item is broken and needs repair!"
+						}
+					});
+				} else {
+					this.player.ui.sendData({
+						showItemName: {
+							name: "This item is broken and needs repair!"
+						}
+					});
+				}
+			} catch (error) {
+				console.error('[PlayerManager] Error checking soulbound status:', error);
+				// Fallback message if error
+				this.player.ui.sendData({
+					showItemName: {
+						name: "This item is broken and needs repair!"
+					}
+				});
+			}
+			return;
+		}
 
 		if (!heldItem) return;
 
@@ -681,26 +812,18 @@ export class PlayerManager {
 			this.craftingProgressInterval = null;
 		}
 		
-		// Set up an interval to send progress updates (every 200ms instead of 100ms for better performance)
+		// Set up an interval to send progress updates every 50ms for smooth animation
 		this.craftingProgressInterval = setInterval(() => {
 			// Get current progress
 			const progress = this.craftingManager.getPlayerCraftingProgress(playerId);
 			
-			// Only send updates at certain thresholds to reduce UI updates
-			const shouldSendUpdate = 
-				progress % 10 === 0 || // Every 10%
-				progress === 100 ||    // At completion
-				progress === 1;        // At start
-			
-			if (shouldSendUpdate) {
-				// Send progress update to the client
-				this.player.ui.sendData({
-					craftingProgress: {
-						recipeName,
-						progress
-					}
-				});
-			}
+			// Send progress update to the client
+			this.player.ui.sendData({
+				craftingProgress: {
+					recipeName,
+					progress
+				}
+			});
 			
 			// If crafting is complete or not ongoing, stop sending updates
 			if (progress === 100 || !this.craftingManager.isPlayerCrafting(playerId)) {
@@ -719,10 +842,10 @@ export class PlayerManager {
 								success: true
 							}
 						});
-					}, 500); // Short delay to ensure progress bar shows 100% first
+					}, 300); // Match the CSS transition duration
 				}
 			}
-		}, 200); // Increased from 100ms to 200ms for better performance
+		}, 50); // Update every 50ms for smooth animation
 	}
 
 	/**
@@ -793,6 +916,41 @@ export class PlayerManager {
 	}
 
 	private tryAttack(playerEntity: PlayerEntity): void {
+		const selectedSlot = this.playerInventory.getSelectedSlot();
+		const heldItem = this.playerInventory.getItem(selectedSlot);
+
+		// Check if the held item is broken
+		if (heldItem && this.playerInventory.isItemBroken(selectedSlot)) {
+			try {
+				const { getItemConfig } = require('../config/items');
+				const itemConfig = getItemConfig(heldItem);
+				
+				// Show appropriate message for soulbound items
+				if (itemConfig.soulbound) {
+					this.player.ui.sendData({
+						showItemName: {
+							name: "This soulbound item is broken and needs repair!"
+						}
+					});
+				} else {
+					this.player.ui.sendData({
+						showItemName: {
+							name: "This item is broken and needs repair!"
+						}
+					});
+				}
+			} catch (error) {
+				console.error('[PlayerManager] Error checking soulbound status:', error);
+				// Fallback message if error
+				this.player.ui.sendData({
+					showItemName: {
+						name: "This item is broken and needs repair!"
+					}
+				});
+			}
+			return;
+		}
+
 		// Raycast vanaf de spelerpositie in de kijkrichting
 		const direction = playerEntity.player.camera.facingDirection;
 		const origin = {
@@ -1216,16 +1374,51 @@ export class PlayerManager {
 	}
 
 	// Add as a new public method with other UI toggle methods
-	public toggleTraveler(): void {
-		console.log('[PlayerManager] Toggling traveler UI');
+	private toggleTraveler(): void {
+		// Toggle traveler state
+		this.isTravelerOpen = !this.isTravelerOpen;
 		
-		// Get the traveler manager from game manager
-		const travelerManager = this.gameManager.getTravelerManager();
-		if (travelerManager) {
-			// Call the toggle method on the traveler manager
-			travelerManager.toggleTraveler(this);
-		} else {
-			console.error('[PlayerManager] Cannot toggle traveler UI: travelerManager not found');
+		// Send UI update
+		this.player.ui.sendData({
+			travelerToggle: {
+				isOpen: this.isTravelerOpen,
+				categories: ['daily', 'weekly', 'special'],
+				initialCategory: 'daily'
+			}
+		});
+
+		// Update inventory state
+		this.isInventoryOpen = this.isTravelerOpen;
+		this.player.ui.sendData({
+			inventoryToggle: {
+				isOpen: this.isInventoryOpen
+			}
+		});
+
+		// Update pointer lock
+		this.player.ui.lockPointer(!this.isTravelerOpen);
+	}
+
+	private startHealing(): void {
+		// Clear any existing interval first
+		if (this.healingInterval) {
+			clearInterval(this.healingInterval);
+		}
+
+		// Start new healing interval
+		this.healingInterval = setInterval(() => {
+			// Only heal if player is not dead and not at max health
+			if (!this.playerHealth.getIsDead() && this.playerHealth.getCurrentHealth() < this.playerHealth.getMaxHealth()) {
+				this.playerHealth.heal(this.HEAL_AMOUNT);
+			}
+		}, this.HEAL_INTERVAL_MS);
+	}
+
+	// Add cleanup method to clear interval when player leaves
+	public cleanup(): void {
+		if (this.healingInterval) {
+			clearInterval(this.healingInterval);
+			this.healingInterval = null;
 		}
 	}
 }
