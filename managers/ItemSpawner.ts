@@ -37,6 +37,7 @@ const INITIAL_ITEMS = [
     { type: 'iron-ore', position: { x: -14, y: 3.7, z: 2 } },
     { type: 'stone', position: { x: -16, y: 3.7, z: 2 } },
     { type: 'iron-ingot', position: { x: -18, y: 3.7, z: 2 } },
+    { type: 'leather', position: { x: -20, y: 3.7, z: 2 } },
 
 ];
 

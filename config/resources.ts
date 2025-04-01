@@ -8,7 +8,8 @@ import {
     GIGA_DROP_FORCE,
     SIDEWAYS_HAND_ROTATION,
     MID_DROP_FORCE,
-    HEAVY_DROP_FORCE
+    HEAVY_DROP_FORCE,
+    TOOLS_HAND_ROTATION
 } from './constants';
 
 // Resource item configurations
@@ -204,9 +205,27 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
             x: 0.25,
             y: 0.3,
             z: 0.25
-        },        handOffset: DEFAULT_HAND_OFFSET,
+        },        
+        handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
         imageUrl: 'items/rope.png'
+    },
+    'leather' : {
+        type: 'leather',
+        modelUri: 'models/items/leather.gltf',
+        displayName: 'Leather',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.5,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.25,
+            y: 0.3,
+            z: 0.25
+        },        
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: TOOLS_HAND_ROTATION,
+        imageUrl: 'items/leather.png'
     },
 
 };

@@ -2606,10 +2606,7 @@
             // Handle traveler UI toggle
             if (data.travelerToggle) {
                 const travelerUI = document.getElementById('travelerUI');
-                const inventoryContainer = document.getElementById('inventory');
                 const crosshair = document.querySelector('.crosshair');
-                const inventoryToggleBtn = document.querySelector('.inventory-toggle');
-                const closeInventoryBtn = document.getElementById('closeInventory');
                 
                 console.log('[UI] Received traveler toggle data:', data.travelerToggle);
                 
@@ -2620,21 +2617,6 @@
                         travelerUI.style.display = 'flex';
                         crosshair.classList.add('hidden');
                         hytopia.lockPointer(false);
-                        
-                        // Also open inventory when traveler opens
-                        if (inventoryContainer) {
-                            console.log('[UI] Opening inventory with traveler');
-                            inventoryContainer.style.display = 'block';
-                            // Hide inventory toggle button
-                            if (inventoryToggleBtn) {
-                                inventoryToggleBtn.style.display = 'none';
-                            }
-                            // Disable inventory close button
-                            if (closeInventoryBtn) {
-                                closeInventoryBtn.style.pointerEvents = 'none';
-                                closeInventoryBtn.style.opacity = '0.5';
-                            }
-                        }
                         
                         // Ensure we always have these three categories even if server doesn't provide them
                         const requiredCategories = ['daily', 'weekly', 'special'];
@@ -2695,24 +2677,9 @@
                         }
                     } else {
                         console.log('[UI] TRAVELER IS CLOSED');
+                        console.log('[UI] POINTLOCK IS ENABLED');
                         travelerUI.style.display = 'none';
                         crosshair.classList.remove('hidden');
-                        
-                        // Also close inventory when traveler closes
-                        if (inventoryContainer) {
-                            console.log('[UI] Closing inventory with traveler');
-                            inventoryContainer.style.display = 'none';
-                            // Show inventory toggle button
-                            if (inventoryToggleBtn) {
-                                inventoryToggleBtn.style.display = 'block';
-                            }
-                            // Re-enable inventory close button
-                            if (closeInventoryBtn) {
-                                closeInventoryBtn.style.pointerEvents = 'auto';
-                                closeInventoryBtn.style.opacity = '1';
-                            }
-                        }
-                        
                         hytopia.lockPointer(true);
                     }
                 }
@@ -4037,24 +4004,9 @@
                         }
                     } else {
                         console.log('[UI] TRAVELER IS CLOSED');
+                        console.log('[UI] POINTLOCK IS ENABLED');
                         travelerUI.style.display = 'none';
                         crosshair.classList.remove('hidden');
-                        
-                        // Also close inventory when traveler closes
-                        if (inventoryContainer) {
-                            console.log('[UI] Closing inventory with traveler');
-                            inventoryContainer.style.display = 'none';
-                            // Show inventory toggle button
-                            if (inventoryToggleBtn) {
-                                inventoryToggleBtn.style.display = 'block';
-                            }
-                            // Re-enable inventory close button
-                            if (closeInventoryBtn) {
-                                closeInventoryBtn.style.pointerEvents = 'auto';
-                                closeInventoryBtn.style.opacity = '1';
-                            }
-                        }
-                        
                         hytopia.lockPointer(true);
                     }
                 }

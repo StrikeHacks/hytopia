@@ -347,19 +347,17 @@ export class BossManager {
   
   // Check of bosses gespawned moeten worden (bijvoorbeeld wanneer een speler joint)
   private _checkAndSpawnBosses(): void {
-
-    
     // Log all registered spawners for debugging
     this._activeSpawners.forEach((spawner, id) => {
     });
     
     // Spawn alleen als er nog geen actieve bosses zijn
-    if (this._activeBosses.size === 0) {
-      for (const [id, spawner] of this._activeSpawners) {
-        const bossId = `${spawner.type}-${this._nextBossId++}`;
-        this._spawnBoss(bossId, spawner);
-      }
-    }
+    /*if (this._activeBosses.size === 0) {
+        for (const [id, spawner] of this._activeSpawners) {
+            const bossId = `${spawner.type}-${this._nextBossId++}`;
+            this._spawnBoss(bossId, spawner);
+        }
+    }*/
   }
   
   // Spawn een specifieke boss
@@ -474,7 +472,6 @@ export class BossManager {
   
   // Start de spawn timer voor fast-stalker bosses
   private _startFastStalkerSpawnTimer(): void {
-    
     // Voorkom meerdere timers
     if (this._spawnTimerId !== null) {
       clearInterval(this._spawnTimerId);
@@ -482,13 +479,13 @@ export class BossManager {
     
     // Start een nieuwe timer die elke 15 seconden een fast-stalker spawnt
     // Verhoog interval van 10 naar 15 seconden voor betere performance
-    this._spawnTimerId = setInterval(() => {
-      // Alleen spawn als er actieve spelers zijn en nog niet teveel bosses zijn
-      if (this._world.entityManager.getAllPlayerEntities().length > 0 &&
-          this._activeBosses.size < 8) { // Limit to 8 active bosses maximum
-        this._spawnFastStalker();
-      }
-    }, 15000); // 15 seconden (was 10 seconden)
+    /*this._spawnTimerId = setInterval(() => {
+        // Alleen spawn als er actieve spelers zijn en nog niet teveel bosses zijn
+        if (this._world.entityManager.getAllPlayerEntities().length > 0 &&
+            this._activeBosses.size < 8) { // Limit to 8 active bosses maximum
+            this._spawnFastStalker();
+        }
+    }, 15000); // 15 seconden (was 10 seconden)*/
   }
   
   // Stop de spawn timer

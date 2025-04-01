@@ -20,7 +20,7 @@ const world = startServer(world => {
   bossManager.init();
   
   // Spawn bosses
-  bossManager.spawnBosses();
+  //bossManager.spawnBosses();
 
   // Handler voor speler join event
   world.on(PlayerEvent.JOINED_WORLD, ({ player }: { player: Player }) => {
