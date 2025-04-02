@@ -2,6 +2,7 @@ import { World, Player, PlayerEvent, startServer } from 'hytopia';
 import { PlayerManager } from './managers/PlayerManager';
 import { GameManager } from './managers/GameManager';
 import { BossManager } from './managers/BossManager';
+import { NPCManager } from './managers/NPCManager';
 
 // Start de wereld op met de startServer functie
 const world = startServer(world => {
@@ -21,6 +22,12 @@ const world = startServer(world => {
   
   // Spawn bosses
   //bossManager.spawnBosses();
+
+  // Initialize managers
+  const npcManager = new NPCManager(world);
+
+  // Spawn all NPCs from configuration
+  npcManager.spawnAllNPCs();
 
   // Handler voor speler join event
   world.on(PlayerEvent.JOINED_WORLD, ({ player }: { player: Player }) => {

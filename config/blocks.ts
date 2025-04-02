@@ -14,17 +14,17 @@ export interface BlockRespawnConfig {
 
 // Block configurations
 export const blockConfigs: Map<number, BlockConfig> = new Map([
-    [1, {
-        id: 1,
+    [37, {
+        id: 37,
         name: 'Stone',
         hp: 5, // Takes 10 clicks with pickaxe
-        drops: 'cobblestone'
+        drops: 'stone'
     }],
     [21, {
         id: 21,
         name: 'Iron Ore',
         hp: 7.5, // Takes 15 clicks with pickaxe
-        drops: 'iron-ingot'
+        drops: 'iron-ore'
     }],
     [23, {
         id: 23,

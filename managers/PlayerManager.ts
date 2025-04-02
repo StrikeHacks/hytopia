@@ -42,10 +42,12 @@ export class PlayerManager {
 	private isCraftingOpen: boolean = false;
 	private isTravelerOpen: boolean = false;
 	private isInventoryOpen: boolean = false;
+	private isDungeonOpen: boolean = false;
 	private isQPressed: boolean = false;
 	private isEPressed: boolean = false;
 	private isFPressed: boolean = false;
 	private isCPressed: boolean = false;
+	private isVPressed: boolean = false;
 	private currentModelRotation: number = 0; // Current rotation angle for model placement
 	private readonly ROTATION_INCREMENT = Math.PI / 4; // Rotate by 45 degrees (π/4 radians)
 	private healingInterval: NodeJS.Timer | null = null;
@@ -115,7 +117,111 @@ export class PlayerManager {
 	 * Override this in game-specific implementations if level system is implemented
 	 */
 	public getPlayerLevel(): number {
-		return 1; // Default implementation - level 1
+		// Use the LevelManager to get the player's level
+		const levelManager = this.gameManager.getLevelManager();
+		if (levelManager) {
+			return levelManager.getPlayerLevel(this.player.id);
+		}
+		
+		// Fallback to default value if LevelManager is not available
+		return 1;
+	}
+
+	// Add method to send player stats to the UI
+	public sendPlayerStatsToUI(): void {
+		try {
+			if (!this.player || !this.player.ui) return;
+
+			const level = this.getPlayerLevel();
+			const health = this.playerHealth ? this.playerHealth.getCurrentHealth() : 100;
+			const maxHealth = this.playerHealth ? this.playerHealth.getMaxHealth() : 100;
+			
+			// Get XP data if available
+			const levelManager = this.gameManager.getLevelManager();
+			let xp = 0;
+			let nextLevelXp = 100;
+			
+			if (levelManager) {
+				const levelData = levelManager.getPlayerLevelData(this.player.id);
+				xp = levelData.xp;
+				nextLevelXp = levelData.nextLevelXp;
+			}
+			
+			// Send player stats to UI
+			this.player.ui.sendData({
+				playerStats: {
+					level: level,
+					health: health,
+					maxHealth: maxHealth,
+					xp: xp,
+					nextLevelXp: nextLevelXp
+				}
+			});
+
+			// Also send inventory data for key checks
+			this.sendInventoryDataToUI();
+
+			console.log(`[PlayerManager] Sent player stats to UI - Level: ${level}, XP: ${xp}/${nextLevelXp}`);
+		} catch (error) {
+			console.error('[PlayerManager] Error sending player stats to UI:', error);
+		}
+	}
+
+	// Add a new method to send inventory data to UI
+	private sendInventoryDataToUI(): void {
+		try {
+			if (!this.player || !this.player.ui || !this.playerInventory) return;
+			
+			// Create inventory items array to send to UI
+			const inventoryItems = [];
+			
+			// Loop through all inventory slots
+			for (let slot = 0; slot < 20; slot++) {
+				const itemType = this.playerInventory.getItem(slot);
+				if (itemType) {
+					const count = this.playerInventory.getItemCount(slot);
+					inventoryItems.push({
+						slot,
+						type: itemType,
+						count: count
+					});
+				}
+			}
+			
+			// Create a map of item types for easier key checking in the UI
+			const inventoryMap = new Map();
+			for (const item of inventoryItems) {
+				// Store items by type to make checking for specific types easier
+				inventoryMap.set(item.type, {
+					count: item.count,
+					slots: [...(inventoryMap.get(item.type)?.slots || []), item.slot]
+				});
+			}
+			
+			// Convert the Map to an array of entries for JSON serialization
+			const inventoryMapArray = Array.from(inventoryMap.entries()).map(([type, data]) => {
+				return { type, count: data.count, slots: data.slots };
+			});
+			
+			// Send inventory data to UI
+			this.player.ui.sendData({
+				inventory: {
+					items: inventoryItems,
+					itemsByType: inventoryMapArray
+				}
+			});
+			
+			console.log(`[PlayerManager] Sent inventory data to UI: ${inventoryItems.length} items`);
+			console.log(`[PlayerManager] Unique item types: ${inventoryMapArray.length}`);
+			
+			// Debug log for keys specifically
+			const keyItems = inventoryMapArray.filter(item => item.type.includes('key'));
+			if (keyItems.length > 0) {
+				console.log(`[PlayerManager] Key items in inventory:`, keyItems);
+			}
+		} catch (error) {
+			console.error('[PlayerManager] Error sending inventory data to UI:', error);
+		}
 	}
 
 	private createPlayerEntity(): PlayerEntity {
@@ -238,8 +344,15 @@ export class PlayerManager {
 	}
 
 	private setupUI(): void {
-		this.player.ui.load("ui/index.html");
+		// Load the UI file that contains our templates
+		this.player.ui.load('ui/index.html');
 
+		// Send initial player stats to UI
+		setTimeout(() => {
+			this.sendPlayerStatsToUI();
+		}, 1000);
+
+		// Setup UI event handlers
 		this.player.ui.on(PlayerUIEvent.DATA, ({ data }: { data: any }) => {
 			// Handle crafting UI close
 			if (data.craftingToggle?.action === 'close') {
@@ -253,6 +366,11 @@ export class PlayerManager {
 			else if (data.travelerToggle?.action === 'close') {
 				this.toggleTraveler();
 			}
+			// Handle dungeon UI close
+			else if (data.dungeonToggle?.action === 'close') {
+				console.log('[PlayerManager] Closing dungeon UI via UI action');
+				this.gameManager.getDungeonManager().toggleDungeon(this.player, false);
+			}
 			// Handle hotbar selection
 			else if (data.hotbarSelect) {
 				const { slot } = data.hotbarSelect;
@@ -264,10 +382,9 @@ export class PlayerManager {
 			}
 			// Handle recipe requests
 			else if (data.requestRecipes) {
-				
 				// Normalize the requested category for consistency
 				const requestedCategory = this.normalizeCategory(data.requestRecipes.category);
-				
+
 				// Get recipes for the requested category
 				const recipes = this.craftingManager.getRecipesByCategory(requestedCategory);
 				
@@ -308,13 +425,12 @@ export class PlayerManager {
 			else if (data.craftItem) {
 				this.startCrafting(this.player.id, data.craftItem.recipeName);
 			}
-			// Note: Cancel crafting functionality removed since there's no cancel button in UI
 		});
 	}
 
 	private setupInputHandling(playerEntity: PlayerEntity): void {
-		// Disable debug raycasting for better performance
-		this.world.simulation.enableDebugRaycasting(false);
+		// Enable debug raycasting for development
+		this.world.simulation.enableDebugRaycasting(true);
 
 		this.playerController.on(
 			BaseEntityControllerEvent.TICK_WITH_PLAYER_INPUT,
@@ -398,6 +514,15 @@ export class PlayerManager {
 					this.isCPressed = false;
 				}
 
+				// Handle V key for dungeon UI
+				if (input["v"] && !this.isVPressed) {
+					this.isVPressed = true;
+					console.log('[PlayerManager] V key pressed - toggling dungeon UI');
+					this.gameManager.getDungeonManager().toggleDungeon(this.player);
+				} else if (!input["v"]) {
+					this.isVPressed = false;
+				}
+
 				// Handle right mouse button to interact with fixed models
 				if (input["mr"]) {
 					// Cancel the right click to prevent the default behavior
@@ -463,6 +588,32 @@ export class PlayerManager {
 				}
 			}
 		);
+
+		// Handle chat messages
+		this.player.on("chat_message", ({ message }: { message: string }) => {
+			// Handle level command
+			if (message.startsWith("/level ")) {
+				const levelArg = message.split(" ")[1];
+				const level = parseInt(levelArg);
+				
+				if (!isNaN(level) && level > 0) {
+					const levelManager = this.gameManager.getLevelManager();
+					if (levelManager) {
+						levelManager.setTestLevel(this.player.id, level);
+						this.player.sendMessage(`Set your level to ${level}`);
+						console.log(`[PlayerManager] Set player ${this.player.id} level to ${level} via command`);
+						
+						// Send updated stats to UI
+						this.sendPlayerStatsToUI();
+					} else {
+						this.player.sendMessage("Level manager not available");
+					}
+				} else {
+					this.player.sendMessage("Invalid level. Usage: /level [number]");
+				}
+				return; // Prevent message from being sent to chat
+			}
+		});
 	}
 
 	private startMining(playerEntity: PlayerEntity): void {
@@ -566,7 +717,7 @@ export class PlayerManager {
 	}
 
 	private setupCamera(): void {
-		this.player.camera.setMode(PlayerCameraMode.THIRD_PERSON);
+		this.player.camera.setMode(PlayerCameraMode.FIRST_PERSON);
 		this.player.camera.setOffset({ x: 0, y: 0.7, z: 0 });
 		this.player.camera.setModelHiddenNodes(["head", "neck"]);
 		this.player.camera.setForwardOffset(0.3);
@@ -1258,6 +1409,7 @@ export class PlayerManager {
 		// Set de immune flag
 		this._isImmuneFromBoss = true;
 		
+		
 		// Visuele indicatie van immuniteit (lichter van kleur)
 		if (this.playerEntity?.isSpawned) {
 			this.playerEntity.setOpacity(0.6);
@@ -1314,36 +1466,35 @@ export class PlayerManager {
 	}
 
 	private handleRightClick(playerEntity: PlayerEntity): void {
-		try {
-			const direction = playerEntity.player.camera.facingDirection;
-			const origin = {
-				x: playerEntity.position.x,
-				y: playerEntity.position.y + playerEntity.player.camera.offset.y,
-				z: playerEntity.position.z,
-			};
+		const direction = this.player.camera.facingDirection;
+		const origin = {
+			x: playerEntity.position.x,
+			y: playerEntity.position.y + 1, // Adjusted to be at eye level
+			z: playerEntity.position.z
+		};
 
-			// Cast a ray to detect what's in front of the player
-			const raycastResult = this.world.simulation.raycast(origin, direction, 5, {
-				filterExcludeRigidBody: playerEntity.rawRigidBody
-			});
+		// Cast a ray to detect what's in front of the player
+		const raycastResult = this.world.simulation.raycast(origin, direction, 5, {
+			filterExcludeRigidBody: playerEntity.rawRigidBody
+		});
 
-			if (raycastResult?.hitEntity) {
-				const hitEntity = raycastResult.hitEntity;
-				
-				// Check if the entity has a name that starts with our fixed model IDs
-				// For now we only have workbench, but this will work for any fixed model
-				if (hitEntity.name === 'workbench') {
-					
-					
-					// Open the crafting UI when clicking on a workbench
-					this.openCrafting();
-					
-					// Visual feedback that interaction happened
-					playerEntity.startModelOneshotAnimations(["simple_interact"]);
-				}
+		if (raycastResult?.hitEntity) {
+			const hitEntity = raycastResult.hitEntity;
+			console.log('[PlayerManager] Right-click hit entity:', hitEntity.name);
+
+			// Check entity type and handle accordingly
+			if (hitEntity.name.includes('Dungeon Master')) {
+				console.log('[PlayerManager] Opening dungeon UI via DungeonNPC');
+				this.gameManager.getDungeonManager().toggleDungeon(this.player, true);
+			} else if (hitEntity.name.includes('Traveler') || hitEntity.name.includes('Market Trader')) {
+				console.log('[PlayerManager] Opening traveler UI via NPC interaction');
+				this.toggleTraveler();
+			} else if (hitEntity.name === 'workbench') {
+				console.log('[PlayerManager] Opening crafting UI via workbench');
+				this.openCrafting();
+				// Visual feedback that interaction happened
+				playerEntity.startModelOneshotAnimations(["simple_interact"]);
 			}
-		} catch (error) {
-			console.error('[PlayerManager] Error in handleRightClick:', error);
 		}
 	}
 	

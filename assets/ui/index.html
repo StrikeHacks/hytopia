@@ -1355,6 +1355,314 @@
             font-size: 14px;
             color: #999;
         }
+
+        .entity-name {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 4px;
+            padding: 4px 12px;
+            color: white;
+            text-align: center;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            position: absolute;
+        }
+
+        .entity-name .name {
+            font-family: Arial, sans-serif;
+            user-select: none;
+            font-size: 24px;
+            margin: 0;
+            white-space: nowrap;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        #dungeonUI {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px;
+            height: 500px;
+            background: #1a1410;
+            color: #ffd700;
+            border-radius: 12px;
+            z-index: 1000;
+            border: 2px solid #8b4513;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #dungeonUI.visible {
+            display: block;
+        }
+
+        .dungeon-header {
+            background: linear-gradient(to bottom, #8b4513, #654321);
+            padding: 20px;
+            font-size: 26px;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 2px solid #8b4513;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            height: 64px;
+            box-sizing: border-box;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .dungeon-sidebar {
+            position: absolute;
+            left: 0;
+            top: 64px;
+            width: 180px;
+            height: calc(100% - 64px);
+            background: #231c15;
+            padding: 15px;
+            border-right: 2px solid #8b4513;
+            border-bottom-left-radius: 12px;
+            box-sizing: border-box;
+        }
+
+        .level-button {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background: linear-gradient(to bottom, #4a3728, #2c1810);
+            border: 1px solid #8b4513;
+            color: #ffd700;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: left;
+            transition: all 0.2s ease;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .level-button:hover {
+            background: linear-gradient(to bottom, #5a4738, #3c2820);
+            border-color: #cd853f;
+        }
+
+        .level-button.active {
+            background: linear-gradient(to bottom, #8b4513, #654321);
+            border-color: #daa520;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(218, 165, 32, 0.3);
+        }
+
+        .dungeon-content {
+            position: absolute;
+            left: 180px;
+            top: 64px;
+            right: 0;
+            height: calc(100% - 64px);
+            padding: 15px;
+            overflow-y: auto;
+            box-sizing: border-box;
+            background: #231c15;
+        }
+
+        .dungeon-entry {
+            display: flex;
+            align-items: center;
+            height: 100px;
+            background: linear-gradient(to right, #2c1810, #231c15);
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #8b4513;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .dungeon-entry:hover {
+            border-color: #daa520;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .dungeon-entry img {
+            width: 150px;
+            height: 100%;
+            object-fit: cover;
+            position: relative;
+        }
+
+        .dungeon-entry::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 120px;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(to right, transparent, #2c1810);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .dungeon-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 20px;
+        }
+
+        .dungeon-name {
+            font-size: 18px;
+            font-weight: 500;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 5px;
+        }
+
+        .dungeon-level {
+            font-size: 14px;
+            color: #cd853f;
+            margin-bottom: 8px;
+        }
+
+        .potential-loot {
+            display: flex;
+            gap: 8px;
+        }
+
+        .loot-slot {
+            width: 32px;
+            height: 32px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #8b4513;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loot-slot img {
+            width: 24px;
+            height: 24px;
+            opacity: 1;
+        }
+
+        .fight-button {
+            padding: 8px 16px;
+            margin-right: 15px;
+            background: linear-gradient(to bottom, #8b0000, #5c0000);
+            border: 1px solid #ff4500;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+    
+        .dungeon-content::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .dungeon-content::-webkit-scrollbar-track {
+            background: #1a1410;
+            border-left: 1px solid #8b4513;
+        }
+
+        .dungeon-content::-webkit-scrollbar-thumb {
+            background: linear-gradient(to right, #8b4513, #654321);
+            border-radius: 5px;
+            border: 1px solid #daa520;
+        }
+
+        .dungeon-content::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to right, #9b5523, #755331);
+        }
+
+        /* Add dungeon confirmation popup styles */
+        .dungeon-confirmation-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .dungeon-confirmation-popup .popup-content {
+            background: rgba(40, 40, 40, 0.95);
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            min-width: 300px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .dungeon-confirmation-popup h2 {
+            color: #FFD700;
+            margin: 0 0 15px 0;
+        }
+
+        .dungeon-confirmation-popup .key-requirement {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        .dungeon-confirmation-popup .key-requirement img {
+            width: 32px;
+            height: 32px;
+            margin-right: 10px;
+        }
+
+        .dungeon-confirmation-popup .popup-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .dungeon-confirmation-popup .confirm-button,
+        .dungeon-confirmation-popup .cancel-button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .dungeon-confirmation-popup .confirm-button {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .dungeon-confirmation-popup .confirm-button:hover {
+            background: #45a049;
+        }
+
+        .dungeon-confirmation-popup .cancel-button {
+            background: #f44336;
+            color: white;
+        }
+
+        .dungeon-confirmation-popup .cancel-button:hover {
+            background: #da190b;
+        }
     </style>
 </head>
 <body>
@@ -1525,8 +1833,32 @@
         </div>
     </div>
 
+    <template id="entity-name-template">
+        <div class="entity-name">
+            <p class="name"></p>
+        </div>
+    </template>
+
+    <!-- Dungeon UI -->
+    <div id="dungeonUI">
+        <div class="dungeon-header">
+            DUNGEONS
+            <button id="closeDungeon" class="close-button">X</button>
+        </div>
+        <div class="dungeon-sidebar">
+            <!-- Level buttons will be added dynamically -->
+        </div>
+        <div class="dungeon-content">
+            <!-- Dungeon entries will be added dynamically -->
+        </div>
+    </div>
+
     <script>
         console.log('Script loaded');
+        
+
+        
+        console.log('[UI] Loaded player stats globals');
         
         // Prevent default context menu (right-click) behavior
         document.addEventListener('contextmenu', (e) => {
@@ -1730,6 +2062,12 @@
             tooltip.style.top = (e.clientY - 25) + 'px';
         }
         
+        // Function to position tooltip on the right side of the cursor - specifically for dungeon tooltips
+        function moveDungeonTooltip(e) {
+            tooltip.style.left = (e.clientX + 15) + 'px';
+            tooltip.style.top = (e.clientY - 25) + 'px';
+        }
+        
         // Function to get display name for an item type
         function getItemDisplayName(itemType) {
             if (!itemType) return '';
@@ -1853,8 +2191,8 @@
                     
                     tooltip.style.display = 'block';
                     
-                    // Position to the left of cursor
-                    tooltip.style.left = (e.clientX - tooltip.offsetWidth - 15) + 'px';
+                    // Position to the right of cursor for consistency with dungeon tooltips
+                    tooltip.style.left = (e.clientX + 15) + 'px';
                     tooltip.style.top = (e.clientY - 25) + 'px';
                     
                     console.log(`[UI] Showing crafting tooltip for item: ${itemType}`);
@@ -2097,6 +2435,18 @@
             
             onState(state => {
                 counter.textContent = `${state.activeIronCount || 0} / ${state.maxItems || 10}`;
+            });
+            
+            return clone;
+        });
+
+        hytopia.registerSceneUITemplate('entity-name', (id, onState) => {
+            const template = document.getElementById('entity-name-template');
+            const clone = template.content.cloneNode(true);
+            const nameElement = clone.querySelector('.name');
+            
+            onState(state => {
+                nameElement.textContent = state.name;
             });
             
             return clone;
@@ -2607,6 +2957,9 @@
             if (data.travelerToggle) {
                 const travelerUI = document.getElementById('travelerUI');
                 const crosshair = document.querySelector('.crosshair');
+                const inventoryContainer = document.getElementById('inventory');
+                const inventoryToggleBtn = document.querySelector('.inventory-toggle');
+                const closeInventoryBtn = document.getElementById('closeInventory');
                 
                 console.log('[UI] Received traveler toggle data:', data.travelerToggle);
                 
@@ -2617,6 +2970,21 @@
                         travelerUI.style.display = 'flex';
                         crosshair.classList.add('hidden');
                         hytopia.lockPointer(false);
+                        
+                        // Also open inventory and disable its close button
+                        if (inventoryContainer) {
+                            console.log('[UI] Opening inventory with traveler');
+                            inventoryContainer.style.display = 'block';
+                            // Hide inventory toggle button
+                            if (inventoryToggleBtn) {
+                                inventoryToggleBtn.style.display = 'none';
+                            }
+                            // Disable inventory close button
+                            if (closeInventoryBtn) {
+                                closeInventoryBtn.style.pointerEvents = 'none';
+                                closeInventoryBtn.style.opacity = '0.5';
+                            }
+                        }
                         
                         // Ensure we always have these three categories even if server doesn't provide them
                         const requiredCategories = ['daily', 'weekly', 'special'];
@@ -2676,11 +3044,27 @@
                             renderTrades([]);
                         }
                     } else {
-                        console.log('[UI] TRAVELER IS CLOSED');
-                        console.log('[UI] POINTLOCK IS ENABLED');
                         travelerUI.style.display = 'none';
                         crosshair.classList.remove('hidden');
+                        
+                        // Also close inventory and re-enable its close button
+                        if (inventoryContainer) {
+                            console.log('[UI] Closing inventory with traveler');
+                            inventoryContainer.style.display = 'none';
+                            // Show inventory toggle button
+                            if (inventoryToggleBtn) {
+                                inventoryToggleBtn.style.display = 'block';
+                            }
+                            // Re-enable inventory close button
+                            if (closeInventoryBtn) {
+                                closeInventoryBtn.style.pointerEvents = 'auto';
+                                closeInventoryBtn.style.opacity = '1';
+                            }
+                        }
+                        
+                        // Enable pointer lock when closing
                         hytopia.lockPointer(true);
+                        console.log('[UI] POINTLOCK IS ENABLED');
                     }
                 }
             }
@@ -2700,6 +3084,99 @@
                     showNotification(message, 'success');
                 } else {
                     showNotification(message, 'error');
+                }
+            }
+
+            // Handle dungeon UI toggle from server
+            if (data.dungeonToggle) {
+                const dungeonUI = document.getElementById('dungeonUI');
+                const crosshair = document.querySelector('.crosshair');
+                
+                // CRITICAL: Debug dungeon toggle data
+                console.log(`[UI] dungeonToggle data received:`, JSON.stringify(data.dungeonToggle));
+                
+                if (dungeonUI && crosshair) {
+                    console.log('[UI] Toggling dungeon UI:', data.dungeonToggle.isOpen);
+                    
+                    if (data.dungeonToggle.isOpen) {
+                        dungeonUI.classList.add('visible');
+                        crosshair.classList.add('hidden');
+                        
+                        // Disable pointer lock when opening dungeon UI
+                        hytopia.lockPointer(false);
+                        
+                        // If dungeons data is provided, render the dungeons
+                        if (data.dungeonToggle.dungeons && Array.isArray(data.dungeonToggle.dungeons)) {
+                            // CRITICAL: Verify that we have image URLs in the data
+                            if (data.dungeonToggle.dungeons.length > 0) {
+                                console.log(`[UI] First dungeon image URL: "${data.dungeonToggle.dungeons[0].imageUrl}"`);
+                            }
+                            
+                            console.log('[UI] Rendering dungeons:', JSON.stringify(data.dungeonToggle.dungeons));
+                            renderDungeons(data.dungeonToggle.dungeons);
+                        } else {
+                            console.error('[UI] No dungeons array in data:', data.dungeonToggle);
+                        }
+                    } else {
+                        dungeonUI.classList.remove('visible');
+                        crosshair.classList.remove('hidden');
+                        
+                        // Enable pointer lock when closing dungeon UI
+                        hytopia.lockPointer(true);
+                    }
+                }
+            }
+            
+            // Handle dungeon error response (missing requirements)
+            if (data.dungeonError) {
+                console.log('[UI] Received dungeon error:', data.dungeonError);
+                const message = data.dungeonError.message;
+                showNotification(message, 'error');
+            }
+            
+            // Handle successful dungeon entry
+            if (data.dungeonFightResult && data.dungeonFightResult.success) {
+                console.log('[UI] Dungeon fight started:', data.dungeonFightResult);
+                const message = data.dungeonFightResult.message;
+                showNotification(message, 'success');
+            }
+
+            // Handle player stats update
+            if (data.playerStats) {
+                console.log('[UI] Received player stats:', data.playerStats);
+                if (typeof data.playerStats.level === 'number') {
+                    window.playerLevel = data.playerStats.level;
+                    console.log(`[UI] Updated player level to: ${window.playerLevel}`);
+                }
+                
+                // Update XP if available
+                if (typeof data.playerStats.xp === 'number') {
+                    window.playerXP = data.playerStats.xp;
+                }
+                
+                if (typeof data.playerStats.nextLevelXp === 'number') {
+                    window.playerNextLevelXP = data.playerStats.nextLevelXp;
+                }
+                
+                // Update level display in UI if it exists
+                const levelDisplay = document.getElementById('playerLevel');
+                if (levelDisplay) {
+                    levelDisplay.textContent = `Level: ${window.playerLevel}`;
+                }
+                
+                // Update XP display in UI if it exists
+                const xpDisplay = document.getElementById('playerXP');
+                if (xpDisplay) {
+                    xpDisplay.textContent = `XP: ${window.playerXP}/${window.playerNextLevelXP}`;
+                }
+            }
+            
+            if (data.dungeonToggle) {
+                const dungeonUI = document.getElementById('dungeonUI');
+                if (data.dungeonToggle.isOpen) {
+                    dungeonUI.classList.add('visible');
+                } else {
+                    dungeonUI.classList.remove('visible');
                 }
             }
         });
@@ -2858,6 +3335,17 @@
             console.log('[UI] Traveler close button clicked');
             hytopia.sendData({
                 travelerToggle: {
+                    action: 'close'
+                }
+            });
+            return false;
+        });
+
+        // Handle dungeon close button click
+        document.getElementById('closeDungeon').addEventListener('click', () => {
+            console.log('[UI] Dungeon close button clicked');
+            hytopia.sendData({
+                dungeonToggle: {
                     action: 'close'
                 }
             });
@@ -3141,7 +3629,7 @@
                         slotElement.addEventListener('mouseleave', hideCraftingTooltip);
                         slotElement.addEventListener('mousemove', (e) => {
                             if (tooltip.style.display === 'block') {
-                                tooltip.style.left = (e.clientX - tooltip.offsetWidth - 15) + 'px';
+                                tooltip.style.left = (e.clientX + 15) + 'px';
                                 tooltip.style.top = (e.clientY - 25) + 'px';
                             }
                         });
@@ -3226,7 +3714,7 @@
                         outputSlotElement.addEventListener('mouseleave', hideCraftingTooltip);
                         outputSlotElement.addEventListener('mousemove', (e) => {
                             if (tooltip.style.display === 'block') {
-                                tooltip.style.left = (e.clientX - tooltip.offsetWidth - 15) + 'px';
+                                tooltip.style.left = (e.clientX + 15) + 'px';
                                 tooltip.style.top = (e.clientY - 25) + 'px';
                             }
                         });
@@ -3392,6 +3880,161 @@
             setTimeout(() => {
                 notification.remove();
             }, duration);
+        }
+
+        // Function to show confirmation dialog
+        function showConfirmation(message, onConfirm, onCancel, bossName) {
+            console.log(`[UI] Showing confirmation dialog: ${message}`);
+            
+            // Create a modal backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'confirmation-backdrop';
+            
+            // Create the confirmation dialog
+            const dialog = document.createElement('div');
+            dialog.className = 'confirmation-dialog';
+            
+            // Create title with boss name if provided
+            if (bossName) {
+                const titleElement = document.createElement('div');
+                titleElement.className = 'confirmation-title';
+                titleElement.textContent = bossName;
+                dialog.appendChild(titleElement);
+            }
+            
+            // Create message
+            const messageElement = document.createElement('div');
+            messageElement.className = 'confirmation-message';
+            messageElement.textContent = message;
+            
+            // Create buttons container
+            const buttonsContainer = document.createElement('div');
+            buttonsContainer.className = 'confirmation-buttons';
+            
+            // Create confirm button
+            const confirmButton = document.createElement('button');
+            confirmButton.className = 'confirmation-button confirm';
+            confirmButton.textContent = 'FIGHT!';
+            confirmButton.addEventListener('click', () => {
+                document.body.removeChild(backdrop);
+                if (onConfirm) onConfirm();
+            });
+            
+            // Create cancel button
+            const cancelButton = document.createElement('button');
+            cancelButton.className = 'confirmation-button cancel';
+            cancelButton.textContent = 'Retreat';
+            cancelButton.addEventListener('click', () => {
+                document.body.removeChild(backdrop);
+                if (onCancel) onCancel();
+            });
+            
+            // Add buttons to container
+            buttonsContainer.appendChild(cancelButton);
+            buttonsContainer.appendChild(confirmButton);
+            
+            // Add elements to dialog
+            dialog.appendChild(messageElement);
+            dialog.appendChild(buttonsContainer);
+            
+            // Add dialog to backdrop
+            backdrop.appendChild(dialog);
+            
+            // Add styles if needed
+            if (!document.getElementById('confirmation-styles')) {
+                const style = document.createElement('style');
+                style.id = 'confirmation-styles';
+                style.textContent = `
+                    .confirmation-backdrop {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, 0.7);
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        z-index: 10000;
+                    }
+                    
+                    .confirmation-dialog {
+                        background-color: #1a1410;
+                        border: 2px solid #8b4513;
+                        border-radius: 8px;
+                        padding: 20px;
+                        max-width: 500px;
+                        width: 90%;
+                        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+                    }
+                    
+                    .confirmation-title {
+                        color: #ffd700;
+                        font-size: 22px;
+                        font-weight: bold;
+                        text-align: center;
+                        margin-bottom: 10px;
+                        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                        border-bottom: 1px solid #8b4513;
+                        padding-bottom: 10px;
+                    }
+                    
+                    .confirmation-message {
+                        color: #fff;
+                        font-size: 16px;
+                        margin: 15px 0 20px;
+                        text-align: center;
+                    }
+                    
+                    .confirmation-buttons {
+                        display: flex;
+                        justify-content: space-between;
+                    }
+                    
+                    .confirmation-button {
+                        padding: 10px 20px;
+                        border-radius: 6px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        min-width: 120px;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+                    }
+                    
+                    .confirmation-button.confirm {
+                        background: linear-gradient(to bottom, #8b0000, #5c0000);
+                        border: 1px solid #ff4500;
+                        color: #fff;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                    }
+                    
+                    .confirmation-button.cancel {
+                        background: linear-gradient(to bottom, #4a3728, #2c1810);
+                        border: 1px solid #8b4513;
+                        color: #ffd700;
+                    }
+                    
+                    .confirmation-button:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+                    }
+                    
+                    .confirmation-button.confirm:hover {
+                        background: linear-gradient(to bottom, #9b1111, #6c1111);
+                    }
+                    
+                    .confirmation-button.cancel:hover {
+                        background: linear-gradient(to bottom, #5a4738, #3c2820);
+                        border-color: #cd853f;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            // Add to body
+            document.body.appendChild(backdrop);
         }
 
         // Modify the DOMContentLoaded event to avoid duplicate event listeners
@@ -3702,6 +4345,24 @@
             if (data.inventoryToggle) {
                 handleInventoryData(data.inventoryToggle);
             }
+
+            // Handle dungeon UI toggle
+            if (data.dungeonToggle) {
+                const dungeonUI = document.getElementById('dungeonUI');
+                const crosshair = document.querySelector('.crosshair');
+                
+                if (dungeonUI && crosshair) {
+                    if (data.dungeonToggle.isOpen) {
+                        console.log('[UI] DUNGEON IS OPEN');
+                        dungeonUI.style.display = 'block';
+                        crosshair.classList.add('hidden');
+                    } else {
+                        console.log('[UI] DUNGEON IS CLOSED');
+                        dungeonUI.style.display = 'none';
+                        crosshair.classList.remove('hidden');
+                    }
+                }
+            }
             // ... rest of the event handlers ...
         });
 
@@ -3892,24 +4553,23 @@
             document.getElementById('closeCrafting').addEventListener('click', () => {
                 console.log('[UI] Crafting close button clicked');
                 hytopia.sendData({
-                    closeCrafting: true
+                    craftingToggle: {
+                        action: 'close'
+                    }
                 });
             });
-            
-            // Create event listener for Traveler close button
-            document.getElementById('closeTraveler').addEventListener('click', () => {
-                console.log('[UI] TRAVELER close button clicked');
+
+            // Create event listener for dungeon close button
+            document.getElementById('closeDungeon').addEventListener('click', () => {
+                console.log('[UI] Dungeon close button clicked');
                 hytopia.sendData({
-                    travelerToggle: {
+                    dungeonToggle: {
                         action: 'close'
                     }
                 });
             });
             
-            // Rest of your initialization code...
-            
-            // Remove any existing click handlers from category buttons first
-            document.querySelectorAll('.category-button').forEach(btn => btn.removeEventListener('click', () => {}));
+            // ... rest of initialization code ...
         });
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -4188,6 +4848,450 @@
 
         // Call setup once on DOMContentLoaded (replaces multiple scattered initialization)
         document.addEventListener('DOMContentLoaded', setupUIEventHandlers);
+
+        // Handle dungeon close button click
+        document.getElementById('closeDungeon')?.addEventListener('click', () => {
+            console.log('[UI] Dungeon close button clicked');
+            hytopia.sendData({
+                dungeonToggle: {
+                    action: 'close'
+                }
+            });
+        });
+
+        // Add click handlers for level buttons to show/hide appropriate bosses
+        document.querySelectorAll('.level-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                document.querySelectorAll('.level-button').forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                button.classList.add('active');
+                
+                // TODO: Show/hide appropriate boss entries based on level range
+                // This will be connected to the game logic later
+            });
+        });
+
+        // Handle dungeon UI visibility
+        hytopia.onData(data => {
+            // Handle player stats update
+            
+            
+            // Handle inventory update
+            if (data.inventory) {
+                console.log('[UI] Received inventory update:', data.inventory);
+                
+            
+
+            }
+            
+        
+        });
+
+        // Add click handlers for level buttons to show/hide appropriate bosses
+        document.querySelectorAll('.level-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                document.querySelectorAll('.level-button').forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                button.classList.add('active');
+                
+                // TODO: Show/hide appropriate boss entries based on level range
+                // This will be connected to the game logic later
+            });
+        });
+
+        // Handle dungeon UI close button
+        document.getElementById('closeDungeon').addEventListener('click', () => {
+            console.log('[UI] Dungeon close button clicked');
+            hytopia.sendData({
+                dungeonToggle: {
+                    action: 'close'
+                }
+            });
+        });
+
+        // Function to render dungeon data from server
+        function renderDungeons(dungeons) {
+            const dungeonContent = document.querySelector('.dungeon-content');
+            const sidebar = document.querySelector('.dungeon-sidebar');
+            
+            if (!dungeonContent || !sidebar) return;
+            
+            // Clear existing content
+            dungeonContent.innerHTML = '';
+            sidebar.innerHTML = '';
+            
+            // Group dungeons by level range
+            const levelRanges = [];
+            const dungeonsByLevel = {};
+            
+            dungeons.forEach(dungeon => {
+                const minLevel = dungeon.minLevel;
+                // Calculate level range (1-10, 11-20, etc.)
+                const rangeStart = Math.floor((minLevel - 1) / 10) * 10 + 1;
+                const rangeEnd = rangeStart + 9;
+                const rangeName = `LVL ${rangeStart}-${rangeEnd}`;
+                
+                // Add range to list if not already there
+                if (!levelRanges.includes(rangeName)) {
+                    levelRanges.push(rangeName);
+                    dungeonsByLevel[rangeName] = [];
+                }
+                
+                // Add dungeon to the appropriate level range
+                dungeonsByLevel[rangeName].push(dungeon);
+            });
+            
+            // Create sidebar buttons for level ranges
+            levelRanges.sort((a, b) => {
+                // Extract numbers from the level ranges (e.g., "LVL 1-10" → 1)
+                const aStart = parseInt(a.split(' ')[1].split('-')[0]);
+                const bStart = parseInt(b.split(' ')[1].split('-')[0]);
+                return aStart - bStart;
+            }).forEach((range, index) => {
+                const button = document.createElement('button');
+                button.className = 'level-button';
+                button.textContent = range;
+                button.dataset.range = range;
+                
+                // Set first button as active
+                if (index === 0) {
+                    button.classList.add('active');
+                }
+                
+                // Add click handler
+                button.addEventListener('click', () => {
+                    // Update active button
+                    document.querySelectorAll('.level-button').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    button.classList.add('active');
+                    
+                    // Show dungeons for this level range
+                    showDungeonsForRange(range, dungeonsByLevel);
+                });
+                
+                sidebar.appendChild(button);
+            });
+            
+            // Show dungeons for the first level range by default
+            if (levelRanges.length > 0) {
+                showDungeonsForRange(levelRanges[0], dungeonsByLevel);
+            } else {
+                // No dungeons available, show empty state
+                dungeonContent.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #ccc;">
+                        <p>No dungeons available for your level.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Function to show dungeons for a specific level range
+        function showDungeonsForRange(range, dungeonsByLevel) {
+            const dungeonContent = document.querySelector('.dungeon-content');
+            if (!dungeonContent) return;
+            
+            // Clear existing content
+            dungeonContent.innerHTML = '';
+            
+            // Get dungeons for this range
+            const dungeons = dungeonsByLevel[range] || [];
+            
+            if (dungeons.length === 0) {
+                // No dungeons in this range
+                dungeonContent.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #ccc;">
+                        <p>No dungeons available in this level range.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort dungeons by level from low to high
+            const sortedDungeons = [...dungeons].sort((a, b) => a.minLevel - b.minLevel);
+            console.log(`[UI] Sorted dungeons for ${range}:`, sortedDungeons.map(d => `${d.name} (Lvl ${d.minLevel})`));
+            
+            // Render each dungeon
+            sortedDungeons.forEach(dungeon => {
+                // Create dungeon entry
+                const entry = document.createElement('div');
+                entry.className = 'dungeon-entry';
+                entry.dataset.id = dungeon.id;
+                
+                // Set image (use fallback if image not available)
+                const img = document.createElement('img');
+                
+                // Use dungeon ID for image path
+                img.src = processCdnUrl(`{{CDN_ASSETS_URL}}/${dungeon.imageUrl}`);
+                img.alt = dungeon.name;
+                
+                console.log(`[UI] Setting image for dungeon ${dungeon.name} with URL:`, img.src);
+                // Set fallback for image load errors
+                
+                
+                entry.appendChild(img);
+                
+                // Create info section
+                const info = document.createElement('div');
+                info.className = 'dungeon-info';
+                
+                // Add dungeon name
+                const name = document.createElement('div');
+                name.className = 'dungeon-name';
+                name.textContent = dungeon.name;
+                info.appendChild(name);
+                
+                // Add dungeon level
+                const level = document.createElement('div');
+                level.className = 'dungeon-level';
+                level.textContent = `Level ${dungeon.minLevel}`;
+                info.appendChild(level);
+                
+                // Add loot slots
+                const lootContainer = document.createElement('div');
+                lootContainer.className = 'potential-loot';
+                
+                // Add up to 3 loot items (or placeholders if less than 3)
+                const lootItems = dungeon.loot || [];
+                for (let i = 0; i < 3; i++) {
+                    const lootSlot = document.createElement('div');
+                    lootSlot.className = 'loot-slot';
+                    
+                    const lootImg = document.createElement('img');
+                    
+                    if (i < lootItems.length) {
+                        // Use real loot data
+                        lootImg.src = processCdnUrl(`{{CDN_ASSETS_URL}}/items/${lootItems[i].item}.png`);
+                        lootImg.alt = lootItems[i].item;
+                        // Add tooltip data
+                        lootSlot.dataset.item = lootItems[i].item;
+                        lootSlot.dataset.dropChance = lootItems[i].dropChance;
+                        
+                        // Add hover tooltip for loot
+                        lootSlot.addEventListener('mouseenter', (e) => {
+                            const tooltip = document.querySelector('.item-tooltip');
+                            if (tooltip) {
+                                tooltip.innerHTML = `
+                                    <div>
+                                        <div style="font-weight: bold; color: gold;">${getItemDisplayName(lootItems[i].item)}</div>
+                                        <div>Drop Chance: ${lootItems[i].dropChance}%</div>
+                                    </div>
+                                `;
+                                tooltip.style.display = 'block';
+                                moveDungeonTooltip(e);
+                            }
+                        });
+                        
+                        lootSlot.addEventListener('mousemove', moveDungeonTooltip);
+                        
+                        lootSlot.addEventListener('mouseleave', () => {
+                            const tooltip = document.querySelector('.item-tooltip');
+                            if (tooltip) {
+                                tooltip.style.display = 'none';
+                            }
+                        });
+                    } else {
+                        // Use placeholder
+                        lootImg.src = processCdnUrl('{{CDN_ASSETS_URL}}/items/question_mark.png');
+                        lootImg.alt = '?';
+                    }
+                    
+                    lootImg.onerror = () => {
+                        lootImg.src = processCdnUrl('{{CDN_ASSETS_URL}}/items/question_mark.png');
+                    };
+                    
+                    lootSlot.appendChild(lootImg);
+                    lootContainer.appendChild(lootSlot);
+                }
+                
+                info.appendChild(lootContainer);
+                entry.appendChild(info);
+                
+                // Add fight button
+                const fightButton = document.createElement('button');
+                fightButton.className = 'fight-button';
+                fightButton.textContent = 'FIGHT';
+                
+                // Add tooltip for entry requirements
+                fightButton.addEventListener('mouseenter', (e) => {
+                    const tooltip = document.querySelector('.item-tooltip');
+                    if (tooltip) {
+                        // Build requirements HTML
+                        let requirementsHtml = `
+                            <div style="padding: 10px; min-width: 200px;">
+                                <div style="font-weight: bold; color: gold; margin-bottom: 10px; font-size: 16px; text-align: center; border-bottom: 1px solid #8b4513; padding-bottom: 5px;">
+                                    Entry Requirements
+                                </div>
+                        `;
+                        
+                        // Add level requirement
+                        requirementsHtml += `
+                            <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: #ccc; font-weight: bold;">Level:</span> 
+                                <span style="color: ${playerLevel >= dungeon.minLevel ? '#66ff66' : '#ff6666'}; font-weight: bold;">${dungeon.minLevel}+</span>
+                            </div>
+                        `;
+                        
+                        // Add key requirement if exists
+                        if (dungeon.requiredKey) {
+                            const keyName = dungeon.requiredKey.displayName || "Dungeon Key";
+                            const keyType = dungeon.requiredKey.type || "dungeon-key";
+                            const hasKey = dungeon.requiredKey.hasKey;
+                            
+                            requirementsHtml += `
+                                <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: #ccc; font-weight: bold;">Required Key:</span> 
+                                    <span style="color: ${hasKey ? '#66ff66' : '#ff6666'}; font-weight: bold;">${keyName}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: center; margin-top: 10px;">
+                                    <img src="${processCdnUrl(`{{CDN_ASSETS_URL}}/items/${keyType}.png`)}" 
+                                         style="width: 32px; height: 32px; margin-right: 10px; border: 1px solid #8b4513; border-radius: 4px; padding: 2px; background: rgba(0,0,0,0.3);" 
+                                         alt="${keyName}" 
+                                         onerror="this.src='${processCdnUrl('{{CDN_ASSETS_URL}}/items/question_mark.png')}'">
+                                    <span style="color: #ddd;">Required to enter dungeon</span>
+                                </div>
+                            `;
+                        }
+                        
+                        // Add a note about rewards
+                        requirementsHtml += `
+                            <div style="margin-top: 12px; border-top: 1px solid #8b4513; padding-top: 5px; font-style: italic; color: #aaa; font-size: 12px; text-align: center;">
+                                Defeat bosses to earn rewards!
+                            </div>
+                        `;
+                        
+                        requirementsHtml += `</div>`;
+                        
+                        // Set tooltip content
+                        tooltip.innerHTML = requirementsHtml;
+                        tooltip.style.display = 'block';
+                        tooltip.style.zIndex = '10000'; // Ensure tooltip is on top
+                        moveDungeonTooltip(e);
+                    }
+                });
+                
+                fightButton.addEventListener('mousemove', moveDungeonTooltip);
+                
+                fightButton.addEventListener('mouseleave', () => {
+                    const tooltip = document.querySelector('.item-tooltip');
+                    if (tooltip) {
+                        tooltip.style.display = 'none';
+                    }
+                });
+                
+                fightButton.addEventListener('click', () => {
+                    console.log(`[UI] Fight button clicked for dungeon: ${dungeon.id}`);
+                    console.log(`[UI] Dungeon details:`, dungeon);
+
+                    // Check player level requirement
+                    const playerLevel = window.playerLevel || 1;
+                    if (playerLevel < dungeon.minLevel) {
+                        console.log(`[UI] Player level too low: ${playerLevel} < ${dungeon.minLevel}`);
+                        showNotification(`You need to be level ${dungeon.minLevel} to enter this dungeon`, 'error');
+                        return;
+                    }
+
+                    // Check key requirement
+                    if (dungeon.requiredKey && !dungeon.requiredKey.hasKey) {
+                        console.log(`[UI] Player does not have required key: ${dungeon.requiredKey.type}`);
+                        showNotification(`You need a ${dungeon.requiredKey.displayName} to enter this dungeon`, 'error');
+                        return;
+                    }
+
+                    // If we get here, player meets all requirements
+                    // Show confirmation dialog
+                    showConfirmation(
+                        `Are you sure you want to enter ${dungeon.name}? You might lose all your non-soulbound items if you die!`,
+                        () => {
+                            console.log(`[UI] Player confirmed dungeon entry`);
+                            // Send the fight request to the server
+                            hytopia.sendData({
+                                dungeonAction: {
+                                    action: 'fight',
+                                    dungeonId: dungeon.id
+                                }
+                            });
+                        },
+                        () => {
+                            console.log(`[UI] Player cancelled dungeon entry`);
+                        },
+                        dungeon.name
+                    );
+                });
+                
+                entry.appendChild(fightButton);
+                
+                // Add to content
+                dungeonContent.appendChild(entry);
+            });
+        }
+        
+        // Function to close dungeon UI
+        function closeDungeonUI() {
+            // Hide UI
+            const dungeonUI = document.getElementById('dungeonUI');
+            if (dungeonUI) {
+                dungeonUI.classList.remove('visible');
+            }
+            
+            // Show crosshair
+            const crosshair = document.querySelector('.crosshair');
+            if (crosshair) {
+                crosshair.classList.remove('hidden');
+            }
+            
+            // Enable pointer lock
+            hytopia.lockPointer(true);
+            
+            // Notify server
+            hytopia.sendData({
+                dungeonToggle: {
+                    action: 'close'
+                }
+            });
+        }
+
+        // Add close button event listener for dungeon UI
+        document.getElementById('closeDungeon').addEventListener('click', closeDungeonUI);
+
+        // Helper function to process CDN URLs
+        function processCdnUrl(url) {
+            if (!url) return '';
+            
+            // For debugging
+            console.log(`[processCdnUrl] Processing URL: "${url}"`);
+            
+            // If URL contains the placeholder, replace it with the actual domain
+            if (url.includes('{{CDN_ASSETS_URL}}')) {
+                const processed = url.replace('{{CDN_ASSETS_URL}}', 'https://localhost:8080');
+                console.log(`[processCdnUrl] Processed to: "${processed}"`);
+                return processed;
+            }
+            
+            console.log(`[processCdnUrl] Leaving unchanged: "${url}"`);
+            return url;
+        }
+
+        // ... existing code ...
+
+        // Add event listener to fight buttons
+        
+
+        // ... existing code ...
+
+        // Add fight button click handler
+    
+
+        // Helper function to move dungeon tooltip
+        function moveDungeonTooltip(e) {
+            const tooltip = document.querySelector('.item-tooltip');
+            if (tooltip) {
+                tooltip.style.left = (e.clientX + 15) + 'px';
+                tooltip.style.top = (e.clientY - 25) + 'px';
+            }
+        }
     </script>
 </body>
 </html>

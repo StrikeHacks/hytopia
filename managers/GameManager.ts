@@ -3,7 +3,7 @@ import { World, Entity, EntityEvent, PlayerEntity } from 'hytopia';
 // import { GoldGenerator } from '../generators/GoldGenerator';
 //import { ironConfig, goldConfig } from '../config/generators';
 import { PlayerInventory } from '../player/PlayerInventory';
-import worldMap from '../assets/terrain4.json';
+import worldMap from '../assets/terrain5.json';
 import { ItemSpawner } from './ItemSpawner';
 import { ToolManager } from './ToolManager';
 import { CraftingManager } from './CraftingManager';
@@ -13,6 +13,8 @@ import { AnimalManager } from './AnimalManager';
 import { FixedModelManager } from './FixedModelManager';
 import { predefinedModelPlacements } from '../config/fixedModels';
 import { TravelerManager } from './TravelerManager';
+import { DungeonManager } from './DungeonManager';
+import { LevelManager } from './LevelManager';
 
 // Statische singleton voor globale toegang tot ItemSpawner
 export let globalItemSpawner: ItemSpawner | null = null;
@@ -29,15 +31,21 @@ export class GameManager {
     private animalManager: AnimalManager;
     private fixedModelManager: FixedModelManager;
     private travelerManager: TravelerManager;
+    private dungeonManager: DungeonManager;
+    private levelManager: LevelManager;
+    private world: World;
 
-    constructor(private world: World) {
-        this.setupWorld();
+    constructor(world: World) {
+        this.world = world;
+        this.setupGame();
         this.itemSpawner = new ItemSpawner(world, this.playerInventories);
         this.toolManager = new ToolManager(world, this.playerInventories, this.itemSpawner);
         this.craftingManager = new CraftingManager(world, this.playerInventories);
         this.animalManager = new AnimalManager(world, this.itemSpawner, this);
         this.fixedModelManager = new FixedModelManager(world);
         this.travelerManager = new TravelerManager(world, this);
+        this.dungeonManager = new DungeonManager(world, this);
+        this.levelManager = new LevelManager(world, this);
         //this.setupGenerators();
         this.spawnInitialItems();
         this.placeFixedModels();
@@ -48,6 +56,13 @@ export class GameManager {
         // Maak de globale ItemSpawner beschikbaar
         globalItemSpawner = this.itemSpawner;
         console.log('[GameManager] Global ItemSpawner initialized:', globalItemSpawner ? 'success' : 'failed');
+    }
+
+    private setupGame(): void {
+        // Enable debug raycasts
+        this.world.simulation.enableDebugRaycasting(true);
+
+        this.setupWorld();
     }
 
     private setupWorld(): void {
@@ -196,5 +211,13 @@ export class GameManager {
 
     public getTravelerManager(): TravelerManager {
         return this.travelerManager;
+    }
+
+    public getDungeonManager(): DungeonManager {
+        return this.dungeonManager;
+    }
+    
+    public getLevelManager(): LevelManager {
+        return this.levelManager;
     }
 } 

@@ -2,6 +2,7 @@ import { World, Entity, PlayerEntity, EntityEvent, type Player, PlayerEvent, Sce
 import type { Vector3Like } from 'hytopia';
 import { Boss } from '../bosses/Boss';
 import { StalkerBoss } from '../bosses/StalkerBoss';
+import { getStalkerBossConfig } from '../bosses/stalkerBosses';
 
 // Types voor bosstoewijzing aan locaties
 export interface BossSpawnLocation {
@@ -214,118 +215,23 @@ export class BossManager {
   // Setup de standaard boss spawners
   public setupDefaultBosses(): void {
     try {
-      // Boss 1: Fast Stalker - Snel en agressief
-      this.registerBossSpawner("stalker_boss", {
+      // Register default stalker boss spawners using configurations
+      this.registerBossSpawner("stalker-fast", {
         position: { x: 20, y: 5, z: 20 },
         type: "StalkerBoss",
-        options: {
-          name: "Fast Stalker",
-          modelScale: 1.0,
-          
-          // Fast stalker stats
-          health: 150,
-          maxHealth: 150,
-          moveSpeed: 6,
-          detectionRange: 20,
-          
-          // Combat eigenschappen
-          attackDamage: 15,
-          attackCooldown: 500,
-          attackRange: 4,
-          
-          // Knockback eigenschappen
-          knockbackForce: 10,
-          knockbackCooldown: 800,
-          
-          // SpeedUp eigenschappen
-          speedMultiplier: 2.5,
-          speedUpDuration: 3000,
-          speedUpCooldown: 12000,
-          
-          // Pathfinding options - optimized for speed
-          pathfindOptions: {
-            maxFall: 5,  // Max fall height in blocks
-            maxJump: 1,  // Max jump height in blocks
-            verticalPenalty: 1.0, // Prefer flat paths
-            waypointTimeoutMs: 2000 // Snellere timeout voor snellere boss
-          }
-        }
+        options: getStalkerBossConfig('fast-stalker')
       });
 
-      // Boss 2: Tank Stalker - Heavy but slow
-      this.registerBossSpawner("tank-stalker", {
-        position: { x: -10, y: 5, z: -10 }, // Base Y position (height adjustment happens in Boss.spawn)
+      this.registerBossSpawner("stalker-tank", {
+        position: { x: -10, y: 5, z: -10 },
         type: "StalkerBoss",
-        options: {
-          name: "Tank Stalker",
-          modelScale: 1.5,
-          
-          // Tank stalker stats
-          health: 400,
-          maxHealth: 400,
-          moveSpeed: 2,
-          detectionRange: 15,
-          
-          // Combat eigenschappen
-          attackDamage: 10,
-          attackCooldown: 800,
-          attackRange: 4,
-          
-          // Knockback eigenschappen
-          knockbackForce: 20,
-          knockbackCooldown: 2000,
-          
-          // SpeedUp eigenschappen
-          speedMultiplier: 1.5,
-          speedUpDuration: 4000,
-          speedUpCooldown: 15000,
-          
-          // Pathfinding options - adapted for a heavier boss
-          pathfindOptions: {
-            maxFall: 3,  // Reduced fall height for the heavy boss
-            maxJump: 1,  // Same jump height
-            verticalPenalty: 2.0, // Greatly prefer flat paths due to size and weight
-            waypointTimeoutMs: 4000 // Longer timeout since it's slower
-          }
-        }
+        options: getStalkerBossConfig('tank-stalker')
       });
 
-      // Boss 3: Balanced Stalker - Medium size
-      this.registerBossSpawner("balanced-stalker", {
-        position: { x: 0, y: 5, z: 20 }, // Base Y position (height adjustment happens in Boss.spawn)
+      this.registerBossSpawner("stalker-balanced", {
+        position: { x: 0, y: 5, z: 20 },
         type: "StalkerBoss",
-        options: {
-          name: "Balanced Stalker",
-          modelScale: 1.25,
-          
-          // Balanced stalker stats
-          health: 250,
-          maxHealth: 250,
-          moveSpeed: 4,
-          detectionRange: 18,
-          
-          // Combat eigenschappen
-          attackDamage: 20,
-          attackCooldown: 600,
-          attackRange: 4,
-          
-          // Knockback eigenschappen
-          knockbackForce: 15,
-          knockbackCooldown: 1000,
-          
-          // SpeedUp eigenschappen
-          speedMultiplier: 2.0,
-          speedUpDuration: 3000,  
-          speedUpCooldown: 10000,
-          
-          // Pathfinding options - optimized for balanced movement
-          pathfindOptions: {
-            maxFall: 4,  // Medium fall height
-            maxJump: 1,  // Standard jump height
-            verticalPenalty: 1.2, // Slightly prefer flat paths
-            waypointTimeoutMs: 3000 // Standard timeout
-          }
-        }
+        options: getStalkerBossConfig('balanced-stalker')
       });
       
     } catch (error) {
@@ -352,12 +258,12 @@ export class BossManager {
     });
     
     // Spawn alleen als er nog geen actieve bosses zijn
-    /*if (this._activeBosses.size === 0) {
-        for (const [id, spawner] of this._activeSpawners) {
-            const bossId = `${spawner.type}-${this._nextBossId++}`;
-            this._spawnBoss(bossId, spawner);
-        }
-    }*/
+    // if (this._activeBosses.size === 0) {
+    //     for (const [id, spawner] of this._activeSpawners) {
+    //         const bossId = `${spawner.type}-${this._nextBossId++}`;
+    //         this._spawnBoss(bossId, spawner);
+    //     }
+    // }
   }
   
   // Spawn een specifieke boss

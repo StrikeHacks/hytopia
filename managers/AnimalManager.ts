@@ -33,7 +33,6 @@ export class AnimalManager {
             const config = animalConfigs[animalType];
             const maxHP = config?.maxHP || 10; // Default 10 as fallback
             
-            console.log(`[AnimalManager] Registering ${animalType} with ${maxHP} HP (Entity ID: ${animal.id})`);
             
             // Initialize with full HP and reset state
             this.animalStates.set(animal.id, { 
@@ -47,7 +46,6 @@ export class AnimalManager {
             });
             
             this.animals.set(animal.id, animal);
-            console.log(`[AnimalManager] Total registered animals: ${this.animals.size}`);
         } else {
             console.warn('[AnimalManager] Attempted to register animal without ID');
         }

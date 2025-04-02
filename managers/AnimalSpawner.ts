@@ -86,7 +86,6 @@ class SpawnArea {
         const players = this.world.entityManager.getAllPlayerEntities();
         if (players.length === 0) {
             if (this.areaActive) {
-                console.log(`[SpawnArea] Deactivating area - no players found.`);
                 this.areaActive = false;
             }
             return;
@@ -119,7 +118,6 @@ class SpawnArea {
 
             if (distanceSquared <= activationDistanceSquared) {
                 if (!this.areaActive) {
-                    console.log(`[SpawnArea] Activating area - player within ${activationDistance} blocks.`);
                 }
                 this.areaActive = true;
                 isPlayerNearby = true;
@@ -130,7 +128,6 @@ class SpawnArea {
         // If we get here, no player was within activation distance
         if (this.areaActive) {
             const nearestDistanceRounded = Math.round(Math.sqrt(nearestPlayerDistance));
-            console.log(`[SpawnArea] Deactivating area - nearest player is ${nearestDistanceRounded} blocks away (activation range: ${activationDistance}).`);
             this.areaActive = false;
         }
     }
@@ -179,39 +176,32 @@ class SpawnArea {
         // Track spawn attempt
         this.spawnAttemptCount++;
         
-        console.log(`[SpawnArea] Attempting to spawn animal. Current count: ${this.spawnedEntities.length}/${this.config.maxEntities}`);
         
         // Check entity limit
         if (this.spawnedEntities.length >= this.config.maxEntities) {
-            console.log(`[SpawnArea] Max entities reached (${this.config.maxEntities}), skipping spawn.`);
             return;
         }
 
         // Check spawn chance
         if (Math.random() > this.config.spawnChance) {
-            console.log(`[SpawnArea] Spawn chance check failed, skipping spawn.`);
             return;
         }
 
         // Try to find a valid position
         const position = this.getRandomPositionInArea();
         if (!position) {
-            console.log(`[SpawnArea] Failed to find valid position, skipping spawn.`);
             return;
         }
 
         // Use simplified collision check if enabled
         if (this.config.simplifiedCollision === true) {
             if (!this.isPositionValidSimplified(position)) {
-                console.log(`[SpawnArea] Position too close to other entities (simplified check), skipping spawn.`);
                 return;
             }
         } else if (!this.isPositionValid(position)) {
-            console.log(`[SpawnArea] Position too close to other entities, skipping spawn.`);
             return;
         }
 
-        console.log(`[SpawnArea] Spawning animal at position:`, position);
         this.spawnAnimal(position);
         this.lastSpawnTime = Date.now();
     }
@@ -248,7 +238,6 @@ class SpawnArea {
         entity.setController(pathfinder);
 
         entity.spawn(this.world, position);
-        console.log(`[SpawnArea] Animal spawned successfully: ${this.config.animalType} (ID: ${entity.id})`);
 
         // Set collision groups right after spawning to prevent collision with players
         entity.setCollisionGroupsForSolidColliders({
@@ -267,13 +256,11 @@ class SpawnArea {
         entity.on(EntityEvent.DESPAWN, () => {
             if (entity.id) {
                 animalManager.unregisterAnimal(entity.id);
-                console.log(`[SpawnArea] Animal despawned: ${this.config.animalType} (ID: ${entity.id})`);
             }
         });
 
         this.addAnimalBehavior(entity);
         this.spawnedEntities.push(entity);
-        console.log(`[SpawnArea] Total animals in area: ${this.spawnedEntities.length}/${this.config.maxEntities}`);
     }
 
     private isPositionValid(position: { x: number, y: number, z: number }): boolean {
@@ -512,7 +499,6 @@ export class AnimalSpawner {
             this.spawnAreas.push(spawnArea);
         });
         
-        console.log(`[AnimalSpawner] Initialized with ${this.spawnAreas.length} spawn areas`);
         
         // Set up a global activation check interval to conserve resources
         this.activationCheckInterval = setInterval(() => {
@@ -531,11 +517,9 @@ export class AnimalSpawner {
                 });
                 
                 if (inactiveAreasFound) {
-                    console.log(`[AnimalSpawner] Restarting spawning for inactive areas - players detected in world.`);
                 }
             } else {
                 // If no players, disable all spawning to save resources
-                console.log(`[AnimalSpawner] No players detected in world, pausing all animal spawning.`);
                 this.spawnAreas.forEach(area => area.stopSpawning());
             }
         }, 10000); // Check every 10 seconds

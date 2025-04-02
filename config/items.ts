@@ -40,7 +40,6 @@ export function getItemConfig(itemType: string): ItemProperties {
         throw new Error('Item type is null or undefined');
     }
     
-    console.log(`[Items] Getting config for item type: "${itemType}"`);
     
     // Try to find item in the different categories
     const resourceItem = getResourceItem(itemType);
