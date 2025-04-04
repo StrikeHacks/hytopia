@@ -84,7 +84,6 @@
         .tooltip-category {
             color: #aaaaaa;
             font-size: 12px;
-            font-style: italic;
             margin-bottom: 3px;
             text-align: left;
         }
@@ -928,17 +927,11 @@
         }
         
         .tooltip-title {
-            color: #FFD700;
+            color: white;
             margin-bottom: 3px;
-            text-align: right;
         }
         
-        .tooltip-category {
-            color: #aaaaaa;
-            font-size: 12px;
-            font-style: italic;
-            text-align: right;
-        }
+
         
         .tooltip-count,
         .tooltip-damage,
@@ -957,7 +950,6 @@
         .tooltip-durability {
             margin-top: 5px;
             font-size: 12px;
-            text-align: right;
         }
         
         .tooltip-durability-bar {
@@ -1010,7 +1002,6 @@
         .tooltip-category {
             color: #aaa;
             font-size: 14px;
-            font-style: italic;
             margin-bottom: 2px; /* Verminder van 4px naar 2px */
             text-align: left;
         }
@@ -2113,12 +2104,13 @@
                     // Get item properties from config and itemData
                     const displayName = itemConfig.displayName || getItemDisplayName(itemData.type);
                     const category = (itemConfig.category || 'resource').toLowerCase();
+                    const rarity = itemConfig.rarity || 'common'; // Default to common rarity if not specified
                     
                     // SECTION 1: Title and Category
                     const headerSection = document.createElement('div');
                     headerSection.className = 'tooltip-section';
                     
-                    // Create title element
+                    // Create title element - keeping the default color, not using rarity color
                     const titleElement = document.createElement('div');
                     titleElement.className = 'tooltip-title';
                     titleElement.textContent = displayName;
@@ -2127,10 +2119,28 @@
                     // Format category for display (capitalize first letter)
                     const formattedCategory = category.charAt(0).toUpperCase() + category.slice(1);
                     
-                    // Add category element
+                    // Format rarity for display (capitalize first letter)
+                    const formattedRarity = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+                    
+                    // Add rarity and category element
                     const categoryElement = document.createElement('div');
-                    categoryElement.className = 'tooltip-category';
-                    categoryElement.textContent = formattedCategory;
+                    categoryElement.style.fontSize = '12px';
+                    categoryElement.style.color = '#aaaaaa';
+                    categoryElement.style.marginBottom = '3px';
+                    
+                    // Create a span for rarity text with its color
+                    const raritySpan = document.createElement('span');
+                    raritySpan.className = `rarity-${rarity}`;
+                    raritySpan.textContent = formattedRarity;
+                    categoryElement.appendChild(raritySpan);
+                    
+                    // Add a separator
+                    categoryElement.appendChild(document.createTextNode(' • '));
+                    
+                    // Add category text
+                    const categoryText = document.createTextNode(formattedCategory);
+                    categoryElement.appendChild(categoryText);
+                    
                     headerSection.appendChild(categoryElement);
                     
                     // Add header section to tooltip
@@ -2234,6 +2244,17 @@
                         tooltip.appendChild(durabilitySection);
                     }
                     
+                    // SECTION 4: Soulbound indicator (if applicable)
+                    if (itemConfig.soulbound === true) {
+                        const soulboundElement = document.createElement('div');
+                        soulboundElement.style.fontSize = '11px';
+                        soulboundElement.style.color = '#8a8a8a';
+                        soulboundElement.style.marginTop = '4px';
+                        soulboundElement.style.textAlign = 'center';
+                        soulboundElement.textContent = 'Soulbound';
+                        tooltip.appendChild(soulboundElement);
+                    }
+                    
                     tooltip.style.display = 'block';
                     moveTooltip(e);
                     
@@ -2284,12 +2305,13 @@
                     // Get item properties from config
                     const displayName = itemConfig.displayName || getItemDisplayName(itemType);
                     const category = (itemConfig.category || 'resource').toLowerCase();
+                    const rarity = itemConfig.rarity || 'common'; // Default to common rarity if not specified
                     
                     // SECTION 1: Title and Category
                     const headerSection = document.createElement('div');
                     headerSection.className = 'tooltip-section';
                     
-                    // Create title element
+                    // Create title element - keeping the default color, not using rarity color
                     const titleElement = document.createElement('div');
                     titleElement.className = 'tooltip-title';
                     titleElement.textContent = displayName;
@@ -2298,10 +2320,28 @@
                     // Format category for display (capitalize first letter)
                     const formattedCategory = category.charAt(0).toUpperCase() + category.slice(1);
                     
-                    // Add category element
+                    // Format rarity for display (capitalize first letter)
+                    const formattedRarity = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+                    
+                    // Add rarity and category element
                     const categoryElement = document.createElement('div');
-                    categoryElement.className = 'tooltip-category';
-                    categoryElement.textContent = formattedCategory;
+                    categoryElement.style.fontSize = '12px';
+                    categoryElement.style.color = '#aaaaaa';
+                    categoryElement.style.marginBottom = '3px';
+                    
+                    // Create a span for rarity text with its color
+                    const raritySpan = document.createElement('span');
+                    raritySpan.className = `rarity-${rarity}`;
+                    raritySpan.textContent = formattedRarity;
+                    categoryElement.appendChild(raritySpan);
+                    
+                    // Add a separator
+                    categoryElement.appendChild(document.createTextNode(' • '));
+                    
+                    // Add category text
+                    const categoryText = document.createTextNode(formattedCategory);
+                    categoryElement.appendChild(categoryText);
+                    
                     headerSection.appendChild(categoryElement);
                     
                     // Add header section to tooltip
@@ -2381,6 +2421,17 @@
                     // Only add durability section if there is durability
                     if (hasDurability) {
                         tooltip.appendChild(durabilitySection);
+                    }
+                    
+                    // SECTION 4: Soulbound indicator (if applicable)
+                    if (itemConfig.soulbound === true) {
+                        const soulboundElement = document.createElement('div');
+                        soulboundElement.style.fontSize = '11px';
+                        soulboundElement.style.color = '#8a8a8a';
+                        soulboundElement.style.marginTop = '4px';
+                        soulboundElement.style.textAlign = 'center';
+                        soulboundElement.textContent = 'Soulbound';
+                        tooltip.appendChild(soulboundElement);
                     }
                     
                     tooltip.style.display = 'block';
@@ -4386,10 +4437,11 @@
             const config = {
                 type: itemType,
                 displayName: getItemDisplayName(itemType),
-                category: 'resource' // Default category
+                category: 'resource', // Default category
+                rarity: 'common' // Default rarity - will be overridden by server if available
             };
             
-            // Try to guess category from name
+            // Try to guess category based on name
             if (itemType.includes('sword') || itemType.includes('bow') || itemType.includes('axe-')) {
                 config.category = 'weapon';
                 config.durability = 600;
