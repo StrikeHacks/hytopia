@@ -11,16 +11,31 @@ import {
 export const keyItems: Record<string, KeyItemProperties> = {
     'dungeon-key': {
         type: 'dungeon-key',
-        modelUri: 'models/items/key.gltf',
+        modelUri: 'models/items/dungeon-key.gltf',
         displayName: 'Dungeon Key',
         category: 'key',
         maxStackSize: 16,
-        scale: 0.5,
+        scale: 0.01,
         dropForce: DEFAULT_DROP_FORCE,
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'items/dungeon-key.png'
+        imageUrl: 'items/dungeon-key.png',
+        rarity: 'epic'
+    },
+    'common-key': {
+        type: 'common-key',
+        modelUri: 'models/crates/common-key.gltf',
+        displayName: 'Common Key',
+        category: 'key',
+        maxStackSize: 16,
+        scale: 1.5,
+        dropForce: DEFAULT_DROP_FORCE,
+        colliderSize: DEFAULT_COLLIDER_SIZE,
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/common-key.png',
+        rarity: 'uncommon'
     }
 };
 

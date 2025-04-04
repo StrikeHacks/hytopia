@@ -130,32 +130,6 @@ export const DUNGEONS: Record<string, DungeonConfig> = {
             { item: getItemConfig('leather'), count: 1, dropChance: 65 },
             { item: getItemConfig('dungeon-key'), count: 2, dropChance: 25 }
         ]
-    },
-     STALKER_DUNGEON_5: {
-        id: 'stalker_dungeon',
-        name: 'Elderwood Test',
-        imageUrl: 'dungeons/bread.png',
-        requiredKey: getKeyItem('nails') || getItemConfig('nails'),
-        minLevel: 1,
-        bosses: [
-            {
-                boss: DUNGEON_BOSSES.TANK_STALKER,
-                count: 1,
-            },
-            {
-                boss: DUNGEON_BOSSES.FAST_STALKER,
-                count: 1,
-            },
-            {
-                boss: DUNGEON_BOSSES.BALANCED_STALKER,
-                count: 1,
-            },
-        ],
-        lootTable: [
-            { item: getItemConfig('iron-ingot'), count: 2, dropChance: 35 },
-            { item: getItemConfig('leather'), count: 1, dropChance: 65 },
-            { item: getItemConfig('dungeon-key'), count: 2, dropChance: 25 }
-        ]
     }
 } as const;
 

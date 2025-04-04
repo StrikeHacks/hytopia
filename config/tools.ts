@@ -34,6 +34,7 @@ export const toolItems: Record<string, ToolItemProperties> = {
         maxDurability: 800,
         damage: 0.5,  // Damage per click
         canBreak: ['37', '21'],  // Stone and iron ore block IDs
+        rarity: 'uncommon'
     },
     'axe-stone': {
         type: 'axe-stone',
@@ -55,7 +56,9 @@ export const toolItems: Record<string, ToolItemProperties> = {
         maxDurability: 2,
         damage: 1,  // Damage per click
         canBreak: ['23'],  // Log blocks
-    },'pickaxe-wood': {
+        rarity: 'uncommon'
+    },
+    'pickaxe-wood': {
         type: 'pickaxe-wood',
         modelUri: 'models/items/pickaxe-wood.gltf',
         displayName: 'Wooden Pickaxe',
@@ -75,6 +78,7 @@ export const toolItems: Record<string, ToolItemProperties> = {
         maxDurability: 40,
         damage: 0.5,  // Damage per click
         canBreak: ['37', '21'],  // Stone and iron ore block IDs
+        rarity: 'common'
     },
     'axe-wood': {
         type: 'axe-wood',
@@ -96,6 +100,7 @@ export const toolItems: Record<string, ToolItemProperties> = {
         maxDurability: 40,
         damage: 0.5,  // Damage per click
         canBreak: ['23'],  // Log blocks
+        rarity: 'common'
     },
     'pickaxe-iron': {
         type: 'pickaxe-iron',
@@ -117,6 +122,7 @@ export const toolItems: Record<string, ToolItemProperties> = {
         maxDurability: 300,
         damage: 1.5,  // Damage per click
         canBreak: ['37', '21'],  // Stone and iron ore block IDs
+        rarity: 'rare'
     },
     'axe-iron': {
         type: 'axe-iron',
@@ -138,6 +144,7 @@ export const toolItems: Record<string, ToolItemProperties> = {
         maxDurability: 300,
         damage: 1.5,  // Damage per click
         canBreak: ['23'],  // Log blocks
+        rarity: 'rare'
     },
     'fishing-rod': {
         type: 'fishing-rod',
@@ -159,6 +166,7 @@ export const toolItems: Record<string, ToolItemProperties> = {
         maxDurability: 500,
         damage: 1,
         canBreak: [],
+        rarity: 'uncommon'
     }
 };
 

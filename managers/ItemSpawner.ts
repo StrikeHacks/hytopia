@@ -38,6 +38,14 @@ const INITIAL_ITEMS = [
     { type: 'stone', position: { x: -16, y: 3.7, z: 2 } },
     { type: 'iron-ingot', position: { x: -18, y: 3.7, z: 2 } },
     { type: 'leather', position: { x: -20, y: 3.7, z: 2 } },
+    { type: 'common-key', position: { x: -8, y: 3.7, z: 5 } },
+    { type: 'common-key', position: { x: -8, y: 3.7, z: 5 } },
+    { type: 'common-key', position: { x: -8, y: 3.7, z: 5 } },
+    { type: 'common-key', position: { x: -8, y: 3.7, z: 5 } },
+    { type: 'common-key', position: { x: -8, y: 3.7, z: 5 } },
+    { type: 'common-key', position: { x: -8, y: 3.7, z: 5 } },
+    { type: 'common-key', position: { x: -8, y: 3.7, z: 5 } },
+    { type: 'common-key', position: { x: -8, y: 3.7, z: 5 } },
 
 ];
 

@@ -5,7 +5,6 @@ import { getFixedModelConfig } from '../config/fixedModels';
 
 export class FixedModelManager {
     private placedModels: Map<string, FixedModelEntity[]> = new Map();
-    private workbenches: FixedModelEntity[] = [];
     
     constructor(private world: World) {}
     
@@ -35,11 +34,6 @@ export class FixedModelManager {
             const models = this.placedModels.get(modelId) || [];
             models.push(entity);
             this.placedModels.set(modelId, models);
-            
-            // Track workbenches separately for easy access
-            if (modelId === 'workbench') {
-                this.workbenches.push(entity);
-            }
             
             console.log(`[FixedModelManager] Placed ${modelId} at position:`, position, `rotation:`, rotation);
             
@@ -119,56 +113,64 @@ export class FixedModelManager {
     }
     
     /**
-     * Get all placed workbenches
+     * Find the closest model of a specific type to a position
+     * @param modelId The type of model to find
+     * @param position The position to measure from
+     * @param maxDistance Optional maximum distance to consider
      */
-    public getWorkbenches(): FixedModelEntity[] {
-        return this.workbenches;
-    }
-    
-    /**
-     * Find the closest workbench to a position
-     */
-    public findClosestWorkbench(position: Vector3Like): FixedModelEntity | null {
-        if (this.workbenches.length === 0) {
+    public findClosestModel(modelId: string, position: Vector3Like, maxDistance?: number): FixedModelEntity | null {
+        const models = this.getModelInstances(modelId);
+        if (models.length === 0) {
             return null;
         }
         
-        let closestWorkbench: FixedModelEntity | null = null;
+        let closestModel: FixedModelEntity | null = null;
         let closestDistance = Number.MAX_VALUE;
         
-        for (const workbench of this.workbenches) {
-            if (!workbench.isSpawned) continue;
+        for (const model of models) {
+            if (!model.isSpawned) continue;
             
-            const workbenchPos = workbench.position;
-            const dx = position.x - workbenchPos.x;
-            const dy = position.y - workbenchPos.y;
-            const dz = position.z - workbenchPos.z;
-            const distance = dx * dx + dy * dy + dz * dz; // Square distance (faster than sqrt)
+            const modelPos = model.position;
+            const dx = position.x - modelPos.x;
+            const dy = position.y - modelPos.y;
+            const dz = position.z - modelPos.z;
+            const distanceSquared = dx * dx + dy * dy + dz * dz;
             
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestWorkbench = workbench;
+            // If maxDistance is specified, check if this model is within range
+            if (maxDistance !== undefined && distanceSquared > maxDistance * maxDistance) {
+                continue;
+            }
+            
+            if (distanceSquared < closestDistance) {
+                closestDistance = distanceSquared;
+                closestModel = model;
             }
         }
         
-        return closestWorkbench;
+        return closestModel;
     }
     
     /**
-     * Check if a position is close to any workbench
+     * Check if a position is close to any model of a specific type
+     * @param modelId The type of model to check for
      * @param position Position to check
      * @param maxDistance Maximum distance considered "close"
      */
+    public isNearModel(modelId: string, position: Vector3Like, maxDistance: number = 3): boolean {
+        const closestModel = this.findClosestModel(modelId, position, maxDistance);
+        return closestModel !== null;
+    }
+    
+    // Backwards compatibility methods for workbench functionality
+    public getWorkbenches(): FixedModelEntity[] {
+        return this.getModelInstances('workbench');
+    }
+    
+    public findClosestWorkbench(position: Vector3Like): FixedModelEntity | null {
+        return this.findClosestModel('workbench', position);
+    }
+    
     public isNearWorkbench(position: Vector3Like, maxDistance: number = 3): boolean {
-        const closestWorkbench = this.findClosestWorkbench(position);
-        if (!closestWorkbench) return false;
-        
-        const workbenchPos = closestWorkbench.position;
-        const dx = position.x - workbenchPos.x;
-        const dy = position.y - workbenchPos.y;
-        const dz = position.z - workbenchPos.z;
-        const distanceSquared = dx * dx + dy * dy + dz * dz;
-        
-        return distanceSquared <= maxDistance * maxDistance;
+        return this.isNearModel('workbench', position, maxDistance);
     }
 } 

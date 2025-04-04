@@ -29,7 +29,8 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         durability: 3,
         maxDurability: 3,
         damage: 35,
-        soulbound: true
+        soulbound: true,
+        rarity: 'legendary'
     },
     'sword-stone': {
         type: 'sword-stone',
@@ -49,7 +50,8 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         imageUrl: 'items/stone-sword.png',
         durability: 800,
         maxDurability: 800,
-        damage: 15
+        damage: 15,
+        rarity: 'uncommon'
     },
     'sword-golden': {
         type: 'sword-golden',
@@ -69,7 +71,8 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         imageUrl: 'items/golden-sword.png',
         durability: 300,
         maxDurability: 300,
-        damage: 20
+        damage: 20,
+        rarity: 'epic'
     },
     'sword-wood': {
         type: 'sword-wood',
@@ -89,7 +92,8 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         imageUrl: 'items/wooden-sword.png',
         durability: 100,
         maxDurability: 100,
-        damage: 10
+        damage: 10,
+        rarity: 'common'
     }
 };
 

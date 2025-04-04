@@ -66,6 +66,7 @@ export interface ItemProperties {
   handOffset?: { x: number; y: number; z: number };
   handRotation?: { x: number; y: number; z: number; w: number };
   imageUrl: string;
+  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
 }
 
 // Resources
@@ -127,7 +128,8 @@ export function getDefaultItemProperties(type: string, displayName: string, cate
     colliderSize: DEFAULT_COLLIDER_SIZE,
     handOffset: DEFAULT_HAND_OFFSET,
     handRotation: DEFAULT_HAND_ROTATION,
-    imageUrl: `items/${type}.png`
+    imageUrl: `items/${type}.png`,
+    rarity: 'common'
   };
 }
 

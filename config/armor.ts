@@ -28,7 +28,8 @@ export const armorItems: Record<string, ArmorItemProperties> = {
         imageUrl: 'items/helmet-iron.png', // This would need to be created
         durability: 1000,
         maxDurability: 1000,
-        armorPoints: 3
+        armorPoints: 3,
+        rarity: 'rare'
     }
 };
 

@@ -104,6 +104,7 @@ export function getFallbackItem(itemType: string): ItemProperties {
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'items/fallback.png'
+        imageUrl: 'items/fallback.png',
+        rarity: 'common'
     };
 } 

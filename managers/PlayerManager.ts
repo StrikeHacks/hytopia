@@ -1494,6 +1494,56 @@ export class PlayerManager {
 				this.openCrafting();
 				// Visual feedback that interaction happened
 				playerEntity.startModelOneshotAnimations(["simple_interact"]);
+			} else if (hitEntity.name.includes('-crate')) {
+				// Extract the crate type from the entity name
+				const crateType = hitEntity.name;
+				
+				// Get the crate configuration
+				const { getCrateById } = require('../config/crates');
+				const crateConfig = getCrateById(crateType);
+				
+				if (!crateConfig) {
+					console.error(`[PlayerManager] Could not find crate configuration for ${crateType}`);
+					return;
+				}
+
+				// Check if player is holding the required key in their selected slot
+				const selectedSlot = this.playerInventory.getSelectedSlot();
+				const heldItem = this.playerInventory.getItem(selectedSlot);
+				const requiredKeyType = crateConfig.requiredKey.type;
+
+				if (heldItem === requiredKeyType) {
+					const count = this.playerInventory.getItemCount(selectedSlot);
+					if (count > 0) {
+						// Check if player is on cooldown for this specific crate type
+						if (this.gameManager.getCrateManager().isPlayerOnCooldown(this.player.id, crateType)) {
+							// Show cooldown message to player
+							this.player.ui.sendData({
+								showItemName: {
+									name: `Please wait before opening another ${crateConfig.name}`
+								}
+							});
+							return;
+						}
+
+						console.log(`[PlayerManager] Opening ${crateType} with ${requiredKeyType}`);
+						// Handle crate interaction via CrateManager
+						this.gameManager.getCrateManager().handleCrateInteraction(
+							crateType, 
+							hitEntity,
+							this.playerInventory,
+							selectedSlot,
+							this.player.id
+						);
+					}
+				} else {
+					// Notify player they need to hold the key
+					this.player.ui.sendData({
+						showItemName: {
+							name: `Hold a ${crateConfig.requiredKey.displayName} to open this crate`
+						}
+					});
+				}
 			}
 		}
 	}

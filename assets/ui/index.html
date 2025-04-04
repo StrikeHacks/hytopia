@@ -1663,6 +1663,187 @@
         .dungeon-confirmation-popup .cancel-button:hover {
             background: #da190b;
         }
+
+        .name {
+            color: white;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+            font-size: 16px;
+            font-weight: bold;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .item-name {
+            font-size: 14px;
+            color: gold; /* Gold color for items */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+ 
+        }
+
+        .item-name-text {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Base name style for all floating text */
+        .name {
+            color: white;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+            font-size: 16px;
+            font-weight: bold;
+            white-space: nowrap;
+            text-align: center;
+            padding: 4px 8px;
+        }
+
+        /* Specific style for item names */
+        .floating-item-name {
+            font-size: 50px; /* Much bigger text */
+            font-family: 'Arial', sans-serif;
+            font-weight: 900; /* Extra bold */
+            letter-spacing: 1px;
+            transform: scale(1.1) translateY(-5px);
+            white-space: nowrap;
+            pointer-events: none;
+            user-select: none;
+            animation: floatText 2.5s ease-in-out infinite;
+            text-shadow: none; /* Remove text shadow */
+        }
+
+        /* Smoother floating animation */
+        @keyframes floatText {
+            0% { transform: scale(1.1) translateY(-5px); }
+            50% { transform: scale(1.1) translateY(-8px); }
+            100% { transform: scale(1.1) translateY(-5px); }
+        }
+
+        /* Remove any background or padding */
+        .floating-item-name.name {
+            background: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Animation for item names */
+        @keyframes floatText {
+            0% { transform: translateY(-20px); }
+            50% { transform: translateY(-23px); }
+            100% { transform: translateY(-20px); }
+        }
+
+        .floating-item-name {
+            animation: floatText 2s ease-in-out infinite;
+        }
+
+        /* Item rarity colors */
+        .rarity-common {
+            color: #9d9d9d;
+        }
+        .rarity-uncommon {
+            color: #1eff00;
+        }
+        .rarity-rare {
+            color: #0070dd;
+        }
+        .rarity-epic {
+            color: #a335ee;
+        }
+        .rarity-legendary {
+            color: #ff8000;
+        }
+        .rarity-mythic {
+            color: #ff0000;
+        }
+
+        /* Base floating item name style */
+        .floating-item-name {
+            /* Remove default color, it will be set by rarity class */
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-align: center;
+            white-space: nowrap;
+            padding: 0;
+            margin: 0;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+            animation: float 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Floating container for item name and player name */
+        .floating-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        /* Player name style */
+        .player-name {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Base floating item name style */
+        .floating-item-name {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-align: center;
+            white-space: nowrap;
+            padding: 0;
+            margin: 0;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Container for the combined floating text */
+        .floating-text-container {
+            /* Removed display: flex and align-items */
+            text-align: center; /* Center the text lines */
+            animation: float 2s ease-in-out infinite;
+            font-size: 30px; /* Increased font size */
+            font-weight: 900;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+            white-space: nowrap; /* Prevent line breaks */
+        }
+
+        /* Style for the 'Player won' part */
+        .player-won-text {
+            color: white;
+            /* Removed margin-right */
+            margin-bottom: 4px; /* Add some space below */
+        }
+
+        /* Style for the item name part (color determined by rarity class) */
+        .item-name-text {
+            /* Inherits most styles from container */
+        }
+
+        /* Item rarity colors */
+        .rarity-common { color: #9d9d9d; }
+        .rarity-uncommon { color: #1eff00; }
+        .rarity-rare { color: #0070dd; }
+        .rarity-epic { color: #a335ee; }
+        .rarity-legendary { color: #ff8000; }
+        .rarity-mythic { color: #ff0000; }
+
+        /* Animation for floating effect */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
     </style>
 </head>
 <body>
@@ -1852,6 +2033,19 @@
             <!-- Dungeon entries will be added dynamically -->
         </div>
     </div>
+
+    <!-- Template for item names -->
+    <template id="item-name-template">
+        <div class="name"></div>
+    </template>
+
+    <!-- Item name display template -->
+    <template id="item-name-display">
+        <div class="floating-text-container">
+            <div class="player-won-text">{{playerName}} won</div>
+            <div class="item-name-text rarity-{{rarity}}">{{name}}</div>
+        </div>
+    </template>
 
     <script>
         console.log('Script loaded');
@@ -2447,6 +2641,29 @@
             
             onState(state => {
                 nameElement.textContent = state.name;
+            });
+            
+            return clone;
+        });
+
+        // Register template for item names specifically, now handling rarity color
+        hytopia.registerSceneUITemplate('item-name-display', (id, onState) => {
+            const template = document.getElementById('item-name-display');
+            const clone = template.content.cloneNode(true);
+            const playerWonElement = clone.querySelector('.player-won-text');
+            const itemNameElement = clone.querySelector('.item-name-text');
+            
+            onState(state => {
+                // Set the player name part
+                if (playerWonElement) {
+                    playerWonElement.textContent = `${state.playerName || 'Player'} won`; // Verwijder extra spatie
+                }
+
+                // Set the item name part and its rarity class
+                if (itemNameElement) {
+                    itemNameElement.textContent = state.name;
+                    itemNameElement.className = `item-name-text rarity-${state.rarity || 'common'}`;
+                }
             });
             
             return clone;
@@ -3091,6 +3308,7 @@
             if (data.dungeonToggle) {
                 const dungeonUI = document.getElementById('dungeonUI');
                 const crosshair = document.querySelector('.crosshair');
+                const closeInventoryBtn = document.getElementById('closeInventory');
                 
                 // CRITICAL: Debug dungeon toggle data
                 console.log(`[UI] dungeonToggle data received:`, JSON.stringify(data.dungeonToggle));
@@ -3101,6 +3319,13 @@
                     if (data.dungeonToggle.isOpen) {
                         dungeonUI.classList.add('visible');
                         crosshair.classList.add('hidden');
+                        
+                        // Disable inventory close button
+                        if (closeInventoryBtn) {
+                            closeInventoryBtn.style.pointerEvents = 'none';
+                            closeInventoryBtn.style.opacity = '0.5';
+                            closeInventoryBtn.disabled = true;
+                        }
                         
                         // Disable pointer lock when opening dungeon UI
                         hytopia.lockPointer(false);
@@ -3120,6 +3345,13 @@
                     } else {
                         dungeonUI.classList.remove('visible');
                         crosshair.classList.remove('hidden');
+                        
+                        // Re-enable inventory close button
+                        if (closeInventoryBtn) {
+                            closeInventoryBtn.style.pointerEvents = 'auto';
+                            closeInventoryBtn.style.opacity = '1';
+                            closeInventoryBtn.disabled = false;
+                        }
                         
                         // Enable pointer lock when closing dungeon UI
                         hytopia.lockPointer(true);
@@ -5192,7 +5424,7 @@
                         showNotification(`You need to be level ${dungeon.minLevel} to enter this dungeon`, 'error');
                         return;
                     }
-
+                    
                     // Check key requirement
                     if (dungeon.requiredKey && !dungeon.requiredKey.hasKey) {
                         console.log(`[UI] Player does not have required key: ${dungeon.requiredKey.type}`);

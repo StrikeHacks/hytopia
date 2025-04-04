@@ -15,6 +15,7 @@ import { predefinedModelPlacements } from '../config/fixedModels';
 import { TravelerManager } from './TravelerManager';
 import { DungeonManager } from './DungeonManager';
 import { LevelManager } from './LevelManager';
+import { CrateManager } from './CrateManager';
 
 // Statische singleton voor globale toegang tot ItemSpawner
 export let globalItemSpawner: ItemSpawner | null = null;
@@ -33,6 +34,7 @@ export class GameManager {
     private travelerManager: TravelerManager;
     private dungeonManager: DungeonManager;
     private levelManager: LevelManager;
+    private crateManager: CrateManager;
     private world: World;
 
     constructor(world: World) {
@@ -46,6 +48,7 @@ export class GameManager {
         this.travelerManager = new TravelerManager(world, this);
         this.dungeonManager = new DungeonManager(world, this);
         this.levelManager = new LevelManager(world, this);
+        this.crateManager = new CrateManager(world, this.itemSpawner);
         //this.setupGenerators();
         this.spawnInitialItems();
         this.placeFixedModels();
@@ -94,34 +97,39 @@ export class GameManager {
      * Place fixed models in the world based on predefined placements
      */
     private placeFixedModels(): void {
-        // Place workbenches at predefined locations
-        if (predefinedModelPlacements.workbench) {
-            console.log(`[GameManager] Placing ${predefinedModelPlacements.workbench.length} workbenches at predefined locations`);
+        // Place all predefined models
+        for (const [modelId, placements] of Object.entries(predefinedModelPlacements)) {
+            if (!placements || placements.length === 0) {
+                console.log(`[GameManager] No placements defined for model: ${modelId}`);
+                continue;
+            }
+
+            console.log(`[GameManager] Placing ${placements.length} ${modelId} models at predefined locations`);
             
-            for (const placement of predefinedModelPlacements.workbench) {
-                const workbench = this.fixedModelManager.placeModel(
-                    'workbench', 
+            for (const placement of placements) {
+                const model = this.fixedModelManager.placeModel(
+                    modelId, 
                     placement.position, 
                     placement.rotation
                 );
                 console.log(
-                    `[GameManager] Workbench placed at: x=${placement.position.x}, y=${placement.position.y}, z=${placement.position.z}, ` + 
-                    `rotation=${placement.rotation || 0}, entity ID: ${workbench.id}`
+                    `[GameManager] ${modelId} placed at: x=${placement.position.x}, y=${placement.position.y}, z=${placement.position.z}, ` + 
+                    `rotation=${placement.rotation || 0}, entity ID: ${model.id}`
                 );
             }
             
-            // Log the total count of workbenches after placement
+            // Log the total count of this model type after placement
             setTimeout(() => {
-                const workbenches = this.fixedModelManager.getWorkbenches();
-                console.log(`[GameManager] Total workbenches placed: ${workbenches.length}`);
-                workbenches.forEach((wb, index) => {
-                    console.log(`[GameManager] Workbench ${index+1} position: `, wb.position);
+                const models = this.fixedModelManager.getModelInstances(modelId);
+                console.log(`[GameManager] Total ${modelId} models placed: ${models.length}`);
+                models.forEach((model, index) => {
+                    console.log(`[GameManager] ${modelId} ${index + 1} position: `, model.position);
                 });
             }, 1000); // Small delay to ensure all are spawned
-        } else {
-            console.error("[GameManager] No workbench placements defined in configuration!");
         }
     }
+
+
 
     public getPlayerInventories(): Map<string, PlayerInventory> {
         return this.playerInventories;
@@ -219,5 +227,9 @@ export class GameManager {
     
     public getLevelManager(): LevelManager {
         return this.levelManager;
+    }
+
+    public getCrateManager(): CrateManager {
+        return this.crateManager;
     }
 } 
