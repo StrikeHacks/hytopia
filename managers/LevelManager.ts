@@ -51,8 +51,8 @@ export class LevelManager {
     public initializePlayer(playerId: string): void {
         if (!this.playerLevels.has(playerId)) {
             this.playerLevels.set(playerId, {
-                level: 50,
-                xp: 0,
+                level: 1,
+                xp: 50,
                 nextLevelXp: XP_REQUIREMENTS[1]
             });
             
@@ -100,42 +100,53 @@ export class LevelManager {
      * Add XP to a player and handle level ups
      */
     public addPlayerXP(playerId: string, amount: number): boolean {
-        if (amount <= 0) return false;
+        console.log(`[LevelManager] Adding ${amount} XP to player ${playerId}`);
         
-        if (!this.playerLevels.has(playerId)) {
-            this.initializePlayer(playerId);
-        }
-        
-        const playerData = this.playerLevels.get(playerId)!;
-        
-        // Don't add XP if player is at max level
-        if (playerData.level >= MAX_LEVEL) {
+        if (!playerId || amount <= 0) {
+            console.log(`[LevelManager] Invalid parameters: playerId=${playerId}, amount=${amount}`);
             return false;
         }
         
-        // Add XP
-        playerData.xp += amount;
-        console.log(`[LevelManager] Added ${amount} XP to player ${playerId}. Total: ${playerData.xp}`);
-        
-        // Check for level up
-        let leveledUp = false;
-        while (playerData.xp >= playerData.nextLevelXp && playerData.level < MAX_LEVEL) {
-            playerData.level++;
-            leveledUp = true;
+        let levelData = this.playerLevels.get(playerId);
+        if (!levelData) {
+            console.log(`[LevelManager] Initializing player ${playerId} because no level data found`);
+            this.initializePlayer(playerId);
+            levelData = this.playerLevels.get(playerId);
             
-            // Set next level XP requirement
-            if (playerData.level < MAX_LEVEL) {
-                playerData.nextLevelXp = XP_REQUIREMENTS[playerData.level];
+            if (!levelData) {
+                console.error(`[LevelManager] Failed to initialize player ${playerId}`);
+                return false;
             }
-            
-            console.log(`[LevelManager] Player ${playerId} leveled up to ${playerData.level}!`);
         }
         
-        // Update player level data
-        this.playerLevels.set(playerId, playerData);
+        console.log(`[LevelManager] Before XP: Level=${levelData.level}, XP=${levelData.xp}, NextLevelXP=${levelData.nextLevelXp}`);
         
-        // Send level update to player
+        // Add XP
+        levelData.xp += amount;
+        let leveledUp = false;
+        
+        // Check for level up
+        while (levelData.xp >= levelData.nextLevelXp) {
+            // Level up
+            levelData.level += 1;
+            levelData.xp -= levelData.nextLevelXp;
+            levelData.nextLevelXp = Math.floor(100 * Math.pow(1.4, levelData.level - 1));
+            leveledUp = true;
+            
+            console.log(`[LevelManager] Player ${playerId} leveled up to ${levelData.level}!`);
+            console.log(`[LevelManager] New XP threshold: ${levelData.nextLevelXp}`);
+            
+            // Increase player max health with level (handled automatically in sendLevelUpdateToPlayer)
+        }
+        
+        // Update the player data
+        this.playerLevels.set(playerId, levelData);
+        
+        // Send the new level data to the player UI
         this.sendLevelUpdateToPlayer(playerId);
+        
+        console.log(`[LevelManager] After XP: Level=${levelData.level}, XP=${levelData.xp}, NextLevelXP=${levelData.nextLevelXp}`);
+        console.log(`[LevelManager] Player ${playerId} leveled up: ${leveledUp}`);
         
         return leveledUp;
     }

@@ -290,11 +290,18 @@ export class PlayerInventory {
         this.lastUpdateTime = Date.now();
     }
 
-    public handleInventoryToggle(): void {
+    public handleInventoryToggle(forceOpen: boolean = false): void {
         if (this.isProcessingToggle) return;
         
         this.isProcessingToggle = true;
-        this.isInventoryOpen = !this.isInventoryOpen;
+        
+        // If forceOpen is true, always set isInventoryOpen to true
+        // Otherwise toggle the current state
+        if (forceOpen) {
+            this.isInventoryOpen = true;
+        } else {
+            this.isInventoryOpen = !this.isInventoryOpen;
+        }
         
         // Send inventory state to UI
         this.playerEntity.player.ui.sendData({

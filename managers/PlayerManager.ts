@@ -25,6 +25,7 @@ import { getAvailableCategories } from '../config/recipes';
 import { StalkerBoss } from '../bosses/StalkerBoss';
 import { getTradesByCategory, formatTradeForUI } from '../config/travelerTrades';
 import { BaseItem } from '../items/BaseItem';
+import { AttackerTracker } from '../utils/AttackerTracker';
 
 export class PlayerManager {
 	private playerEntity: PlayerEntity;
@@ -741,7 +742,7 @@ export class PlayerManager {
 
 	private openInventory(): void {
 		this.player.ui.lockPointer(false);
-		this.playerInventory.handleInventoryToggle();
+		this.playerInventory.handleInventoryToggle(true);
 	}
 
 	private closeInventory(): void {
@@ -1158,10 +1159,9 @@ export class PlayerManager {
 			// Check of het een dier is (zoals een koe)
 			if (hitEntity.name.toLowerCase().includes('cow') || hitEntity.name.toLowerCase().includes('animal')) {
 				
-
 				// Dier aanvallen via AnimalManager
 				const animalManager = this.gameManager.getAnimalManager();
-				animalManager.handleAnimalHit(hitEntity, direction, damage);
+				animalManager.handleAnimalHit(hitEntity, direction, damage, playerEntity.player.id);
 				entityHit = true;
 				
 				// Als er een wapen is gebruikt, verlaag de durability
@@ -1185,8 +1185,19 @@ export class PlayerManager {
 			else if (hitEntity instanceof StalkerBoss) {
 				console.log(`[Combat] Hit a boss! ${hitEntity.name} op afstand ${this._getDistance(playerEntity.position, hitEntity.position)}`, {
 					weapon: heldItem || 'hand',
-					damage: bossDamage
+					damage: bossDamage,
+					player: playerEntity.name,
+					playerId: playerEntity.player.id
 				});
+				
+				// Record this player as the attacker for this boss
+				if (hitEntity.id) {
+					try {
+						AttackerTracker.getInstance().recordAttack(hitEntity.id, playerEntity);
+					} catch (error) {
+						console.error(`[Combat] Error recording attack in AttackerTracker:`, error);
+					}
+				}
 				
 				// Boss aanvallen met speciale damage
 				(hitEntity as StalkerBoss).takeDamage(bossDamage, true);
@@ -1242,7 +1253,6 @@ export class PlayerManager {
 			
 			// Als we een boss hebben gevonden binnen range, attack deze
 			if (closestBoss) {
-				
 				// Bepaal damage op basis van uitgerust item
 				const selectedSlot = this.playerInventory.getSelectedSlot();
 				const heldItem = this.playerInventory.getItem(selectedSlot);
@@ -1267,6 +1277,14 @@ export class PlayerManager {
 					}
 				}
 				
+				// Record this player as the attacker for this boss
+				if (closestBoss.id) {
+					try {
+						AttackerTracker.getInstance().recordAttack(closestBoss.id, playerEntity);
+					} catch (error) {
+						console.error(`[Combat] Error recording attack in AttackerTracker:`, error);
+					}
+				}
 				
 				// Deal schade aan de boss
 				closestBoss.takeDamage(bossDamage, true);

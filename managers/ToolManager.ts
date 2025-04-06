@@ -4,6 +4,7 @@ import { ItemSpawner } from './ItemSpawner';
 import { getToolItem } from '../config/tools';
 import { blockConfigs, getBlockConfig, getBlockRespawnConfig } from '../config/blocks';
 import { ItemInstanceManager } from '../items/ItemInstanceManager';
+import { GameManager } from './GameManager';
 
 export interface ToolConfig {
     name: string;
@@ -27,8 +28,10 @@ export class ToolManager {
     constructor(
         private world: World,
         private playerInventories: Map<string, PlayerInventory>,
-        private itemSpawner: ItemSpawner
+        private itemSpawner: ItemSpawner,
+        private gameManager: GameManager
     ) {
+        console.log('[ToolManager] Initialized');
         
         // Ensure ItemInstanceManager is initialized
         ItemInstanceManager.getInstance();
@@ -220,6 +223,15 @@ export class ToolManager {
             if (this.resetTimer) {
                 clearTimeout(this.resetTimer);
                 this.resetTimer = null;
+            }
+
+            // Award XP to the player if block has XP reward
+            if (blockConfig.xpReward) {
+                const levelManager = this.gameManager.getLevelManager();
+                if (levelManager) {
+                    levelManager.addPlayerXP(playerId, blockConfig.xpReward);
+                    console.log(`[ToolManager] Awarded ${blockConfig.xpReward} XP to player ${playerId} for mining ${blockConfig.name}`);
+                }
             }
         }
     }

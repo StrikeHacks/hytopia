@@ -63,7 +63,7 @@
         /* Tooltip styles */
         .item-tooltip {
             position: absolute;
-            background-color: rgba(0, 0, 0, 0.85);
+            background-color: rgba(0, 0, 0, 1);
             border: 2px solid rgba(139, 69, 19, 0.7);
             border-radius: 4px;
             color: white;
@@ -904,7 +904,7 @@
         /* Add styles for the tooltip */
         .item-tooltip {
             position: fixed; /* Changed from absolute to fixed */
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 1);
             color: white;
             padding: 8px 12px;
             border-radius: 4px;
@@ -1835,6 +1835,197 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
         }
+
+        /* Player level display styles */
+        .player-level-display {
+            position: fixed;
+            bottom: 20px;
+            /* Position right next to the hotbar */
+            right: calc(50% + 158px); 
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #8B4513;
+            border-radius: 4px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            color: white;
+            font-weight: bold;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+            padding: 0;
+        }
+
+        .player-level-number {
+            font-size: 22px;
+            line-height: 1;
+            color: #FFD700; /* Gold color for level number */
+            margin-top: -2px;
+        }
+
+        .player-level-label {
+            font-size: 8px;
+            margin-top: 0px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        .player-level-progress {
+            width: 80%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin-top: 2px;
+            overflow: hidden;
+        }
+
+        .player-level-progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .crosshair {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9999;
+            width: 16px;
+            height: 16px;
+            opacity: 1;
+            transition: opacity 0.2s ease;
+        }
+
+        /* Tabs for inventory */
+        .inventory-tabs {
+            display: flex;
+            margin-bottom: 10px; /* Restore original margin */
+            border-bottom: 2px solid #8B4513; /* Restore original border */
+        }
+
+        .inventory-tab {
+            padding: 8px 15px;
+            background-color: rgba(139, 69, 19, 0.4); /* Restore original background */
+            color: #ddd;
+            border: none; /* Restore no border */
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            margin-right: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+
+        .inventory-tab.active {
+            background-color: rgba(139, 69, 19, 0.8); /* Restore original active background */
+            color: white;
+            font-weight: bold;
+            /* Remove positioning adjustments */
+        }
+
+        /* Adjust inventory container */
+        .inventory-container {
+            display: none; /* Keep it hidden by default */
+            position: fixed;
+            top: 20px; /* Restore original position */
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px; /* Restore original padding */
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            /* Remove position relative */
+        }
+
+        /* Profile tab content */
+        .profile-content {
+            display: none;
+            padding: 20px;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .profile-content.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .inventory-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .inventory-content.inactive {
+            display: none;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-header h2 {
+            margin: 0;
+            color: #FFD700;
+            font-size: 24px;
+        }
+
+        .profile-stats {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .profile-stat {
+            width: 100%;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .profile-stat-label {
+            display: block;
+            font-size: 18px;
+            color: #ddd;
+            margin-bottom: 5px;
+        }
+
+        .profile-stat-value {
+            font-size: 36px;
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+
+        .xp-bar-container {
+            width: 80%;
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px auto;
+        }
+
+        .xp-bar-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .xp-text {
+            font-size: 14px;
+            color: #ddd;
+            text-align: center;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -1917,6 +2108,15 @@
       </div>
     </template>
 
+    <!-- Player Level Display -->
+    <div class="player-level-display">
+        <div class="player-level-number">1</div>
+        <div class="player-level-label">Level</div>
+        <div class="player-level-progress">
+            <div class="player-level-progress-fill" style="width: 0%"></div>
+        </div>
+    </div>
+
     <div class="hotbar">
         <div class="hotbar-slot selected" data-slot="0">
             <div class="item-icon"></div>
@@ -1952,26 +2152,56 @@
     
     <div class="inventory-container" id="inventory" style="display: none;">
         <button class="close-button" id="closeInventory">X</button>
-        <div class="armor-and-player">
-            <div class="armor-section">
-                <div class="armor-slots">
-                    <div class="armor-slot helmet-slot">
-                        <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_helmet.gif')"></div>
+        
+        <div class="inventory-tabs">
+            <button class="inventory-tab active" data-tab="inventory">Inventory</button>
+            <button class="inventory-tab" data-tab="profile">Profile</button>
+        </div>
+        
+        <div class="inventory-content active" id="inventoryContent">
+            <div class="armor-and-player">
+                <div class="armor-section">
+                    <div class="armor-slots">
+                        <div class="armor-slot helmet-slot">
+                            <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_helmet.gif')"></div>
+                        </div>
+                        <div class="armor-slot chestplate-slot">
+                            <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_chestplate.gif')"></div>
+                        </div>
+                        <div class="armor-slot leggings-slot">
+                            <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_leggings.gif')"></div>
+                        </div>
+                        <div class="armor-slot boots-slot">
+                            <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_boots.gif')"></div>
+                        </div>
                     </div>
-                    <div class="armor-slot chestplate-slot">
-                        <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_chestplate.gif')"></div>
-                    </div>
-                    <div class="armor-slot leggings-slot">
-                        <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_leggings.gif')"></div>
-                    </div>
-                    <div class="armor-slot boots-slot">
-                        <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_boots.gif')"></div>
+                    <div class="backpack-slot">
+                        <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/chest.gif')"></div>
                     </div>
                 </div>
-                <div class="backpack-slot">
-                    <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/chest.gif')"></div>
+                <div class="player-preview">
+                    <model-viewer
+                        src="{{CDN_ASSETS_URL}}/models/players/player.gltf"
+                        camera-controls
+                        disable-zoom
+                        style="background-color: transparent;"
+                        camera-orbit="180deg 90deg 10m"
+                        field-of-view="30deg"
+                        camera-target="0 1 0"
+                        poster=""
+                        loading="eager">
+                    </model-viewer>
                 </div>
             </div>
+            <div class="inventory-grid" id="inventoryGrid"></div>
+            <div class="inventory-hotbar" id="inventoryHotbar"></div>
+        </div>
+        
+        <div class="profile-content" id="profileContent">
+            <div class="profile-header">
+                <h2>Player Profile</h2>
+            </div>
+            
             <div class="player-preview">
                 <model-viewer
                     src="{{CDN_ASSETS_URL}}/models/players/player.gltf"
@@ -1985,9 +2215,22 @@
                     loading="eager">
                 </model-viewer>
             </div>
+            
+            <div class="profile-stats">
+                <div class="profile-stat">
+                    <span class="profile-stat-label">Level</span>
+                    <div class="profile-stat-value" id="playerLevelDisplay">1</div>
+                </div>
+                
+                <div class="profile-stat">
+                    <span class="profile-stat-label">Experience</span>
+                    <div class="xp-bar-container">
+                        <div class="xp-bar-fill" id="xpBarFill"></div>
+                    </div>
+                    <div class="xp-text" id="xpText">0 / 100 XP</div>
+                </div>
+            </div>
         </div>
-        <div class="inventory-grid" id="inventoryGrid"></div>
-        <div class="inventory-hotbar" id="inventoryHotbar"></div>
     </div>
 
     <div class="crafting-ui" id="craftingUI">
@@ -2552,11 +2795,25 @@
 
         // Handle keydown
         document.addEventListener('keydown', (event) => {
-            // Check if crafting UI is open
+            // Check if other UIs are open
             const isCraftingOpen = document.getElementById('craftingUI').classList.contains('visible');
             
-            // E key for inventory toggle - only if crafting is closed
-            if (event.key.toLowerCase() === 'e' && !isKeyPressed && !isCraftingOpen) {
+            // Check traveler UI - can be set to display: flex or block
+            const travelerUI = document.getElementById('travelerUI');
+            const isTravelerOpen = travelerUI.style.display === 'flex' || 
+                                   travelerUI.style.display === 'block' || 
+                                   travelerUI.classList.contains('visible');
+            
+            // Check dungeon UI - can use visible class or display: block
+            const dungeonUI = document.getElementById('dungeonUI');
+            const isDungeonOpen = dungeonUI.classList.contains('visible') || 
+                                  dungeonUI.style.display === 'block' || 
+                                  dungeonUI.style.display === 'flex';
+            
+            console.log(`[UI] UI States - Crafting: ${isCraftingOpen}, Traveler: ${isTravelerOpen}, Dungeon: ${isDungeonOpen}`);
+            
+            // E key for inventory toggle - only if no other UI is open
+            if (event.key.toLowerCase() === 'e' && !isKeyPressed && !isCraftingOpen && !isTravelerOpen && !isDungeonOpen) {
                 isKeyPressed = true;
                 const inventoryContainer = document.getElementById('inventory');
                 const isInventoryOpen = inventoryContainer.style.display === 'block';
@@ -3429,28 +3686,49 @@
                 console.log('[UI] Received player stats:', data.playerStats);
                 if (typeof data.playerStats.level === 'number') {
                     window.playerLevel = data.playerStats.level;
-                    console.log(`[UI] Updated player level to: ${window.playerLevel}`);
+                    
+                    // Update level display
+                    const levelNumber = document.querySelector('.player-level-number');
+                    if (levelNumber) {
+                        levelNumber.textContent = data.playerStats.level;
+                    }
+                    
+                    // Update level display in profile tab
+                    const playerLevelDisplay = document.getElementById('playerLevelDisplay');
+                    if (playerLevelDisplay) {
+                        playerLevelDisplay.textContent = data.playerStats.level;
+                    }
                 }
                 
-                // Update XP if available
                 if (typeof data.playerStats.xp === 'number') {
                     window.playerXP = data.playerStats.xp;
                 }
                 
                 if (typeof data.playerStats.nextLevelXp === 'number') {
                     window.playerNextLevelXP = data.playerStats.nextLevelXp;
-                }
-                
-                // Update level display in UI if it exists
-                const levelDisplay = document.getElementById('playerLevel');
-                if (levelDisplay) {
-                    levelDisplay.textContent = `Level: ${window.playerLevel}`;
-                }
-                
-                // Update XP display in UI if it exists
-                const xpDisplay = document.getElementById('playerXP');
-                if (xpDisplay) {
-                    xpDisplay.textContent = `XP: ${window.playerXP}/${window.playerNextLevelXP}`;
+                    
+                    // Calculate and update XP progress bar
+                    if (window.playerXP !== undefined && window.playerNextLevelXP !== undefined) {
+                        const progressPercentage = Math.min(100, (window.playerXP / window.playerNextLevelXP) * 100);
+                        
+                        // Update HUD XP bar
+                        const progressFill = document.querySelector('.player-level-progress-fill');
+                        if (progressFill) {
+                            progressFill.style.width = `${progressPercentage}%`;
+                        }
+                        
+                        // Update profile tab XP bar
+                        const xpBarFill = document.getElementById('xpBarFill');
+                        if (xpBarFill) {
+                            xpBarFill.style.width = `${progressPercentage}%`;
+                        }
+                        
+                        // Update XP text
+                        const xpText = document.getElementById('xpText');
+                        if (xpText) {
+                            xpText.textContent = `${window.playerXP} / ${window.playerNextLevelXP} XP`;
+                        }
+                    }
                 }
             }
             
@@ -4817,6 +5095,32 @@
                 // Show toggle button only if inventory is hidden
                 inventoryToggleBtn.style.display = inventoryContainer.style.display === 'none' ? 'block' : 'none';
             }
+            
+            // Initialize tab switching
+            const inventoryTabs = document.querySelectorAll('.inventory-tab');
+            inventoryTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs
+                    inventoryTabs.forEach(t => t.classList.remove('active'));
+                    
+                    // Add active class to clicked tab
+                    tab.classList.add('active');
+                    
+                    // Hide all tab contents
+                    document.getElementById('inventoryContent').classList.remove('active');
+                    document.getElementById('profileContent').classList.remove('active');
+                    document.getElementById('inventoryContent').classList.add('inactive');
+                    
+                    // Show selected tab content
+                    const tabName = tab.getAttribute('data-tab');
+                    if (tabName === 'inventory') {
+                        document.getElementById('inventoryContent').classList.add('active');
+                        document.getElementById('inventoryContent').classList.remove('inactive');
+                    } else if (tabName === 'profile') {
+                        document.getElementById('profileContent').classList.add('active');
+                    }
+                });
+            });
             
             // Set up recipe cache
             window.recipeCache = {};

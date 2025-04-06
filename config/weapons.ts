@@ -28,7 +28,7 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         imageUrl: 'items/diamond-sword.png',
         durability: 1000,
         maxDurability: 1000,
-        damage: 35,
+        damage: 150,
         soulbound: true,
         rarity: 'legendary'
     },
@@ -74,9 +74,9 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         damage: 20,
         rarity: 'epic'
     },
-    'sword-wood': {
-        type: 'sword-wood',
-        modelUri: 'models/items/sword-wood.gltf',
+    'sword-wooden': {
+        type: 'sword-wooden',
+        modelUri: 'models/items/sword-wooden.gltf',
         displayName: 'Wooden Sword',
         category: 'weapon',
         maxStackSize: 1,

@@ -4,12 +4,20 @@ import { GameManager } from './managers/GameManager';
 import { BossManager } from './managers/BossManager';
 import { NPCManager } from './managers/NPCManager';
 
+// Global reference to GameManager for other components to use
+// @ts-ignore
+global.gameManagerInstance = null;
+
 // Start de wereld op met de startServer functie
 const world = startServer(world => {
   const playerInventories = new Map();
 
   // Create GameManager (eerste om de wereld op te zetten)
   const gameManager = new GameManager(world);
+  
+  // Store in global for other components to access
+  // @ts-ignore
+  global.gameManagerInstance = gameManager;
   
   // Log of de globale ItemSpawner succesvol is geïnitialiseerd via GameManager
   console.log('[Index] Verificatie dat GameManager de globale ItemSpawner heeft geïnitialiseerd');

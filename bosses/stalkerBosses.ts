@@ -36,7 +36,10 @@ export const STALKER_BOSSES: Record<string, StalkerBossOptions> = {
         },
         
         // Drop items
-        dropItems: ['sword-wooden', 'health-potion']
+        dropItems: ['rope'],
+        
+        // XP reward for defeating this boss
+        xpReward: 8
     },
     
     'tank-stalker': {
@@ -73,7 +76,10 @@ export const STALKER_BOSSES: Record<string, StalkerBossOptions> = {
         },
         
         // Drop items
-        dropItems: ['sword-iron', 'health-potion', 'dungeon-key']
+        dropItems: ['sword-stone'],
+        
+        // XP reward for defeating this boss
+        xpReward: 10
     },
     
     'balanced-stalker': {
@@ -110,7 +116,10 @@ export const STALKER_BOSSES: Record<string, StalkerBossOptions> = {
         },
         
         // Drop items
-        dropItems: ['sword-wooden', 'health-potion']
+        dropItems: ['sword-wooden'],
+        
+        // XP reward for defeating this boss
+        xpReward: 15
     }
 };
 

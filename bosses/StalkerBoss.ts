@@ -5,6 +5,7 @@ import { SpeedUpAttack } from '../attacks/SpeedUpAttack';
 import { KnockbackAttack } from '../attacks/KnockbackAttack';
 import type { Vector3Like } from 'hytopia';
 import { PathfindingEntityController } from 'hytopia';
+import { AttackerTracker } from '../utils/AttackerTracker';
 
 // Interface voor StalkerBoss configuratie
 export interface StalkerBossOptions extends BossOptions {
@@ -16,6 +17,7 @@ export interface StalkerBossOptions extends BossOptions {
   speedMultiplier?: number;
   speedUpDuration?: number;
   speedUpCooldown?: number;
+  xpReward?: number; // XP reward for defeating this boss
 }
 
 // Interface voor StalkerBoss configuratie
@@ -44,6 +46,7 @@ export class StalkerBoss extends Boss {
   private readonly KNOCKBACK_DISTANCE: number = 3.5;
   private readonly KNOCKBACK_COOLDOWN: number = 100;
   private _lastKnockbackTime: number = 0;
+  protected _lastPlayerAttacker: PlayerEntity | null = null; // Track last player who hit the boss
   
   // Voeg health bar UI toe
   private _healthBar: SceneUI | null = null;
@@ -54,7 +57,8 @@ export class StalkerBoss extends Boss {
       ...options,
       name: options.name || 'StalkerBoss',
       modelUri: options.modelUri || 'models/npcs/stalker.gltf',
-      dropItems: ['book'] // Stalker boss drops a book when defeated
+      // Use the configured dropItems, or default to empty array if not provided
+      dropItems: options.dropItems || []
     });
     
     // Combat eigenschappen
@@ -198,9 +202,7 @@ export class StalkerBoss extends Boss {
       // Update de positie bij elke tick om de UI te laten volgen
       // (We gebruiken een tick handler in plaats van attachedToEntity omdat dit een read-only property is)
       
-      console.log(`[StalkerBoss] Health bar created for ${this.name}`);
     } catch (error) {
-      console.error(`[StalkerBoss] Error creating health bar:`, error);
     }
   }
   
@@ -265,8 +267,28 @@ export class StalkerBoss extends Boss {
   }
   
   // Wanneer de boss damage neemt
-  public takeDamage(amount: number, fromPlayerAttack: boolean = false): void {
+  public takeDamage(amount: number, fromPlayerAttack: boolean = false, playerEntity?: PlayerEntity): void {
     if (!this.isSpawned || !this.world) return;
+    
+    // Find the player who dealt the damage
+    if (fromPlayerAttack) {
+      
+      // Use the provided playerEntity if available
+      if (playerEntity) {
+        this._lastPlayerAttacker = playerEntity;
+      } else {
+        // Fallback: find a player in the world
+        const players = this.world.entityManager.getAllEntities()
+          .filter(entity => entity instanceof PlayerEntity && entity.isSpawned);
+        
+        if (players && players.length > 0) {
+          // Get the player entity who attacked
+          const foundPlayer = players[0] as PlayerEntity;
+          this._lastPlayerAttacker = foundPlayer;
+        } else {
+        }
+      }
+    }
     
     // Roep de parent damage methode aan voor de health update
     super.damage(amount);
@@ -276,7 +298,8 @@ export class StalkerBoss extends Boss {
     
     // Check of de boss dood is
     if (this._health <= 0) {
-      console.log("[StalkerBoss] Boss is defeated, despawning immediately");
+      if (this._lastPlayerAttacker) {
+      }
       this.despawn();
       return;
     }
@@ -309,7 +332,6 @@ export class StalkerBoss extends Boss {
   public receiveKnockback(sourcePosition: Vector3Like, force: number = 10): void {
     if (!this.isSpawned || !this.world) return;
     
-    console.log("[StalkerBoss] Ontvang knockback met kracht:", force);
     
     // Bereken richting van speler naar boss (weg van de speler)
     const direction = {
@@ -342,8 +364,7 @@ export class StalkerBoss extends Boss {
     };
     
     // Log de huidige en nieuwe posities
-    console.log("[StalkerBoss] Positie voor knockback:", this.position);
-    console.log("[StalkerBoss] Nieuwe positie na knockback:", newPosition);
+
     
     // Pas impuls sterkte aan op basis van boss grootte
     const impulseMultiplier = bossScale <= 1.0 ? 0.2 : 0.3;
@@ -360,27 +381,49 @@ export class StalkerBoss extends Boss {
       z: direction.z * force * impulseMultiplier
     });
     
-    console.log("[StalkerBoss] Knockback impuls toegepast:", {
-      x: direction.x * force * impulseMultiplier,
-      y: force * upwardMultiplier,
-      z: direction.z * force * impulseMultiplier
-    });
+
   }
   
   // Overschrijf de doodmethode voor stalker-specific gedrag
   protected override _onDeath(source?: Entity): void {
     if (!this.isSpawned || !this.world) return;
     
-    console.log(`[StalkerBoss] ${this.name} is defeated by ${source ? source.name : 'unknown'}`);
+    // Get the player who last attacked this boss - first check internal storage
+    let killerPlayer = this._lastPlayerAttacker;
+    
+    // If we don't have a lastPlayerAttacker, try to get it from the AttackerTracker
+    if (!killerPlayer && this.id) {
+      try {
+        const attackerFromTracker = AttackerTracker.getInstance().getLastAttacker(this.id);
+        if (attackerFromTracker) {
+          killerPlayer = attackerFromTracker;
+        }
+      } catch (error) {
+        console.error(`[StalkerBoss] Error getting attacker from tracker:`, error);
+      }
+    }
+    
+    // Use the source as a last resort
+    if (!killerPlayer && source instanceof PlayerEntity) {
+      killerPlayer = source;
+    }
     
     // Verwijder de health bar
     this._destroyHealthBar();
     
+    // Emit boss-death event with the killer player as source
+    this.emit('boss-death', {
+      boss: this,
+      source: killerPlayer || source
+    });
+    
+    // Clean up the AttackerTracker record for this boss
+    if (this.id) {
+      AttackerTracker.getInstance().clearRecord(this.id);
+    }
+    
     // Speel de dood sound
     try {
-      // Log vóór het aanmaken van de audio om debugging te helpen
-      console.log('[StalkerBoss] Probeer death sound af te spelen');
-      
       // Soms is het beter om de audio gelijk aan de speler te koppelen in plaats van aan de positie
       const players = this.world.entityManager.getAllEntities()
         .filter(entity => entity instanceof PlayerEntity && entity.isSpawned) as PlayerEntity[];
@@ -393,43 +436,20 @@ export class StalkerBoss extends Boss {
         playbackRate: 1.0
       });
       
-      // Log na het aanmaken
-      console.log('[StalkerBoss] Death sound object aangemaakt, nu afspelen...');
-      
-      // Eerst event handlers koppelen, dan pas afspelen
-      deathSound.on('end', () => {
-        console.log('[StalkerBoss] Death sound klaar met afspelen');
-      });
-      
-      deathSound.on('error', (error) => {
-        console.error('[StalkerBoss] Error tijdens afspelen death sound:', error);
-      });
-      
       // Speel het geluid af
-      const success = deathSound.play(this.world);
-      console.log(`[StalkerBoss] Death sound play() aangeroepen, resultaat: ${success}`);
+      deathSound.play(this.world);
       
     } catch (error) {
       console.error('[StalkerBoss] Fout bij afspelen van death sound:', error);
     }
     
-    // Stuur boss-death event
-    this.emit('boss-death', {
-      boss: this,
-      source
-    });
-    
     // Roep de parent _onDeath aan om items te droppen
-    console.log('[StalkerBoss] Calling parent _onDeath to drop items');
     super._onDeath(source);
-    
-    console.log('[StalkerBoss] Parent _onDeath completed, now waiting for despawn delay');
     
     // Zet een LANGERE delay voor despawn om het geluid en item drops te laten afhandelen
     setTimeout(() => {
       // Despawn
       if (this.isSpawned) {
-        console.log('[StalkerBoss] Nu despawnen na death sound en drop delay');
         this.despawn();
       }
     }, 1000); // Langere delay om geluid en drops de kans te geven

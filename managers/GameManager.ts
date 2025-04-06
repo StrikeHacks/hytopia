@@ -41,7 +41,7 @@ export class GameManager {
         this.world = world;
         this.setupGame();
         this.itemSpawner = new ItemSpawner(world, this.playerInventories);
-        this.toolManager = new ToolManager(world, this.playerInventories, this.itemSpawner);
+        this.toolManager = new ToolManager(world, this.playerInventories, this.itemSpawner, this);
         this.craftingManager = new CraftingManager(world, this.playerInventories);
         this.animalManager = new AnimalManager(world, this.itemSpawner, this);
         this.fixedModelManager = new FixedModelManager(world);
