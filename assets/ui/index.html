@@ -2114,6 +2114,17 @@
             text-align: center;
             margin-top: 5px;
         }
+
+        /* Animation for inventory slot swap */
+        @keyframes slot-swap {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.1); }
+          100% { transform: scale(1); }
+        }
+
+        .slot-swap-animation {
+          animation: slot-swap 0.2s ease-out;
+        }
     </style>
 </head>
 <body>
@@ -2245,42 +2256,42 @@
             <button class="tab-button" data-tab="profile">Profile</button>
         </div>
         <div class="tab-content" id="inventoryTab">
-            <div class="armor-and-player">
-                <div class="armor-section">
-                    <div class="armor-slots">
-                        <div class="armor-slot helmet-slot">
-                            <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_helmet.gif')"></div>
-                        </div>
-                        <div class="armor-slot chestplate-slot">
-                            <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_chestplate.gif')"></div>
-                        </div>
-                        <div class="armor-slot leggings-slot">
-                            <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_leggings.gif')"></div>
-                        </div>
-                        <div class="armor-slot boots-slot">
-                            <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_boots.gif')"></div>
-                        </div>
+        <div class="armor-and-player">
+            <div class="armor-section">
+                <div class="armor-slots">
+                    <div class="armor-slot helmet-slot">
+                        <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_helmet.gif')"></div>
                     </div>
-                    <div class="backpack-slot">
-                        <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/chest.gif')"></div>
+                    <div class="armor-slot chestplate-slot">
+                        <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_chestplate.gif')"></div>
+                    </div>
+                    <div class="armor-slot leggings-slot">
+                        <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_leggings.gif')"></div>
+                    </div>
+                    <div class="armor-slot boots-slot">
+                        <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/diamond_boots.gif')"></div>
                     </div>
                 </div>
-                <div class="player-preview">
-                    <model-viewer
-                        src="{{CDN_ASSETS_URL}}/models/players/player.gltf"
-                        camera-controls
-                        disable-zoom
-                        style="background-color: transparent;"
-                        camera-orbit="180deg 90deg 10m"
-                        field-of-view="30deg"
-                        camera-target="0 1 0"
-                        poster=""
-                        loading="eager">
-                    </model-viewer>
+                <div class="backpack-slot">
+                    <div class="armor-slot-icon" style="background-image: url('https://www.canteach.ca/minecraft-pe/images/chest.gif')"></div>
                 </div>
             </div>
-            <div class="inventory-grid" id="inventoryGrid"></div>
-            <div class="inventory-hotbar" id="inventoryHotbar"></div>
+            <div class="player-preview">
+                <model-viewer
+                    src="{{CDN_ASSETS_URL}}/models/players/player.gltf"
+                    camera-controls
+                    disable-zoom
+                    style="background-color: transparent;"
+                    camera-orbit="180deg 90deg 10m"
+                    field-of-view="30deg"
+                    camera-target="0 1 0"
+                    poster=""
+                    loading="eager">
+                </model-viewer>
+            </div>
+        </div>
+        <div class="inventory-grid" id="inventoryGrid"></div>
+        <div class="inventory-hotbar" id="inventoryHotbar"></div>
         </div>
         <div class="tab-content" id="profileTab" style="display: none;">
             <div class="profile-container">
@@ -2853,8 +2864,15 @@
                     
                     // Make sure event listeners are attached
                     if (!hotbarSlot.hasAttribute('data-tooltip-initialized')) {
-                        hotbarSlot.addEventListener('mouseenter', showTooltip);
-                        hotbarSlot.addEventListener('mouseleave', hideTooltip);
+                        // Use function to capture 'this' context
+                        hotbarSlot.addEventListener('mouseenter', function(e) {
+                            hoveredSlot = this.dataset.slot;
+                            showTooltip.call(this, e);
+                        });
+                        hotbarSlot.addEventListener('mouseleave', function(e) {
+                            hoveredSlot = null;
+                            hideTooltip(e);
+                        });
                         hotbarSlot.addEventListener('mousemove', moveTooltip);
                         hotbarSlot.setAttribute('data-tooltip-initialized', 'true');
                     }
@@ -2871,31 +2889,31 @@
         }
 
         // Handle keydown
+        let hoveredSlot = null; // Track the currently hovered inventory slot
+        let lastSwapTime = 0; // For debouncing swap actions
+
         document.addEventListener('keydown', (event) => {
             // Check if other UIs are open
             const isCraftingOpen = document.getElementById('craftingUI').classList.contains('visible');
             
             // Check traveler UI - can be set to display: flex or block
             const travelerUI = document.getElementById('travelerUI');
-            const isTravelerOpen = travelerUI.style.display === 'flex' || 
-                                   travelerUI.style.display === 'block' || 
-                                   travelerUI.classList.contains('visible');
+            const isTravelerOpen = travelerUI && (travelerUI.style.display === 'flex' || travelerUI.style.display === 'block');
             
-            // Check dungeon UI - can use visible class or display: block
-            const dungeonUI = document.getElementById('dungeonUI');
-            const isDungeonOpen = dungeonUI.classList.contains('visible') || 
-                                  dungeonUI.style.display === 'block' || 
-                                  dungeonUI.style.display === 'flex';
+            // If crafting or traveler UI is open, don't process hotkey
+            if (isCraftingOpen || isTravelerOpen) {
+                return;
+            }
             
-            console.log(`[UI] UI States - Crafting: ${isCraftingOpen}, Traveler: ${isTravelerOpen}, Dungeon: ${isDungeonOpen}`);
-            
-            // E key for inventory toggle - only if no other UI is open
-            if (event.key.toLowerCase() === 'e' && !isKeyPressed && !isCraftingOpen && !isTravelerOpen && !isDungeonOpen) {
+            // Handle inventory toggle with E key
+            if (event.key.toLowerCase() === 'e' && !isKeyPressed) {
                 isKeyPressed = true;
                 const inventoryContainer = document.getElementById('inventory');
-                const isInventoryOpen = inventoryContainer.style.display === 'block';
+                const isInventoryOpen = inventoryContainer && inventoryContainer.style.display === 'block';
                 
                 console.log('[UI] E key pressed - sending toggle request. Current state:', isInventoryOpen ? 'open' : 'closed');
+                
+                // Send the appropriate action based on current state
                 hytopia.sendData({
                     inventoryToggle: {
                         action: isInventoryOpen ? 'close' : 'toggle'
@@ -2903,27 +2921,119 @@
                 });
             }
             
-            // Handle ESC key for crafting only
-            if (event.key === 'Escape') {
-                if (document.getElementById('craftingUI').classList.contains('visible')) {
-                    console.log('[UI] ESC pressed - sending crafting close request');
+            // Handle crafting UI toggle with F key
+            if (event.key.toLowerCase() === 'f' && !isFPressed) {
+                isFPressed = true;
                     hytopia.sendData({
                         craftingToggle: {
                             action: 'toggle'
                         }
                     });
                 }
+            
+            // Handle number keys 1-5 for swapping items when inventory is open and a slot is hovered
+            if (event.code === 'Digit1' || event.code === 'Digit2' || event.code === 'Digit3' || 
+                event.code === 'Digit4' || event.code === 'Digit5') {
+                const inventoryContainer = document.getElementById('inventory');
+                if (inventoryContainer && inventoryContainer.style.display === 'block' && hoveredSlot !== null) {
+                    // Get hotbar slot index (0-4) from key code
+                    const hotbarSlotIndex = parseInt(event.code.replace('Digit', '')) - 1;
+                    const sourceSlot = parseInt(hoveredSlot);
+                    
+                    // Debounce: prevent multiple rapid swaps (only allow one every 200ms)
+                    const now = Date.now();
+                    if (now - lastSwapTime < 200) {
+                        return;
+                    }
+                    lastSwapTime = now;
+                    
+                    // --- Optimistic UI Update --- START
+                    const sourceData = inventoryState.get(sourceSlot);
+                    const targetData = inventoryState.get(hotbarSlotIndex);
+                    
+                    // Swap data in the local inventoryState map
+                    inventoryState.set(sourceSlot, targetData ? { ...targetData } : { type: null, count: 0 });
+                    inventoryState.set(hotbarSlotIndex, sourceData ? { ...sourceData } : { type: null, count: 0 });
+                    
+                    // Immediately update the visuals for both slots using the swapped data
+                    const newSourceData = inventoryState.get(sourceSlot); // Data that is now in the source slot
+                    const newTargetData = inventoryState.get(hotbarSlotIndex); // Data that is now in the target slot
+                    
+                    updateInventorySlot(sourceSlot, newSourceData.type, newSourceData.count, newSourceData.imageUrl, 
+                        newSourceData.durability !== undefined ? { 
+                            durability: newSourceData.durability, 
+                            maxDurability: newSourceData.maxDurability, 
+                            durabilityPercentage: newSourceData.durabilityPercentage 
+                        } : undefined);
+                        
+                    updateInventorySlot(hotbarSlotIndex, newTargetData.type, newTargetData.count, newTargetData.imageUrl, 
+                        newTargetData.durability !== undefined ? { 
+                            durability: newTargetData.durability, 
+                            maxDurability: newTargetData.maxDurability, 
+                            durabilityPercentage: newTargetData.durabilityPercentage 
+                        } : undefined);
+                    // --- Optimistic UI Update --- END
+                    
+                    // Provide visual feedback on the swap
+                    const hoveredElement = document.querySelector(`.inventory-slot[data-slot="${sourceSlot}"]`);
+                    const hotbarElement = document.querySelector(`.hotbar-slot[data-slot="${hotbarSlotIndex}"]`);
+                    
+                    if (hoveredElement) {
+                        // Use animation class for feedback
+                        hoveredElement.classList.add('slot-swap-animation');
+                        setTimeout(() => {
+                            hoveredElement.classList.remove('slot-swap-animation');
+                        }, 200);
+                    }
+                    
+                    if (hotbarElement) {
+                        // Use animation class for feedback
+                        hotbarElement.classList.add('slot-swap-animation');
+                        setTimeout(() => {
+                            hotbarElement.classList.remove('slot-swap-animation');
+                        }, 200);
+                    }
+                    
+                    console.log(`[UI] Optimistically swapped items between inventory slot ${sourceSlot} and hotbar slot ${hotbarSlotIndex}`);
+                    
+                    // Send the swap request to the server
+                hytopia.sendData({
+                        inventoryAction: {
+                            action: 'swapItems',
+                            sourceSlot: sourceSlot,
+                            targetSlot: hotbarSlotIndex
+                        }
+                    });
+                }
             }
 
-            // Handle F key for crafting
-            if (event.key.toLowerCase() === 'f' && !isFPressed) {
-                isFPressed = true;
-                console.log('[UI] F key pressed - sending crafting toggle request');
-                hytopia.sendData({
-                    craftingToggle: {
-                        action: 'toggle'
+            // Handle Q key for dropping items from inventory when hovering over a slot
+            if (event.key.toLowerCase() === 'q' && hoveredSlot !== null) {
+                const slotNumber = parseInt(hoveredSlot);
+                const inventoryContainer = document.getElementById('inventory');
+                
+                // Only drop if the inventory is open and the slot has an item
+                if (inventoryContainer && inventoryContainer.style.display === 'block') {
+                    console.log(`[UI] Q key pressed while hovering over slot ${slotNumber} - sending drop request`);
+                    
+                    // Get the item in the slot
+                    const itemData = inventoryState.get(slotNumber);
+                    if (itemData && itemData.type) {
+                        const isShiftHeld = event.shiftKey;
+                        
+                        // Send drop request to server
+                        hytopia.sendData({
+                            inventoryAction: {
+                                action: 'dropItem',
+                                slot: slotNumber,
+                                isShiftHeld: isShiftHeld
+                            }
+                        });
+                        
+                        // Prevent default behavior (might prevent text input fields from registering 'q')
+                        event.preventDefault();
                     }
-                });
+                }
             }
         });
 
@@ -2956,10 +3066,16 @@
             inventoryGrid.appendChild(slot);
 
             // Add tooltip event listeners
-            slot.addEventListener('mouseenter', showTooltip);
-            slot.addEventListener('mouseleave', hideTooltip);
+            slot.addEventListener('mouseenter', function(e) {
+                hoveredSlot = this.dataset.slot;
+                showTooltip.call(this, e);
+            });
+            slot.addEventListener('mouseleave', function(e) {
+                hoveredSlot = null;
+                hideTooltip(e);
+            });
             slot.addEventListener('mousemove', moveTooltip);
-            
+
             // Add click handler for inventory slots
             slot.addEventListener('click', () => {
                 console.log(`[UI] Inventory slot ${i} clicked`);
@@ -3019,8 +3135,14 @@
             inventoryHotbar.appendChild(slot);
 
             // Add tooltip event listeners
-            slot.addEventListener('mouseenter', showTooltip);
-            slot.addEventListener('mouseleave', hideTooltip);
+            slot.addEventListener('mouseenter', function(e) {
+                hoveredSlot = this.dataset.slot;
+                showTooltip.call(this, e);
+            });
+            slot.addEventListener('mouseleave', function(e) {
+                hoveredSlot = null;
+                hideTooltip(e);
+            });
             slot.addEventListener('mousemove', moveTooltip);
 
             // Add click handler for hotbar mirror slots
@@ -4850,8 +4972,15 @@
                 
                 // Add event listeners for tooltips if not already initialized
                 if (!slot.hasAttribute('data-tooltip-initialized')) {
-                    slot.addEventListener('mouseenter', showTooltip);
-                    slot.addEventListener('mouseleave', hideTooltip);
+                    // Use function to capture 'this' context
+                    slot.addEventListener('mouseenter', function(e) {
+                        hoveredSlot = this.dataset.slot;
+                        showTooltip.call(this, e);
+                    });
+                    slot.addEventListener('mouseleave', function(e) {
+                        hoveredSlot = null;
+                        hideTooltip(e);
+                    });
                     slot.addEventListener('mousemove', moveTooltip);
                     slot.setAttribute('data-tooltip-initialized', 'true');
                     console.log(`[UI] Initialized tooltip for hotbar slot ${index}`);
@@ -4874,8 +5003,14 @@
                 }
                 
                 // Add event listeners for tooltips
-                slot.addEventListener('mouseenter', showTooltip);
-                slot.addEventListener('mouseleave', hideTooltip);
+                slot.addEventListener('mouseenter', function(e) {
+                    hoveredSlot = this.dataset.slot;
+                    showTooltip.call(this, e);
+                });
+                slot.addEventListener('mouseleave', function(e) {
+                    hoveredSlot = null;
+                    hideTooltip(e);
+                });
                 slot.addEventListener('mousemove', moveTooltip);
                 slot.setAttribute('data-tooltip-initialized', 'true');
                 console.log(`[UI] Initialized tooltip for inventory slot ${slotIndex}`);
@@ -6060,6 +6195,18 @@
                 }
             });
         });
+
+        // Add this debounce function near the top of your script
+        function debounce(func, wait) {
+          let timeout;
+          return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+          };
+        }
+
+        // Cached DOM elements for better performance
+        let cachedInventorySlots = null;
     </script>
 </body>
 </html>

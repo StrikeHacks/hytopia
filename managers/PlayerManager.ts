@@ -360,6 +360,18 @@ export class PlayerManager {
 				console.log('[PlayerManager] Received request for player stats, sending updated data to UI');
 				this.sendPlayerStatsToUI();
 			}
+			// Handle inventory actions (like dropping items)
+			else if (data.inventoryAction) {
+				const { action, slot, isShiftHeld, sourceSlot, targetSlot } = data.inventoryAction;
+				
+				if (action === 'dropItem' && typeof slot === 'number') {
+					this.handleInventoryItemDrop(slot, isShiftHeld || false);
+				}
+				else if (action === 'swapItems' && typeof sourceSlot === 'number' && typeof targetSlot === 'number') {
+					this.handleInventoryItemSwap(sourceSlot, targetSlot);
+				}
+				// Handle other inventory actions like 'setItem' if needed
+			}
 			// Handle crafting UI close
 			else if (data.craftingToggle?.action === 'close') {
 				this.closeCrafting();
@@ -432,6 +444,121 @@ export class PlayerManager {
 				this.startCrafting(this.player.id, data.craftItem.recipeName);
 			}
 		});
+	}
+
+	/**
+	 * Handle dropping an item from a specific inventory slot
+	 */
+	private handleInventoryItemDrop(slot: number, isShiftHeld: boolean): void {
+		try {
+			// Get the item from the slot
+			const itemType = this.playerInventory.getItem(slot);
+			
+			if (!itemType) {
+				console.log(`[PlayerManager] No item in slot ${slot} to drop`);
+				return;
+			}
+			
+			// Check if item is soulbound
+			try {
+				const { getItemConfig } = require('../config/items');
+				const itemConfig = getItemConfig(itemType);
+				
+				// Check if item is soulbound
+				if (itemConfig.soulbound) {
+					// Notify player that item cannot be dropped
+					this.player.ui.sendData({
+						showItemName: {
+							name: "This item is soulbound"
+						}
+					});
+					return;
+				}
+			} catch (error) {
+				console.error('[PlayerManager] Error checking item soulbound status:', error);
+			}
+			
+			console.log(`[PlayerManager] Dropping item from slot ${slot}, shift held: ${isShiftHeld}`);
+			
+			// Save the current selected slot
+			const currentSelectedSlot = this.playerInventory.getSelectedSlot();
+			
+			// Temporarily set the selected slot to the slot we want to drop from
+			this.playerInventory.selectSlot(slot);
+			
+			// Use the ItemSpawner's handleItemDrop method which already has all the logic we need
+			this.itemSpawner.handleItemDrop(this.playerEntity, isShiftHeld);
+			
+			// Restore the original selected slot
+			this.playerInventory.selectSlot(currentSelectedSlot);
+			
+		} catch (error) {
+			console.error('[PlayerManager] Error handling inventory item drop:', error);
+		}
+	}
+
+	/**
+	 * Handle swapping items between inventory slots
+	 * @param sourceSlot The source slot number (where the item is currently)
+	 * @param targetSlot The target slot number (where to move the item to)
+	 */
+	private handleInventoryItemSwap(sourceSlot: number, targetSlot: number): void {
+		try {
+			console.log(`[PlayerManager] Swapping items between slots ${sourceSlot} and ${targetSlot}`);
+			
+			// Get items from both slots
+			const sourceItem = this.playerInventory.getItem(sourceSlot);
+			const sourceCount = this.playerInventory.getItemCount(sourceSlot);
+			const sourceInstance = this.playerInventory.getItemInstance(sourceSlot);
+			
+			const targetItem = this.playerInventory.getItem(targetSlot);
+			const targetCount = this.playerInventory.getItemCount(targetSlot);
+			const targetInstance = this.playerInventory.getItemInstance(targetSlot);
+			
+			// Use direct item instance swapping for better performance
+			if (sourceInstance && targetInstance) {
+				// Both slots have item instances - direct swap
+				this.playerInventory.setItemWithInstance(targetSlot, sourceInstance);
+				this.playerInventory.setItemWithInstance(sourceSlot, targetInstance);
+			} else if (sourceInstance) {
+				// Only source has an item instance
+				this.playerInventory.setItemWithInstance(targetSlot, sourceInstance);
+				if (targetItem) {
+					this.playerInventory.setItem(sourceSlot, targetItem, targetCount);
+				} else {
+					this.playerInventory.setItem(sourceSlot, null, 0);
+				}
+			} else if (targetInstance) {
+				// Only target has an item instance
+				this.playerInventory.setItemWithInstance(sourceSlot, targetInstance);
+				if (sourceItem) {
+					this.playerInventory.setItem(targetSlot, sourceItem, sourceCount);
+				} else {
+					this.playerInventory.setItem(targetSlot, null, 0);
+				}
+			} else {
+				// Neither slot has item instances - simple swap
+				this.playerInventory.setItem(targetSlot, sourceItem, sourceCount);
+				this.playerInventory.setItem(sourceSlot, targetItem, targetCount);
+			}
+			
+			// Play a swap sound effect for better user feedback
+			try {
+				const swapSound = new Audio({
+					uri: 'audio/sfx/items/swap.mp3',
+					position: this.playerEntity.position,
+					volume: 0.3,
+					referenceDistance: 2
+				});
+				swapSound.play(this.world);
+			} catch (error) {
+				console.error('[PlayerManager] Error playing swap sound:', error);
+			}
+			
+			console.log(`[PlayerManager] Successfully swapped items between slots ${sourceSlot} and ${targetSlot}`);
+		} catch (error) {
+			console.error('[PlayerManager] Error handling inventory item swap:', error);
+		}
 	}
 
 	private setupInputHandling(playerEntity: PlayerEntity): void {
