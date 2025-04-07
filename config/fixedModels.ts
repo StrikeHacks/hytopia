@@ -21,8 +21,8 @@ export const fixedModelConfigs: Record<string, FixedModelConfig> = {
     'common-crate': {
         id: 'common-crate',
         name: 'Common Crate',
-        modelUri: 'models/crates/common_crate.gltf',
-        modelScale: 2.5,
+        modelUri: 'models/crates/crate_bronze.gltf',
+        modelScale: 0.7,
         colliderSize: {
             x: 0.5,
             y: 1,
@@ -33,8 +33,8 @@ export const fixedModelConfigs: Record<string, FixedModelConfig> = {
     'epic-crate': {
         id: 'epic-crate',
         name: 'Epic Crate',
-        modelUri: 'models/crates/common_crate.gltf',
-        modelScale: 2.5,
+        modelUri: 'models/crates/crate_iron.gltf',
+        modelScale: 0.7,
         colliderSize: {
             x: 0.5,
             y: 1,
@@ -45,8 +45,8 @@ export const fixedModelConfigs: Record<string, FixedModelConfig> = {
     'legendary-crate': {
         id: 'legendary-crate',
         name: 'Legendary Crate',
-        modelUri: 'models/crates/common_crate.gltf',
-        modelScale: 2.5,
+        modelUri: 'models/crates/crate_gold.gltf',
+        modelScale: 0.7,
         colliderSize: {
             x: 0.5,
             y: 1,
@@ -79,17 +79,17 @@ export const predefinedModelPlacements: Record<string, ModelPlacement[]> = {
     ],
     'common-crate': [
         {
-            position: { x: -6, y: 3.2, z: 8 },
+            position: { x: -6, y: 3, z: 8 },
         }
     ],
     'epic-crate': [
         {
-            position: { x: -9, y: 3.2, z: 8 },
+            position: { x: -9, y: 3, z: 8 },
         }
     ],
     'legendary-crate': [    
         {
-            position: { x: -12, y: 3.2, z: 8 },
+            position: { x: -12, y: 3.05, z: 8 },
         }
     ]
 };

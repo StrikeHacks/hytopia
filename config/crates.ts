@@ -8,11 +8,11 @@ export const CRATES: Record<string, CrateConfig> = {
     'common-crate': {
         id: 'common-crate',
         name: 'Common Crate',
-        modelUri: 'models/crates/common-crate.gltf',
+        modelUri: 'models/crates/crate_bronze.gltf',
         modelScale: 0.7,
         requiredKey: {
-            type: 'common-key',
-            displayName: 'Common Key'
+            type: 'bronze-key',
+            displayName: 'Bronze Key'
         },
         animation: CRATE_ANIMATIONS['scatter'],
         lootTable: [
@@ -30,11 +30,11 @@ export const CRATES: Record<string, CrateConfig> = {
     'epic-crate': {
         id: 'epic-crate',
         name: 'Epic Crate',
-        modelUri: 'models/crates/common-crate.gltf',
+        modelUri: 'models/crates/crate_iron.gltf',
         modelScale: 0.7,
         requiredKey: {
-            type: 'common-key',
-            displayName: 'Common Key'
+            type: 'iron-key',
+            displayName: 'Iron Key'
         },
         animation: CRATE_ANIMATIONS['standard-arch'],
         lootTable: [
@@ -49,11 +49,11 @@ export const CRATES: Record<string, CrateConfig> = {
     'legendary-crate': {
         id: 'legendary-crate',
         name: 'Legendary Crate',
-        modelUri: 'models/crates/common-crate.gltf',
+        modelUri: 'models/crates/crate_gold.gltf',
         modelScale: 0.7,
         requiredKey: {
-            type: 'common-key',
-            displayName: 'Common Key'
+            type: 'gold-key',
+            displayName: 'Gold Key'
         },
         animation: CRATE_ANIMATIONS['fast-spin'],
         lootTable: [

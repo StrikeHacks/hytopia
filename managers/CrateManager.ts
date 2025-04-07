@@ -74,35 +74,52 @@ export class CrateManager {
         // Play open sound
         this.playOpenSound(crateEntity.position);
 
+        // First play the crate's native "open" animation if it has one
+        try {
+            // Play the "open" animation on the crate entity
+            console.log(`[CrateManager] Attempting to play 'open' animation on crate: ${crateId}`);
+            
+            // In Hytopia, we can play a one-shot animation
+            if (crateEntity && crateEntity.isSpawned) {
+                crateEntity.startModelOneshotAnimations(['open']);
+                console.log(`[CrateManager] Started 'open' animation on crate`);
+            }
+        } catch (error) {
+            console.error('[CrateManager] Error playing open animation:', error);
+        }
+
         // Create a new AnimationManager instance for this specific animation
         const animationInstance = new AnimationManager(this.world);
 
-        // Start the animation and add the winning item to inventory when complete
-        animationInstance.startAnimation(
-            crateConfig.lootTable,
-            crateEntity.position,
-            crateConfig.animation,
-            (finalItem) => {
-                // Add the winning item to player's inventory
-                if (finalItem && finalItem.item) {
-                    playerInventory.addItem(finalItem.item.type, finalItem.count || 1);
-                    console.log(`[CrateManager] Added ${finalItem.count || 1}x ${finalItem.item.type} to player inventory`);
-                    
-                    // Play a success sound when item is added
-                    try {
-                        const successSound = new Audio({
-                            uri: 'audio/sfx/items/pickup.mp3',
-                            position: crateEntity.position,
-                            volume: 0.4,
-                            referenceDistance: 5
-                        });
-                        successSound.play(this.world);
-                    } catch (error) {
-                        console.error('[CrateManager] Error playing success sound:', error);
+        // Add a slight delay to let the open animation start before the loot animation
+        setTimeout(() => {
+            // Start the animation and add the winning item to inventory when complete
+            animationInstance.startAnimation(
+                crateConfig.lootTable,
+                crateEntity.position,
+                crateConfig.animation,
+                (finalItem) => {
+                    // Add the winning item to player's inventory
+                    if (finalItem && finalItem.item) {
+                        playerInventory.addItem(finalItem.item.type, finalItem.count || 1);
+                        console.log(`[CrateManager] Added ${finalItem.count || 1}x ${finalItem.item.type} to player inventory`);
+                        
+                        // Play a success sound when item is added
+                        try {
+                            const successSound = new Audio({
+                                uri: 'audio/sfx/items/pickup.mp3',
+                                position: crateEntity.position,
+                                volume: 0.4,
+                                referenceDistance: 5
+                            });
+                            successSound.play(this.world);
+                        } catch (error) {
+                            console.error('[CrateManager] Error playing success sound:', error);
+                        }
                     }
                 }
-            }
-        );
+            );
+        }, 300); // 300ms delay to give time for the open animation to begin
     }
 
     private playOpenSound(position: Vector3Like): void {

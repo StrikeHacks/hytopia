@@ -23,10 +23,10 @@ export const keyItems: Record<string, KeyItemProperties> = {
         imageUrl: 'items/dungeon-key.png',
         rarity: 'epic'
     },
-    'common-key': {
-        type: 'common-key',
-        modelUri: 'models/crates/common-key.gltf',
-        displayName: 'Common Key',
+    'bronze-key': {
+        type: 'bronze-key',
+        modelUri: 'models/crates/key_bronze.gltf',
+        displayName: 'Bronze Key',
         category: 'key',
         maxStackSize: 16,
         scale: 1.5,
@@ -34,8 +34,36 @@ export const keyItems: Record<string, KeyItemProperties> = {
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'items/common-key.png',
+        imageUrl: 'items/key-bronze.png',
         rarity: 'uncommon'
+    },
+    'iron-key': {
+        type: 'iron-key',
+        modelUri: 'models/crates/key_iron.gltf',
+        displayName: 'Iron Key',
+        category: 'key',
+        maxStackSize: 16,
+        scale: 1.5,
+        dropForce: DEFAULT_DROP_FORCE,
+        colliderSize: DEFAULT_COLLIDER_SIZE,
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/key-iron.png',
+        rarity: 'common'
+    },
+    'gold-key': {
+        type: 'gold-key',
+        modelUri: 'models/crates/key_gold.gltf',
+        displayName: 'Gold Key',
+        category: 'key',
+        maxStackSize: 16,
+        scale: 1.5,
+        dropForce: DEFAULT_DROP_FORCE,
+        colliderSize: DEFAULT_COLLIDER_SIZE,
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/key-gold.png',
+        rarity: 'rare'
     }
 };
 

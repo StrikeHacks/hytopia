@@ -226,7 +226,7 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
         imageUrl: 'items/rope.png',
-        rarity: 'common'
+        rarity: 'rare'
     },
     'leather' : {
         type: 'leather',

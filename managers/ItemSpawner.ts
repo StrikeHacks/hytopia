@@ -38,15 +38,12 @@ const INITIAL_ITEMS = [
     { type: 'stone', position: { x: -16, y: 3.7, z: 2 } },
     { type: 'iron-ingot', position: { x: -18, y: 3.7, z: 2 } },
     { type: 'leather', position: { x: -20, y: 3.7, z: 2 } },
-    { type: 'common-key', position: { x: -8, y: 3.7, z: 5 } },
-    { type: 'common-key', position: { x: -8, y: 3.7, z: 5 } },
-    { type: 'common-key', position: { x: -8, y: 3.7, z: 5 } },
-    { type: 'common-key', position: { x: -8, y: 3.7, z: 5 } },
-    { type: 'common-key', position: { x: -8, y: 3.7, z: 5 } },
-    { type: 'common-key', position: { x: -8, y: 3.7, z: 5 } },
-    { type: 'common-key', position: { x: -8, y: 3.7, z: 5 } },
-    { type: 'common-key', position: { x: -8, y: 3.7, z: 5 } },
-
+    { type: 'bronze-key', position: { x: -8, y: 3.7, z: 5 } },
+    { type: 'bronze-key', position: { x: -8, y: 3.7, z: 5 } },
+    { type: 'iron-key', position: { x: -10, y: 3.7, z: 5 } },
+    { type: 'iron-key', position: { x: -10, y: 3.7, z: 5 } },
+    { type: 'gold-key', position: { x: -12, y: 3.7, z: 5 } },
+    { type: 'gold-key', position: { x: -12, y: 3.7, z: 5 } },
 ];
 
 export class ItemSpawner {

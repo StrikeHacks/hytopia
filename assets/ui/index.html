@@ -388,16 +388,17 @@
 
         
 
+        /* Inventory Container styling */
         .inventory-container {
             display: none;
             position: fixed;
-            top: 20px;
+            top: 46px;
             right: 20px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(34, 34, 34, 0.9); /* Slightly transparent dark background */
             padding: 15px;
             border: 2px solid #8B4513;
-            border-radius: 8px;
-            z-index: 1000;
+            border-radius: 8px; /* Rounded corners on all sides */
+            z-index: 999;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
 
@@ -408,7 +409,7 @@
             width: 24px;
             height: 24px;
             background: rgb(255, 0, 0);
-            border: 2px solid #8B4513;
+            border: 2px solid #FF0000; /* Red border to match image */
             border-radius: 4px;
             color: white;
             display: flex;
@@ -592,6 +593,7 @@
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
+            pointer-events: none;
         }
 
         @keyframes rotate {
@@ -1901,128 +1903,214 @@
             transition: opacity 0.2s ease;
         }
 
-        /* Tabs for inventory */
+        /* Inventory Tabs Styling */
         .inventory-tabs {
             display: flex;
-            margin-bottom: 10px; /* Restore original margin */
-            border-bottom: 2px solid #8B4513; /* Restore original border */
+            margin-bottom: 0;
+            padding-bottom: 0;
+            position: absolute;
+            top: -39px;
+            left: 0;
+            width: 100%;
+            z-index: 1001;
+            justify-content: center;
         }
-
-        .inventory-tab {
-            padding: 8px 15px;
-            background-color: rgba(139, 69, 19, 0.4); /* Restore original background */
-            color: #ddd;
-            border: none; /* Restore no border */
-            border-top-left-radius: 4px;
-            border-top-right-radius: 4px;
-            margin-right: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.2s;
-        }
-
-        .inventory-tab.active {
-            background-color: rgba(139, 69, 19, 0.8); /* Restore original active background */
-            color: white;
-            font-weight: bold;
-            /* Remove positioning adjustments */
-        }
-
-        /* Adjust inventory container */
-        .inventory-container {
-            display: none; /* Keep it hidden by default */
-            position: fixed;
-            top: 20px; /* Restore original position */
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px; /* Restore original padding */
+        
+        /* Common styling for all tab buttons */
+        .tab-button {
+            background: #8B4513; /* Brown background for inactive tabs */
             border: 2px solid #8B4513;
-            border-radius: 8px;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0; /* Rounded top corners */
+            color: white;
+            padding: 8px 15px;
+            margin-right: 2px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Roboto', Arial, sans-serif;
+            font-size: 14px;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: background 0.2s ease;
+            position: relative;
             z-index: 1000;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            /* Remove position relative */
-        }
-
-        /* Profile tab content */
-        .profile-content {
-            display: none;
-            padding: 20px;
-            height: 100%;
+            height: 37px;
             box-sizing: border-box;
+            line-height: 1.2;
         }
 
-        .profile-content.active {
+        .tab-button:hover {
+            opacity: 0.9;
+        }
+        
+        /* Active tab styling - always dark (#222222) */
+        .tab-button.active {
+            background: rgba(34, 34, 34, 0.9) !important; /* Slightly transparent dark background for active tab */
+            border: 2px solid #8B4513;
+            border-bottom: none;
+            z-index: 1002;
+            position: relative;
+        }
+
+        /* Add specific styles to create connection between active tab and container */
+        .tab-button.active::after {
+            content: "";
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: rgba(34, 34, 34, 0.9); /* Match the transparent background */
+            z-index: 1003;
+        }
+        
+        .tab-content {
+            width: 100%;
+            padding-top: 5px; /* Add a small padding at the top */
+        }
+        
+        /* Ensure profile tab content has the same width as inventory tab */
+        #profileTab {
+            width: 274px; /* Width of 5 slots (50px each) + 4 gaps (4px each) + padding (15px each side) */
+        }
+        
+        .profile-placeholder {
+            color: white;
+            text-align: center;
+            padding: 0 15px;
+            font-family: 'Minecraft', Arial, sans-serif;
+        }
+
+        .selected-item {
+            border-color: #ffcc00 !important;
+            background: rgba(255, 204, 0, 0.15) !important;
+        }
+
+        /* Profile tab styling */
+        .profile-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-
-        .inventory-content {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .inventory-content.inactive {
-            display: none;
+            padding: 15px 10px;
+            height: 100%;
+            color: white;
         }
 
         .profile-header {
-            text-align: center;
-            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
         }
 
-        .profile-header h2 {
-            margin: 0;
+        .player-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .player-name {
+            font-size: 20px;
+            font-weight: bold;
             color: #FFD700;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .guild-name {
+            font-size: 14px;
+        }
+
+        .guild-tag {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            border: 1px solid #8B4513;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #DDD;
+        }
+
+        .level-info {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .level-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .level-title {
+            font-size: 14px;
+            color: #FFD700;
+            text-align: center;
+        }
+
+        .profile-level {
             font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
         }
 
         .profile-stats {
             width: 100%;
             display: flex;
             flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            margin-top: 20px;
+            padding: 8px 5px;
+            border-bottom: 1px solid rgba(139, 69, 19, 0.15);
         }
 
-        .profile-stat {
-            width: 100%;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .profile-stat-label {
-            display: block;
-            font-size: 18px;
-            color: #ddd;
-            margin-bottom: 5px;
-        }
-
-        .profile-stat-value {
-            font-size: 36px;
-            color: #FFD700;
-            margin-bottom: 10px;
-        }
-
-        .xp-bar-container {
-            width: 80%;
-            height: 20px;
-            background-color: rgba(0, 0, 0, 0.4);
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 10px auto;
-        }
-
-        .xp-bar-fill {
-            height: 100%;
-            background-color: #4CAF50;
-            width: 0%;
-            transition: width 0.5s ease-in-out;
-        }
-
-        .xp-text {
+        .stat-label {
             font-size: 14px;
-            color: #ddd;
+            color: #DDD;
+        }
+
+        .stat-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #FFF;
+        }
+
+        .profile-progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 5px;
+            border: 1px solid rgba(139, 69, 19, 0.3);
+        }
+
+        .profile-progress-fill {
+            height: 100%;
+            background: #8B4513;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .profile-progress-text {
+            font-size: 11px;
+            color: #DDD;
             text-align: center;
             margin-top: 5px;
         }
@@ -2152,13 +2240,11 @@
     
     <div class="inventory-container" id="inventory" style="display: none;">
         <button class="close-button" id="closeInventory">X</button>
-        
         <div class="inventory-tabs">
-            <button class="inventory-tab active" data-tab="inventory">Inventory</button>
-            <button class="inventory-tab" data-tab="profile">Profile</button>
+            <button class="tab-button active" data-tab="inventory">Inventory</button>
+            <button class="tab-button" data-tab="profile">Profile</button>
         </div>
-        
-        <div class="inventory-content active" id="inventoryContent">
+        <div class="tab-content" id="inventoryTab">
             <div class="armor-and-player">
                 <div class="armor-section">
                     <div class="armor-slots">
@@ -2196,38 +2282,29 @@
             <div class="inventory-grid" id="inventoryGrid"></div>
             <div class="inventory-hotbar" id="inventoryHotbar"></div>
         </div>
-        
-        <div class="profile-content" id="profileContent">
-            <div class="profile-header">
-                <h2>Player Profile</h2>
-            </div>
-            
-            <div class="player-preview">
-                <model-viewer
-                    src="{{CDN_ASSETS_URL}}/models/players/player.gltf"
-                    camera-controls
-                    disable-zoom
-                    style="background-color: transparent;"
-                    camera-orbit="180deg 90deg 10m"
-                    field-of-view="30deg"
-                    camera-target="0 1 0"
-                    poster=""
-                    loading="eager">
-                </model-viewer>
-            </div>
-            
-            <div class="profile-stats">
-                <div class="profile-stat">
-                    <span class="profile-stat-label">Level</span>
-                    <div class="profile-stat-value" id="playerLevelDisplay">1</div>
+        <div class="tab-content" id="profileTab" style="display: none;">
+            <div class="profile-container">
+                <div class="profile-header">
+                    <div class="player-info">
+                        <div class="player-name">Player Name</div>
+                        <div class="guild-name">
+                            <span class="guild-tag">No Guild</span>
+                        </div>
+                    </div>
+                    <div class="level-display">
+                        <div class="level-title">Level</div>
+                        <div class="profile-level">1</div>
+                    </div>
                 </div>
                 
-                <div class="profile-stat">
-                    <span class="profile-stat-label">Experience</span>
-                    <div class="xp-bar-container">
-                        <div class="xp-bar-fill" id="xpBarFill"></div>
+                <div class="level-info">
+                    <div class="profile-progress-bar">
+                        <div class="profile-progress-fill" style="width: 45%"></div>
                     </div>
-                    <div class="xp-text" id="xpText">0 / 100 XP</div>
+                    
+                    <div class="xp-info">
+                        <span class="profile-xp">450</span> / <span class="profile-xp-max">1000</span> XP
+                    </div>
                 </div>
             </div>
         </div>
@@ -2866,19 +2943,23 @@
             const slot = document.createElement('div');
             slot.className = 'inventory-slot';
             slot.dataset.slot = i.toString();
+            
             const itemIcon = document.createElement('div');
             itemIcon.className = 'item-icon';
+            
             const itemCount = document.createElement('div');
             itemCount.className = 'item-count';
+            
             slot.appendChild(itemIcon);
             slot.appendChild(itemCount);
+            
             inventoryGrid.appendChild(slot);
 
             // Add tooltip event listeners
             slot.addEventListener('mouseenter', showTooltip);
             slot.addEventListener('mouseleave', hideTooltip);
             slot.addEventListener('mousemove', moveTooltip);
-
+            
             // Add click handler for inventory slots
             slot.addEventListener('click', () => {
                 console.log(`[UI] Inventory slot ${i} clicked`);
@@ -2891,6 +2972,37 @@
                 });
             });
         }
+        
+        // Initialize tab functionality
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                
+                // Add active class to clicked button
+                button.classList.add('active');
+                
+                // Hide all tab contents
+                tabContents.forEach(content => {
+                    content.style.display = 'none';
+                });
+                
+                // Show the selected tab content
+                const tabName = button.getAttribute('data-tab');
+                document.getElementById(`${tabName}Tab`).style.display = 'block';
+                
+                // If profile tab is selected, request updated player data
+                if (tabName === 'profile') {
+                    console.log('[UI] Profile tab selected, requesting updated player stats');
+                    hytopia.sendData({
+                        requestPlayerStats: true
+                    });
+                }
+            });
+        });
 
         // Initialize hotbar mirror with 5 slots
         const inventoryHotbar = document.getElementById('inventoryHotbar');
@@ -3020,6 +3132,22 @@
                         // Hide inventory toggle button when inventory is open
                         if (inventoryToggleBtn) {
                             inventoryToggleBtn.style.display = 'none';
+                        }
+                        
+                        // Always select the inventory tab when opening
+                        const inventoryTabButton = document.querySelector('.tab-button[data-tab="inventory"]');
+                        const profileTabButton = document.querySelector('.tab-button[data-tab="profile"]');
+                        const inventoryTabContent = document.getElementById('inventoryTab');
+                        const profileTabContent = document.getElementById('profileTab');
+                        
+                        if (inventoryTabButton && profileTabButton && inventoryTabContent && profileTabContent) {
+                            // Set the active class on inventory tab button
+                            inventoryTabButton.classList.add('active');
+                            profileTabButton.classList.remove('active');
+                            
+                            // Show inventory tab content, hide profile tab content
+                            inventoryTabContent.style.display = 'block';
+                            profileTabContent.style.display = 'none';
                         }
                     } else {
                         console.log('[UI] INVENTORY IS CLOSED');
@@ -3684,20 +3812,10 @@
             // Handle player stats update
             if (data.playerStats) {
                 console.log('[UI] Received player stats:', data.playerStats);
+                
+                // Store in window variables for backwards compatibility
                 if (typeof data.playerStats.level === 'number') {
                     window.playerLevel = data.playerStats.level;
-                    
-                    // Update level display
-                    const levelNumber = document.querySelector('.player-level-number');
-                    if (levelNumber) {
-                        levelNumber.textContent = data.playerStats.level;
-                    }
-                    
-                    // Update level display in profile tab
-                    const playerLevelDisplay = document.getElementById('playerLevelDisplay');
-                    if (playerLevelDisplay) {
-                        playerLevelDisplay.textContent = data.playerStats.level;
-                    }
                 }
                 
                 if (typeof data.playerStats.xp === 'number') {
@@ -3706,30 +3824,10 @@
                 
                 if (typeof data.playerStats.nextLevelXp === 'number') {
                     window.playerNextLevelXP = data.playerStats.nextLevelXp;
-                    
-                    // Calculate and update XP progress bar
-                    if (window.playerXP !== undefined && window.playerNextLevelXP !== undefined) {
-                        const progressPercentage = Math.min(100, (window.playerXP / window.playerNextLevelXP) * 100);
-                        
-                        // Update HUD XP bar
-                        const progressFill = document.querySelector('.player-level-progress-fill');
-                        if (progressFill) {
-                            progressFill.style.width = `${progressPercentage}%`;
-                        }
-                        
-                        // Update profile tab XP bar
-                        const xpBarFill = document.getElementById('xpBarFill');
-                        if (xpBarFill) {
-                            xpBarFill.style.width = `${progressPercentage}%`;
-                        }
-                        
-                        // Update XP text
-                        const xpText = document.getElementById('xpText');
-                        if (xpText) {
-                            xpText.textContent = `${window.playerXP} / ${window.playerNextLevelXP} XP`;
-                        }
-                    }
                 }
+                
+                // Update both the main UI and profile tab using our centralized function
+                updateProfileLevelData(data.playerStats);
             }
             
             if (data.dungeonToggle) {
@@ -5096,32 +5194,6 @@
                 inventoryToggleBtn.style.display = inventoryContainer.style.display === 'none' ? 'block' : 'none';
             }
             
-            // Initialize tab switching
-            const inventoryTabs = document.querySelectorAll('.inventory-tab');
-            inventoryTabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    // Remove active class from all tabs
-                    inventoryTabs.forEach(t => t.classList.remove('active'));
-                    
-                    // Add active class to clicked tab
-                    tab.classList.add('active');
-                    
-                    // Hide all tab contents
-                    document.getElementById('inventoryContent').classList.remove('active');
-                    document.getElementById('profileContent').classList.remove('active');
-                    document.getElementById('inventoryContent').classList.add('inactive');
-                    
-                    // Show selected tab content
-                    const tabName = tab.getAttribute('data-tab');
-                    if (tabName === 'inventory') {
-                        document.getElementById('inventoryContent').classList.add('active');
-                        document.getElementById('inventoryContent').classList.remove('inactive');
-                    } else if (tabName === 'profile') {
-                        document.getElementById('profileContent').classList.add('active');
-                    }
-                });
-            });
-            
             // Set up recipe cache
             window.recipeCache = {};
             console.log('[UI] Recipe cache initialized');
@@ -5880,6 +5952,114 @@
                 tooltip.style.top = (e.clientY - 25) + 'px';
             }
         }
+
+        // Handle inventory panel
+        hytopia.onData(data => {
+            // Existing data handlers...
+            
+            // Handle player level updates
+            if (data.level) {
+                updateProfileLevelData(data.level);
+            } else if (data.playerStats) {
+                // Use playerStats data for updating the profile tab
+                updateProfileLevelData(data.playerStats);
+            }
+
+            // Handle player name and details updates
+            if (data.playerDetails) {
+                const playerName = document.querySelector('.player-name');
+                const guildTag = document.querySelector('.guild-tag');
+                
+                if (playerName && data.playerDetails.name) {
+                    playerName.textContent = data.playerDetails.name;
+                }
+                
+                if (guildTag && data.playerDetails.guild) {
+                    guildTag.textContent = data.playerDetails.guild;
+                }
+            }
+            
+            // Handle health updates in profile tab
+            if (data.health) {
+                const profileHealth = document.querySelector('.profile-health');
+                if (profileHealth) {
+                    profileHealth.textContent = `${data.health.max}`;
+                }
+            }
+            
+            // Handle mana updates in profile tab
+            if (data.mana) {
+                const profileMana = document.querySelector('.profile-mana');
+                if (profileMana) {
+                    profileMana.textContent = `${data.mana.max}`;
+                }
+            }
+        });
+
+        function updateProfileLevelData(statsData) {
+            // Update profile level display
+            const profileLevel = document.querySelector('.profile-level');
+            const progressFill = document.querySelector('.profile-progress-fill');
+            const profileXp = document.querySelector('.profile-xp');
+            const profileXpMax = document.querySelector('.profile-xp-max');
+            
+            if (profileLevel && typeof statsData.level === 'number') {
+                profileLevel.textContent = statsData.level;
+            }
+            
+            if (progressFill && typeof statsData.xp === 'number' && typeof statsData.nextLevelXp === 'number') {
+                // Calculate progress percentage
+                const percentage = Math.min(100, (statsData.xp / statsData.nextLevelXp) * 100);
+                progressFill.style.width = `${percentage}%`;
+            }
+            
+            if (profileXp && typeof statsData.xp === 'number') {
+                profileXp.textContent = statsData.xp;
+            }
+            
+            if (profileXpMax && typeof statsData.nextLevelXp === 'number') {
+                profileXpMax.textContent = statsData.nextLevelXp;
+            }
+            
+            // Also update the bottom-right level display if it exists
+            const levelNumber = document.querySelector('.player-level-number');
+            if (levelNumber && typeof statsData.level === 'number') {
+                levelNumber.textContent = statsData.level;
+            }
+            
+            const levelProgressFill = document.querySelector('.player-level-progress-fill');
+            if (levelProgressFill && typeof statsData.xp === 'number' && typeof statsData.nextLevelXp === 'number') {
+                const percentage = Math.min(100, (statsData.xp / statsData.nextLevelXp) * 100);
+                levelProgressFill.style.width = `${percentage}%`;
+            }
+        }
+
+        // Update tab functionality to request player data when profile tab is selected
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                
+                // Add active class to clicked button
+                button.classList.add('active');
+                
+                // Hide all tab contents
+                tabContents.forEach(content => {
+                    content.style.display = 'none';
+                });
+                
+                // Show the selected tab content
+                const tabName = button.getAttribute('data-tab');
+                document.getElementById(`${tabName}Tab`).style.display = 'block';
+                
+                // If profile tab is selected, request updated player data
+                if (tabName === 'profile') {
+                    hytopia.sendData({
+                        requestProfileData: true
+                    });
+                }
+            });
+        });
     </script>
 </body>
 </html>

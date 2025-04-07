@@ -355,8 +355,13 @@ export class PlayerManager {
 
 		// Setup UI event handlers
 		this.player.ui.on(PlayerUIEvent.DATA, ({ data }: { data: any }) => {
+			// Handle requestPlayerStats
+			if (data.requestPlayerStats) {
+				console.log('[PlayerManager] Received request for player stats, sending updated data to UI');
+				this.sendPlayerStatsToUI();
+			}
 			// Handle crafting UI close
-			if (data.craftingToggle?.action === 'close') {
+			else if (data.craftingToggle?.action === 'close') {
 				this.closeCrafting();
 			} 
 			// Handle inventory close
@@ -742,7 +747,7 @@ export class PlayerManager {
 
 	private openInventory(): void {
 		this.player.ui.lockPointer(false);
-		this.playerInventory.handleInventoryToggle(true);
+		this.playerInventory.handleInventoryToggle();
 	}
 
 	private closeInventory(): void {
