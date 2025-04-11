@@ -52,7 +52,7 @@ export interface ItemGenerator {
     updateUI: () => void;
 }
 
-export type ItemCategory = 'resource' | 'resources' | 'tool' | 'tools' | 'weapon' | 'weapons' | 'armor' | 'food' | 'misc' | 'unknown';
+export type ItemCategory = 'resource' | 'resources' | 'tool' | 'tools' | 'weapon' | 'weapons' | 'armor' | 'food' | 'misc' | 'unknown' | 'key';
 
 export interface ItemProperties {
   type: string;
@@ -66,6 +66,7 @@ export interface ItemProperties {
   handOffset?: { x: number; y: number; z: number };
   handRotation?: { x: number; y: number; z: number; w: number };
   imageUrl: string;
+  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
 }
 
 // Resources
@@ -81,6 +82,7 @@ export interface ToolItemProperties extends ItemProperties {
   damage: number;
   canBreak: string[];
   miningSpeed?: number;
+  soulbound?: boolean;
 }
 
 // Weapons
@@ -89,6 +91,7 @@ export interface WeaponItemProperties extends ItemProperties {
   durability: number;
   maxDurability: number;
   damage: number;
+  soulbound?: boolean;
 }
 
 // Armor
@@ -106,6 +109,12 @@ export interface FoodItemProperties extends ItemProperties {
   saturation: number;
 }
 
+// Keys
+export interface KeyItemProperties extends ItemProperties {
+  category: 'key';
+  // Key-specific properties can be added here
+}
+
 // Default item properties
 export function getDefaultItemProperties(type: string, displayName: string, category: ItemCategory): ItemProperties {
   return {
@@ -119,7 +128,8 @@ export function getDefaultItemProperties(type: string, displayName: string, cate
     colliderSize: DEFAULT_COLLIDER_SIZE,
     handOffset: DEFAULT_HAND_OFFSET,
     handRotation: DEFAULT_HAND_ROTATION,
-    imageUrl: `items/${type}.png`
+    imageUrl: `items/${type}.png`,
+    rarity: 'common'
   };
 }
 
@@ -137,6 +147,7 @@ export interface BaseItemProperties {
     readonly maxStackSize: number;
     readonly scale?: number;
     readonly imageUrl?: string;
+    readonly soulbound?: boolean;
     readonly dropForce?: {
         horizontal: number;
         vertical: number;
@@ -164,4 +175,5 @@ export type ItemType =
     | ResourceItemProperties 
     | WeaponItemProperties 
     | ToolItemProperties 
-    | ArmorItemProperties; 
+    | ArmorItemProperties
+    | KeyItemProperties; 

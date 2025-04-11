@@ -15,6 +15,7 @@ export interface Recipe {
         count: number;
     };
     craftingTime?: number; // Time in milliseconds to craft this item
+    xpReward?: number; // XP reward for crafting this item
 }
 
 export const recipes: Recipe[] = [
@@ -22,105 +23,105 @@ export const recipes: Recipe[] = [
         name: "Stone Pickaxe",
         category: "tools",
         inputs: [
-            { type: "stick", count: 2 },
+            { type: "log", count: 2 },
             { type: "iron-ingot", count: 1 }
         ],
         output: {
             type: "pickaxe-stone",
             count: 1
-        }
+        },
+        xpReward: 25
     },
     {
         name: "Stone Axe",
         category: "tools",
         inputs: [
-            { type: "stick", count: 1 },
-            { type: "iron-ingot", count: 1 },
-
+            { type: "log", count: 1 },
+            { type: "iron-ingot", count: 1 }
         ],
         output: {
             type: "axe-stone",
             count: 1
-        }
+        },
+        xpReward: 25
     },
     {
         name: "Iron Axe",
         category: "tools",
         inputs: [
-            { type: "stick", count: 2 },
+            { type: "log", count: 2 },
             { type: "iron-ingot", count: 3 },
             { type: "book", count: 3 }
-
         ],
         output: {
             type: "axe-stone",
             count: 1
-        }
+        },
+        xpReward: 50
     },
     {
         name: "Iron Pickaxe",
         category: "tools",
         inputs: [
-            { type: "stick", count: 2 },
+            { type: "log", count: 2 },
             { type: "iron-ingot", count: 3 },
             { type: "book", count: 3 }
-
         ],
         output: {
             type: "axe-stone",
             count: 1
-        }
+        },
+        xpReward: 50
     },
     {
         name: "Iron Test",
         category: "tools",
         inputs: [
-            { type: "stick", count: 1 },
+            { type: "log", count: 1 },
             { type: "iron-ingot", count: 3 },
             { type: "book", count: 3 }
-
         ],
         output: {
             type: "axe-stone",
             count: 1
-        }
+        },
+        xpReward: 35
     },
     {
         name: "Stone Sword",
         category: "weapons",
         inputs: [
-            { type: "stick", count: 1 },
+            { type: "log", count: 1 },
             { type: "iron-ingot", count: 2 }
         ],
         output: {
             type: "sword-stone",
             count: 1
-        }
+        },
+        xpReward: 30
     },
     {
         name: "Golden Sword",
         category: "weapons",
         inputs: [
-            { type: "stick", count: 1 },
+            { type: "log", count: 1 },
             { type: "iron-ingot", count: 2 }
         ],
         output: {
             type: "sword-golden",
             count: 1
-        }
+        },
+        xpReward: 75
     }
 ];
 
 // Helper function to get recipes by category
 export function getRecipesByCategory(category: string): Recipe[] {
-    console.log(`[Recipes] Getting recipes for category: "${category}"`);
     
     const matchingRecipes = recipes.filter(recipe => recipe.category === category);
     
-    console.log(`[Recipes] Found ${matchingRecipes.length} recipes for category "${category}"`);
     if (matchingRecipes.length > 0) {
         matchingRecipes.forEach((recipe, index) => {
-            console.log(`[Recipes] - Recipe ${index}: ${recipe.name}, category: ${recipe.category}`);
         });
     }
     
@@ -139,22 +140,18 @@ export function getRecipeById(id: string): Recipe | undefined {
 
 // Helper function to format recipe for UI display
 export function formatRecipeForUI(recipe: Recipe) {
-    console.log(`[Recipes] Formatting recipe for UI: ${recipe.name}, category: ${recipe.category}`);
     try {
         const formattedRecipe = {
             name: recipe.name,
             category: recipe.category,
             inputs: recipe.inputs.map(input => {
                 try {
-                    console.log(`[Recipes] Formatting input: ${input.type} for recipe ${recipe.name}`);
                     const itemConfig = getItemConfig(input.type);
-                    console.log(`[Recipes] Got item config for ${input.type}, imageUrl: ${itemConfig.imageUrl || 'missing'}`);
                     
                     const formattedInput = {
                         ...input,
                         imageUrl: `{{CDN_ASSETS_URL}}/${itemConfig.imageUrl}`
                     };
-                    console.log(`[Recipes] Formatted input imageUrl: ${formattedInput.imageUrl}`);
                     return formattedInput;
                 } catch (error) {
                     console.error(`[Recipes] Error formatting input ${input.type} for recipe ${recipe.name}:`, error);
@@ -167,8 +164,7 @@ export function formatRecipeForUI(recipe: Recipe) {
             }
         };
         
-        console.log(`[Recipes] Output imageUrl: ${formattedRecipe.output.imageUrl}`);
-        console.log(`[Recipes] Successfully formatted recipe: ${recipe.name}, category will be: ${formattedRecipe.category}`);
+
         return formattedRecipe;
     } catch (error) {
         console.error(`[Recipes] Error formatting recipe ${recipe.name}:`, error);

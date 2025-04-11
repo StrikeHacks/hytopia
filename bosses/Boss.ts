@@ -1,6 +1,7 @@
 import { Entity, World, RigidBodyType, ColliderShape, EntityEvent, CollisionGroup, PathfindingEntityController, PlayerEntity } from 'hytopia';
 import type { Vector3Like } from 'hytopia';
 import { globalItemSpawner } from '../managers/GameManager';
+import { AttackerTracker } from '../utils/AttackerTracker';
 
 // Interface voor het configureren van een boss
 export interface BossOptions {
@@ -22,6 +23,7 @@ export interface BossOptions {
     waypointTimeoutMs?: number;
   };
   dropItems?: string[]; // Items that the boss drops when defeated
+  xpReward?: number; // XP reward for defeating this boss
 }
 
 // Export pathfinding opties voor gemakkelijk hergebruik
@@ -75,6 +77,9 @@ export abstract class Boss extends Entity {
   
   // Voeg target position property toe
   protected _targetPosition: Vector3Like | null = null;
+  
+  // Tracking which player last hit this boss
+  protected _lastPlayerAttacker: PlayerEntity | null = null;
   
   constructor(options: BossOptions) {
     const modelScale = options.modelScale || 1.0;
@@ -537,14 +542,17 @@ export abstract class Boss extends Entity {
   }
   
   // Damage nemen
-  public takeDamage(amount: number, fromPlayerAttack: boolean = false): void {
+  public takeDamage(amount: number, fromPlayerAttack: boolean = false, playerEntity?: PlayerEntity): void {
     if (!this.isSpawned) return;
     
-    console.log(`[Boss] ${this.name} neemt ${amount} schade, van speler: ${fromPlayerAttack}`);
+    // Track the player who dealt damage if provided
+    if (fromPlayerAttack && playerEntity instanceof PlayerEntity) {
+      this._lastPlayerAttacker = playerEntity;
+    }
     
     // Update health
-      this._health -= amount;
-      
+    this._health -= amount;
+    
     // Stuur een damage event
     this.emit('damage', { amount, health: this._health, maxHealth: this._maxHealth, fromPlayerAttack });
     
@@ -555,10 +563,8 @@ export abstract class Boss extends Entity {
     });
     
     // Check for death
-      if (this._health <= 0) {
-      console.log(`[Boss] ${this.name} is verslagen`);
-      this.emit('death', { name: this.name });
-      // Geen despawn meer hier, dat gebeurt nu in de subclass voor onmiddellijke despawn
+    if (this._health <= 0) {
+      this.emit('death', { name: this.name, player: this._lastPlayerAttacker });
     }
   }
   
@@ -691,30 +697,36 @@ export abstract class Boss extends Entity {
   protected _onDeath(source?: Entity): void {
     if (!this.isSpawned || !this.world) return;
     
-    console.log(`Boss ${this.name} is defeated by ${source ? source.name : 'unknown'}`);
-    console.log(`[Boss] Drop items configured:`, this._dropItems);
+    // Find the player who killed this boss
+    let killerPlayer = this._lastPlayerAttacker;
+    
+    // If we don't have a killer player, try to get it from the AttackerTracker
+    if (!killerPlayer && this.id) {
+      const trackedAttacker = AttackerTracker.getInstance().getLastAttacker(this.id);
+      if (trackedAttacker) {
+        killerPlayer = trackedAttacker;
+      }
+    }
+    
+    // Use source as a last resort if it's a PlayerEntity
+    if (!killerPlayer && source instanceof PlayerEntity) {
+      killerPlayer = source;
+    }
     
     // Geen items om te droppen
     if (!this._dropItems || this._dropItems.length === 0) {
-      console.log(`[Boss] No drop items configured for ${this.name}`);
       return;
     }
     
     // Drop geconfigureerde items
     this._dropItems.forEach(itemType => {
       try {
-        console.log(`[Boss] Attempting to drop item ${itemType}`);
-        
         let itemSpawnerFound = false;
         
         // METHODE 0: Probeer de globale ItemSpawner te gebruiken via GameManager
         if (globalItemSpawner && typeof globalItemSpawner.handleBlockDrop === 'function') {
-          console.log(`[Boss] Gevonden globale ItemSpawner via GameManager, gebruiken voor drop`);
           globalItemSpawner.handleBlockDrop(itemType, this.position);
-          console.log(`[Boss] Dropped item ${itemType} via globale ItemSpawner`, this.position);
           itemSpawnerFound = true;
-        } else {
-          console.log(`[Boss] Geen globale ItemSpawner gevonden in GameManager (${globalItemSpawner ? 'object bestaat' : 'null'}), probeer andere methodes`);
         }
         
         // Als de globale ItemSpawner niet werkt, probeer andere methoden
@@ -723,56 +735,30 @@ export abstract class Boss extends Entity {
           const itemSpawners = this.world?.entityManager.getAllEntities()
             .filter(entity => entity.name === 'ItemSpawner') || [];
           
-          console.log(`[Boss] Found ${itemSpawners.length} ItemSpawners directly`);
-          
           if (itemSpawners.length > 0) {
             const itemSpawner = itemSpawners[0] as any;
-            console.log(`[Boss] ItemSpawner found directly:`, itemSpawner.name);
             
             if (itemSpawner && typeof itemSpawner.handleBlockDrop === 'function') {
               // Drop het item op de positie van de boss
-              console.log(`[Boss] Calling handleBlockDrop for ${itemType} at position`, this.position);
               itemSpawner.handleBlockDrop(itemType, this.position);
-              console.log(`[Boss] Dropped item ${itemType} at position via direct ItemSpawner`, this.position);
               itemSpawnerFound = true;
-            } else {
-              console.warn(`[Boss] ItemSpawner found directly but handleBlockDrop method is not available`, 
-                typeof itemSpawner === 'object' ? Object.keys(itemSpawner) : typeof itemSpawner);
             }
           } 
           
           // METHODE 2: Als er geen ItemSpawner is, probeer via de BossManager
           if (!itemSpawnerFound) {
-            console.log(`[Boss] Looking for BossManager to get ItemSpawner`);
             const bossManagers = this.world?.entityManager.getAllEntities()
               .filter(entity => entity.name === 'BossManager') || [];
             
-            console.log(`[Boss] Found ${bossManagers.length} BossManagers`);
-            
             if (bossManagers.length > 0) {
               const bossManager = bossManagers[0] as any;
-              console.log(`[Boss] BossManager found:`, bossManager.name);
               
               if (bossManager && bossManager.getItemSpawner && typeof bossManager.getItemSpawner === 'function') {
-                console.log(`[Boss] BossManager has getItemSpawner method`);
                 const itemSpawner = bossManager.getItemSpawner();
-                console.log(`[Boss] Retrieved ItemSpawner from BossManager:`, itemSpawner ? 'success' : 'null');
                 
                 if (itemSpawner && typeof itemSpawner.handleBlockDrop === 'function') {
-                  console.log(`[Boss] Calling handleBlockDrop via BossManager for ${itemType}`);
                   itemSpawner.handleBlockDrop(itemType, this.position);
-                  console.log(`[Boss] Dropped item ${itemType} at position via BossManager`, this.position);
                   itemSpawnerFound = true;
-                } else {
-                  console.warn(`[Boss] ItemSpawner from BossManager doesn't have handleBlockDrop method`);
-                  if (itemSpawner) {
-                    console.log(`[Boss] ItemSpawner from BossManager methods:`, Object.keys(itemSpawner));
-                  }
-                }
-              } else {
-                console.warn(`[Boss] BossManager doesn't have getItemSpawner method`);
-                if (bossManager) {
-                  console.log(`[Boss] BossManager methods:`, Object.keys(bossManager));
                 }
               }
             }
@@ -780,53 +766,28 @@ export abstract class Boss extends Entity {
           
           // METHODE 3: Als er nog steeds geen ItemSpawner is, probeer via de GameManager
           if (!itemSpawnerFound) {
-            console.log(`[Boss] No ItemSpawner or BossManager found, looking for GameManager`);
             const gameManagers = this.world?.entityManager.getAllEntities()
               .filter(entity => entity.name === 'GameManager') || [];
             
-            console.log(`[Boss] Found ${gameManagers.length} GameManagers`);
-            
             if (gameManagers.length > 0) {
               const gameManager = gameManagers[0] as any;
-              console.log(`[Boss] GameManager found:`, gameManager.name);
               
               if (gameManager && gameManager.getItemSpawner && typeof gameManager.getItemSpawner === 'function') {
-                console.log(`[Boss] GameManager has getItemSpawner method`);
                 const itemSpawner = gameManager.getItemSpawner();
-                console.log(`[Boss] Retrieved ItemSpawner from GameManager:`, itemSpawner ? 'success' : 'null');
                 
                 if (itemSpawner && typeof itemSpawner.handleBlockDrop === 'function') {
-                  console.log(`[Boss] Calling handleBlockDrop through GameManager for ${itemType}`);
                   itemSpawner.handleBlockDrop(itemType, this.position);
-                  console.log(`[Boss] Dropped item ${itemType} at position via GameManager`, this.position);
                   itemSpawnerFound = true;
-                } else {
-                  console.warn(`[Boss] ItemSpawner from GameManager doesn't have handleBlockDrop method`);
-                  if (itemSpawner) {
-                    console.log(`[Boss] ItemSpawner methods:`, Object.keys(itemSpawner));
-                  }
-                }
-              } else {
-                console.warn(`[Boss] GameManager doesn't have getItemSpawner method`);
-                if (gameManager) {
-                  console.log(`[Boss] GameManager methods:`, Object.keys(gameManager));
                 }
               }
-            } else {
-              console.warn(`[Boss] No ItemSpawner, BossManager or GameManager found to drop items`);
             }
           }
           
           // FALLBACK: Als we helemaal niets konden vinden, probeer een directe manier
           if (!itemSpawnerFound) {
-            console.log(`[Boss] FALLBACK: Attempting to access world._itemSpawner`);
             const worldAny = this.world as any;
             if (worldAny._itemSpawner && typeof worldAny._itemSpawner.handleBlockDrop === 'function') {
-              console.log(`[Boss] Found world._itemSpawner, using it for drop`);
               worldAny._itemSpawner.handleBlockDrop(itemType, this.position);
-              console.log(`[Boss] Dropped item ${itemType} using world._itemSpawner`);
-            } else {
-              console.error(`[Boss] FAILED TO FIND ANY METHOD TO DROP ITEMS for ${this.name}`);
             }
           }
         }
@@ -853,10 +814,15 @@ export abstract class Boss extends Entity {
       this.despawn();
     }
     
+    // Clean up the tracker
+    if (this.id) {
+      AttackerTracker.getInstance().clearRecord(this.id);
+    }
+    
     // Stuur specifiek dood event
     this.emit('boss-death', {
       boss: this,
-      source
+      source: killerPlayer || source
     });
   }
   

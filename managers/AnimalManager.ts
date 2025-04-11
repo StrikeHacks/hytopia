@@ -1,7 +1,10 @@
-import { Entity, World, Quaternion, PathfindingEntityController } from 'hytopia';
-import { ItemSpawner } from './ItemSpawner';
-import { GameManager } from './GameManager';
-import { animalConfigs } from '../config/spawners';
+import { World, Entity, Audio, Quaternion, PlayerEntity } from "hytopia";
+import type { Vector3Like } from "hytopia";
+import { animalConfigs } from "../config/spawners";
+import type { AnimalConfig } from "../config/spawners";
+import { PathfindingEntityController } from "hytopia";
+import { ItemSpawner } from "./ItemSpawner";
+import { GameManager } from "./GameManager";
 
 // Optimized animal state tracking
 interface AnimalState {
@@ -12,6 +15,7 @@ interface AnimalState {
     lastUpdateTime: number; // For performance tracking
     isPanicking: boolean;   // Track panic state
     activeTimers: NodeJS.Timer[]; // Track all timers (changed from Timeout to Timer)
+    lastAttacker?: string;  // ID of the last player to attack this animal
 }
 
 export class AnimalManager {
@@ -33,7 +37,6 @@ export class AnimalManager {
             const config = animalConfigs[animalType];
             const maxHP = config?.maxHP || 10; // Default 10 as fallback
             
-            console.log(`[AnimalManager] Registering ${animalType} with ${maxHP} HP (Entity ID: ${animal.id})`);
             
             // Initialize with full HP and reset state
             this.animalStates.set(animal.id, { 
@@ -43,11 +46,11 @@ export class AnimalManager {
                 animalType: animalType,
                 lastUpdateTime: Date.now(),
                 isPanicking: false,
-                activeTimers: []
+                activeTimers: [],
+                lastAttacker: undefined
             });
             
             this.animals.set(animal.id, animal);
-            console.log(`[AnimalManager] Total registered animals: ${this.animals.size}`);
         } else {
             console.warn('[AnimalManager] Attempted to register animal without ID');
         }
@@ -64,10 +67,12 @@ export class AnimalManager {
         this.animalStates.delete(animalId);
     }
 
-    public handleAnimalHit(animal: Entity, direction: { x: number, y: number, z: number }, weaponDamage?: number) {
-        if (!animal.id || !this.animals.has(animal.id)) return;
+    public handleAnimalHit(animal: Entity, direction: { x: number, y: number, z: number }, weaponDamage?: number, playerId?: string) {
+        const animalId = animal.id;
+        if (typeof animalId !== 'number') return;
 
-        const animalState = this.animalStates.get(animal.id);
+        // Get the animal state
+        const animalState = this.animalStates.get(animalId);
         if (!animalState) return;
 
         // Check cooldown
@@ -77,13 +82,18 @@ export class AnimalManager {
         }
         animalState.lastHitTime = now;
 
+        // Track the player who hit the animal
+        if (playerId) {
+            animalState.lastAttacker = playerId;
+        }
+
         // Calculate damage
         const damage = weaponDamage ?? 0.5; // 0.5 damage for hand hits, otherwise weapon damage
         animalState.hp -= damage;
 
         // Check for death
         if (animalState.hp <= 0) {
-            this.handleAnimalDeath(animal);
+            this.handleAnimalDeath(animal, animalState.lastAttacker);
             return;
         }
 
@@ -125,7 +135,7 @@ export class AnimalManager {
         }
     }
 
-    private handleAnimalDeath(animal: Entity) {
+    private handleAnimalDeath(animal: Entity, killerPlayerId?: string) {
         const animalId = animal.id;
         if (typeof animalId !== 'number') return;
 
@@ -140,6 +150,11 @@ export class AnimalManager {
         // Drop configured items
         for (const item of dropItems) {
             this.itemSpawner.handleBlockDrop(item, animal.position);
+        }
+
+        // Award XP to the player who killed the animal (if specified)
+        if (killerPlayerId) {
+            this.awardXpToPlayer(killerPlayerId, animalState.animalType);
         }
 
         // Cancel any active timers
@@ -212,6 +227,78 @@ export class AnimalManager {
         
         // Add to tracked timers
         animalState.activeTimers.push(deathTimer);
+    }
+
+    /**
+     * Awards XP to a player for killing an animal
+     */
+    private awardXpToPlayer(playerId: string, animalType: string): void {
+        // Get the LevelManager from GameManager
+        const levelManager = this.gameManager.getLevelManager();
+        if (!levelManager) {
+            return;
+        }
+
+        try {
+            // Get XP reward based on animal type
+            const xpReward = this.getAnimalXpReward(animalType);
+            
+            // Add XP to the player
+            const leveledUp = levelManager.addPlayerXP(playerId, xpReward);
+            
+            // Get player entity to send notification
+            const playerEntities = this.world.entityManager.getAllEntities()
+                .filter(entity => 
+                    entity instanceof PlayerEntity && 
+                    entity.isSpawned && 
+                    entity.player && 
+                    entity.player.id === playerId
+                );
+            
+            if (playerEntities.length > 0) {
+                const playerEntity = playerEntities[0] as PlayerEntity;
+                
+                // Send a notification to the player
+                const animalName = this.getAnimalDisplayName(animalType);
+                const newLevel = levelManager.getPlayerLevel(playerId);
+                
+                const message = leveledUp
+                    ? `You killed a ${animalName} and gained ${xpReward} XP! You leveled up to level ${newLevel}!`
+                    : `You killed a ${animalName} and gained ${xpReward} XP!`;
+                
+                playerEntity.player.ui.sendData({
+                    notification: {
+                        message,
+                        type: 'success',
+                        duration: 3000
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('[AnimalManager] Error awarding XP:', error);
+        }
+    }
+
+    /**
+     * Returns an animal's display name based on type
+     */
+    private getAnimalDisplayName(animalType: string): string {
+        // Capitalize the first letter of the animal type
+        return animalType.charAt(0).toUpperCase() + animalType.slice(1);
+    }
+
+    /**
+     * Returns XP reward for killing an animal type
+     */
+    private getAnimalXpReward(animalType: string): number {
+        // Hardcoded XP rewards for different animal types
+        const xpRewards: Record<string, number> = {
+            'cow': 2,
+            // Add more animal types as they are added to the game
+        };
+        
+        // Use the mapping if the animal type exists, otherwise return a default value
+        return xpRewards[animalType] || 1; // Default tiny XP amount
     }
 
     private startPanicMode(animal: Entity): void {

@@ -63,7 +63,7 @@
         /* Tooltip styles */
         .item-tooltip {
             position: absolute;
-            background-color: rgba(0, 0, 0, 0.85);
+            background-color: rgba(0, 0, 0, 1);
             border: 2px solid rgba(139, 69, 19, 0.7);
             border-radius: 4px;
             color: white;
@@ -84,7 +84,6 @@
         .tooltip-category {
             color: #aaaaaa;
             font-size: 12px;
-            font-style: italic;
             margin-bottom: 3px;
             text-align: left;
         }
@@ -389,16 +388,17 @@
 
         
 
+        /* Inventory Container styling */
         .inventory-container {
             display: none;
             position: fixed;
-            top: 20px;
+            top: 46px;
             right: 20px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(34, 34, 34, 0.9); /* Slightly transparent dark background */
             padding: 15px;
             border: 2px solid #8B4513;
-            border-radius: 8px;
-            z-index: 1000;
+            border-radius: 8px; /* Rounded corners on all sides */
+            z-index: 999;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
 
@@ -409,7 +409,7 @@
             width: 24px;
             height: 24px;
             background: rgb(255, 0, 0);
-            border: 2px solid #8B4513;
+            border: 2px solid #FF0000; /* Red border to match image */
             border-radius: 4px;
             color: white;
             display: flex;
@@ -593,6 +593,7 @@
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
+            pointer-events: none;
         }
 
         @keyframes rotate {
@@ -847,7 +848,7 @@
             height: 100%;
             width: 0%;
             background: linear-gradient(to right, #FFD700, #DAA520);
-            transition: width 0.1s linear;
+            transition: width 0.3s ease-out;
             box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3);
         }
 
@@ -905,7 +906,7 @@
         /* Add styles for the tooltip */
         .item-tooltip {
             position: fixed; /* Changed from absolute to fixed */
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 1);
             color: white;
             padding: 8px 12px;
             border-radius: 4px;
@@ -928,17 +929,11 @@
         }
         
         .tooltip-title {
-            color: #FFD700;
+            color: white;
             margin-bottom: 3px;
-            text-align: right;
         }
         
-        .tooltip-category {
-            color: #aaaaaa;
-            font-size: 12px;
-            font-style: italic;
-            text-align: right;
-        }
+
         
         .tooltip-count,
         .tooltip-damage,
@@ -957,7 +952,6 @@
         .tooltip-durability {
             margin-top: 5px;
             font-size: 12px;
-            text-align: right;
         }
         
         .tooltip-durability-bar {
@@ -1010,7 +1004,6 @@
         .tooltip-category {
             color: #aaa;
             font-size: 14px;
-            font-style: italic;
             margin-bottom: 2px; /* Verminder van 4px naar 2px */
             text-align: left;
         }
@@ -1033,6 +1026,1104 @@
             height: 100%;
             border-radius: 3px;
             background-color: #4CAF50;
+        }
+
+        .traveler-ui {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px;
+            height: 500px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            color: white;
+            padding: 30px;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .traveler-ui h2 {
+            text-align: center;
+            margin: 0 0 20px 0;
+            font-size: 24px;
+            color: #FFD700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .traveler-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(139, 69, 19, 0.2);
+            border-radius: 4px;
+            justify-content: center;
+            border-bottom: 2px solid rgba(139, 69, 19, 0.5);
+        }
+
+        .traveler-categories .category-button {
+            background: rgba(139, 69, 19, 0.4);
+            border: 2px solid #8B4513;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 120px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .traveler-categories .category-button[data-category="daily"] {
+            background: rgba(65, 105, 225, 0.4);
+            border-color: royalblue;
+        }
+
+        .traveler-categories .category-button[data-category="weekly"] {
+            background: rgba(60, 179, 113, 0.4);
+            border-color: mediumseagreen;
+        }
+
+        .traveler-categories .category-button[data-category="special"] {
+            background: rgba(255, 69, 0, 0.4);
+            border-color: orangered;
+        }
+
+        .traveler-categories .category-button:hover {
+            background: rgba(139, 69, 19, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .traveler-categories .category-button[data-category="daily"]:hover {
+            background: rgba(65, 105, 225, 0.6);
+        }
+
+        .traveler-categories .category-button[data-category="weekly"]:hover {
+            background: rgba(60, 179, 113, 0.6);
+        }
+
+        .traveler-categories .category-button[data-category="special"]:hover {
+            background: rgba(255, 69, 0, 0.6);
+        }
+
+        .traveler-categories .category-button.active {
+            background: rgba(139, 69, 19, 0.8);
+            border-color: #FFD700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .traveler-categories .category-button[data-category="daily"].active {
+            background: rgba(65, 105, 225, 0.8);
+            border-color: gold;
+        }
+
+        .traveler-categories .category-button[data-category="weekly"].active {
+            background: rgba(60, 179, 113, 0.8);
+            border-color: gold;
+        }
+
+        .traveler-categories .category-button[data-category="special"].active {
+            background: rgba(255, 69, 0, 0.8);
+            border-color: gold;
+        }
+
+        .traveler-items {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 15px;
+            overflow-y: auto;
+            padding: 15px;
+            flex-grow: 1;
+            max-height: 320px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(139, 69, 19, 0.4);
+        }
+        
+        /* Custom scrollbar for traveler-items - exactly matching recipe-list */
+        .traveler-items::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .traveler-items::-webkit-scrollbar-track {
+            background: rgba(139, 69, 19, 0.2);
+            border-radius: 4px;
+        }
+
+        .traveler-items::-webkit-scrollbar-thumb {
+            background: rgba(139, 69, 19, 0.6);
+            border-radius: 4px;
+            border: 2px solid rgba(139, 69, 19, 0.2);
+        }
+
+        .traveler-items::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 69, 19, 0.8);
+        }
+
+        .trade-item {
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 8px;
+            border: 1px solid rgba(139, 69, 19, 0.6);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .trade-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            border-color: #FFD700;
+        }
+
+        .trade-name {
+            font-size: 18px;
+            color: #FFD700;
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .trade-description {
+            font-size: 12px;
+            color: #ccc;
+            margin-bottom: 15px;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .trade-details {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(139, 69, 19, 0.3);
+        }
+        
+        .trade-inputs,
+        .trade-outputs {
+            flex: 1;
+            padding: 0 10px;
+        }
+
+        .trade-section-title {
+            font-weight: bold;
+            color: #aaa;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .trade-resource {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(139, 69, 19, 0.2);
+        }
+
+        .trade-resource:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(139, 69, 19, 0.4);
+        }
+
+        .trade-resource img {
+            width: 32px;
+            height: 32px;
+            margin-right: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 3px;
+            border-radius: 4px;
+            border: 1px solid rgba(139, 69, 19, 0.4);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            object-fit: contain;
+        }
+
+        .trade-arrow {
+            margin: 0 15px;
+            color: #FFD700;
+            font-size: 24px;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+        }
+        
+        .trade-level {
+            font-size: 14px;
+            color: #FFD700;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin: 10px auto;
+            display: inline-block;
+            text-align: center;
+            border: 1px solid #8B4513;
+            align-self: center;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .trade-button {
+            background: linear-gradient(to bottom, rgba(139, 69, 19, 0.6), rgba(139, 69, 19, 0.4));
+            color: white;
+            border: 1px solid #8B4513;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: auto;
+            align-self: center;
+            min-width: 120px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .trade-button:hover {
+            background: linear-gradient(to bottom, rgba(139, 69, 19, 0.8), rgba(139, 69, 19, 0.6));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            border-color: #FFD700;
+        }
+        
+        .trade-button:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .traveler-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+            color: #aaa;
+            font-style: italic;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border: 1px dashed rgba(139, 69, 19, 0.4);
+        }
+
+        .traveler-empty-state .icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .traveler-empty-state .message {
+            font-size: 18px;
+            margin-bottom: 5px;
+            color: #ccc;
+        }
+        
+        .traveler-empty-state .sub-message {
+            font-size: 14px;
+            color: #999;
+        }
+
+        .entity-name {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 4px;
+            padding: 4px 12px;
+            color: white;
+            text-align: center;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            position: absolute;
+        }
+
+        .entity-name .name {
+            font-family: Arial, sans-serif;
+            user-select: none;
+            font-size: 24px;
+            margin: 0;
+            white-space: nowrap;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        #dungeonUI {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px;
+            height: 500px;
+            background: #1a1410;
+            color: #ffd700;
+            border-radius: 12px;
+            z-index: 1000;
+            border: 2px solid #8b4513;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #dungeonUI.visible {
+            display: block;
+        }
+
+        .dungeon-header {
+            background: linear-gradient(to bottom, #8b4513, #654321);
+            padding: 20px;
+            font-size: 26px;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 2px solid #8b4513;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            height: 64px;
+            box-sizing: border-box;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .dungeon-sidebar {
+            position: absolute;
+            left: 0;
+            top: 64px;
+            width: 180px;
+            height: calc(100% - 64px);
+            background: #231c15;
+            padding: 15px;
+            border-right: 2px solid #8b4513;
+            border-bottom-left-radius: 12px;
+            box-sizing: border-box;
+        }
+
+        .level-button {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background: linear-gradient(to bottom, #4a3728, #2c1810);
+            border: 1px solid #8b4513;
+            color: #ffd700;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: left;
+            transition: all 0.2s ease;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .level-button:hover {
+            background: linear-gradient(to bottom, #5a4738, #3c2820);
+            border-color: #cd853f;
+        }
+
+        .level-button.active {
+            background: linear-gradient(to bottom, #8b4513, #654321);
+            border-color: #daa520;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(218, 165, 32, 0.3);
+        }
+
+        .dungeon-content {
+            position: absolute;
+            left: 180px;
+            top: 64px;
+            right: 0;
+            height: calc(100% - 64px);
+            padding: 15px;
+            overflow-y: auto;
+            box-sizing: border-box;
+            background: #231c15;
+        }
+
+        .dungeon-entry {
+            display: flex;
+            align-items: center;
+            height: 100px;
+            background: linear-gradient(to right, #2c1810, #231c15);
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #8b4513;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .dungeon-entry:hover {
+            border-color: #daa520;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .dungeon-entry img {
+            width: 150px;
+            height: 100%;
+            object-fit: cover;
+            position: relative;
+        }
+
+        .dungeon-entry::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 120px;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(to right, transparent, #2c1810);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .dungeon-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 20px;
+        }
+
+        .dungeon-name {
+            font-size: 18px;
+            font-weight: 500;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 5px;
+        }
+
+        .dungeon-level {
+            font-size: 14px;
+            color: #cd853f;
+            margin-bottom: 8px;
+        }
+
+        .potential-loot {
+            display: flex;
+            gap: 8px;
+        }
+
+        .loot-slot {
+            width: 32px;
+            height: 32px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #8b4513;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loot-slot img {
+            width: 24px;
+            height: 24px;
+            opacity: 1;
+        }
+
+        .fight-button {
+            padding: 8px 16px;
+            margin-right: 15px;
+            background: linear-gradient(to bottom, #8b0000, #5c0000);
+            border: 1px solid #ff4500;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+    
+        .dungeon-content::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .dungeon-content::-webkit-scrollbar-track {
+            background: #1a1410;
+            border-left: 1px solid #8b4513;
+        }
+
+        .dungeon-content::-webkit-scrollbar-thumb {
+            background: linear-gradient(to right, #8b4513, #654321);
+            border-radius: 5px;
+            border: 1px solid #daa520;
+        }
+
+        .dungeon-content::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to right, #9b5523, #755331);
+        }
+
+        /* Add dungeon confirmation popup styles */
+        .dungeon-confirmation-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .dungeon-confirmation-popup .popup-content {
+            background: rgba(40, 40, 40, 0.95);
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            min-width: 300px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .dungeon-confirmation-popup h2 {
+            color: #FFD700;
+            margin: 0 0 15px 0;
+        }
+
+        .dungeon-confirmation-popup .key-requirement {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        .dungeon-confirmation-popup .key-requirement img {
+            width: 32px;
+            height: 32px;
+            margin-right: 10px;
+        }
+
+        .dungeon-confirmation-popup .popup-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .dungeon-confirmation-popup .confirm-button,
+        .dungeon-confirmation-popup .cancel-button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .dungeon-confirmation-popup .confirm-button {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .dungeon-confirmation-popup .confirm-button:hover {
+            background: #45a049;
+        }
+
+        .dungeon-confirmation-popup .cancel-button {
+            background: #f44336;
+            color: white;
+        }
+
+        .dungeon-confirmation-popup .cancel-button:hover {
+            background: #da190b;
+        }
+
+        .name {
+            color: white;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+            font-size: 16px;
+            font-weight: bold;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .item-name {
+            font-size: 14px;
+            color: gold; /* Gold color for items */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+ 
+        }
+
+        .item-name-text {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Base name style for all floating text */
+        .name {
+            color: white;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+            font-size: 16px;
+            font-weight: bold;
+            white-space: nowrap;
+            text-align: center;
+            padding: 4px 8px;
+        }
+
+        /* Specific style for item names */
+        .floating-item-name {
+            font-size: 50px; /* Much bigger text */
+            font-family: 'Arial', sans-serif;
+            font-weight: 900; /* Extra bold */
+            letter-spacing: 1px;
+            transform: scale(1.1) translateY(-5px);
+            white-space: nowrap;
+            pointer-events: none;
+            user-select: none;
+            animation: floatText 2.5s ease-in-out infinite;
+            text-shadow: none; /* Remove text shadow */
+        }
+
+        /* Smoother floating animation */
+        @keyframes floatText {
+            0% { transform: scale(1.1) translateY(-5px); }
+            50% { transform: scale(1.1) translateY(-8px); }
+            100% { transform: scale(1.1) translateY(-5px); }
+        }
+
+        /* Remove any background or padding */
+        .floating-item-name.name {
+            background: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Animation for item names */
+        @keyframes floatText {
+            0% { transform: translateY(-20px); }
+            50% { transform: translateY(-23px); }
+            100% { transform: translateY(-20px); }
+        }
+
+        .floating-item-name {
+            animation: floatText 2s ease-in-out infinite;
+        }
+
+        /* Item rarity colors */
+        .rarity-common {
+            color: #9d9d9d;
+        }
+        .rarity-uncommon {
+            color: #1eff00;
+        }
+        .rarity-rare {
+            color: #0070dd;
+        }
+        .rarity-epic {
+            color: #a335ee;
+        }
+        .rarity-legendary {
+            color: #ff8000;
+        }
+        .rarity-mythic {
+            color: #ff0000;
+        }
+
+        /* Base floating item name style */
+        .floating-item-name {
+            /* Remove default color, it will be set by rarity class */
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-align: center;
+            white-space: nowrap;
+            padding: 0;
+            margin: 0;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+            animation: float 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Floating container for item name and player name */
+        .floating-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        /* Player name style */
+        .player-name {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Base floating item name style */
+        .floating-item-name {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-align: center;
+            white-space: nowrap;
+            padding: 0;
+            margin: 0;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Container for the combined floating text */
+        .floating-text-container {
+            /* Removed display: flex and align-items */
+            text-align: center; /* Center the text lines */
+            animation: float 2s ease-in-out infinite;
+            font-size: 30px; /* Increased font size */
+            font-weight: 900;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+            white-space: nowrap; /* Prevent line breaks */
+        }
+
+        /* Style for the 'Player won' part */
+        .player-won-text {
+            color: white;
+            /* Removed margin-right */
+            margin-bottom: 4px; /* Add some space below */
+        }
+
+        /* Style for the item name part (color determined by rarity class) */
+        .item-name-text {
+            /* Inherits most styles from container */
+        }
+
+        /* Item rarity colors */
+        .rarity-common { color: #9d9d9d; }
+        .rarity-uncommon { color: #1eff00; }
+        .rarity-rare { color: #0070dd; }
+        .rarity-epic { color: #a335ee; }
+        .rarity-legendary { color: #ff8000; }
+        .rarity-mythic { color: #ff0000; }
+
+        /* Animation for floating effect */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Player level display styles */
+        .player-level-display {
+            position: fixed;
+            bottom: 20px;
+            /* Position right next to the hotbar */
+            right: calc(50% + 158px); 
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #8B4513;
+            border-radius: 4px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            color: white;
+            font-weight: bold;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+            padding: 0;
+        }
+
+        .player-level-number {
+            font-size: 22px;
+            line-height: 1;
+            color: #FFD700; /* Gold color for level number */
+            margin-top: -2px;
+        }
+
+        .player-level-label {
+            font-size: 8px;
+            margin-top: 0px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        .player-level-progress {
+            width: 80%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin-top: 2px;
+            overflow: hidden;
+        }
+
+        .player-level-progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .crosshair {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9999;
+            width: 16px;
+            height: 16px;
+            opacity: 1;
+            transition: opacity 0.2s ease;
+        }
+
+        /* Inventory Tabs Styling */
+        .inventory-tabs {
+            display: flex;
+            margin-bottom: 0;
+            padding-bottom: 0;
+            position: absolute;
+            top: -39px;
+            left: 0;
+            width: 100%;
+            z-index: 1001;
+            justify-content: center;
+        }
+        
+        /* Common styling for all tab buttons */
+        .tab-button {
+            background: #8B4513; /* Brown background for inactive tabs */
+            border: 2px solid #8B4513;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0; /* Rounded top corners */
+            color: white;
+            padding: 8px 15px;
+            margin-right: 2px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Roboto', Arial, sans-serif;
+            font-size: 14px;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: background 0.2s ease;
+            position: relative;
+            z-index: 1000;
+            height: 37px;
+            box-sizing: border-box;
+            line-height: 1.2;
+        }
+
+        .tab-button:hover {
+            opacity: 0.9;
+        }
+        
+        /* Active tab styling - always dark (#222222) */
+        .tab-button.active {
+            background: rgba(34, 34, 34, 0.9) !important; /* Slightly transparent dark background for active tab */
+            border: 2px solid #8B4513;
+            border-bottom: none;
+            z-index: 1002;
+            position: relative;
+        }
+
+        /* Add specific styles to create connection between active tab and container */
+        .tab-button.active::after {
+            content: "";
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: rgba(34, 34, 34, 0.9); /* Match the transparent background */
+            z-index: 1003;
+        }
+        
+        .tab-content {
+            width: 100%;
+            padding-top: 5px; /* Add a small padding at the top */
+        }
+        
+        /* Ensure profile tab content has the same width as inventory tab */
+        #profileTab {
+            width: 274px; /* Width of 5 slots (50px each) + 4 gaps (4px each) + padding (15px each side) */
+        }
+        
+        .profile-placeholder {
+            color: white;
+            text-align: center;
+            padding: 0 15px;
+            font-family: 'Minecraft', Arial, sans-serif;
+        }
+
+        .selected-item {
+            border-color: #ffcc00 !important;
+            background: rgba(255, 204, 0, 0.15) !important;
+        }
+
+        /* Profile tab styling */
+        .profile-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 10px;
+            height: 100%;
+            color: white;
+        }
+
+        .profile-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+        }
+
+        .player-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .player-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .guild-name {
+            font-size: 14px;
+        }
+
+        .guild-tag {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            border: 1px solid #8B4513;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #DDD;
+        }
+
+        .level-info {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .level-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .level-title {
+            font-size: 14px;
+            color: #FFD700;
+            text-align: center;
+        }
+
+        .profile-level {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+        }
+
+        .profile-stats {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 5px;
+            border-bottom: 1px solid rgba(139, 69, 19, 0.15);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #DDD;
+        }
+
+        .stat-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #FFF;
+        }
+
+        .profile-progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 5px;
+            border: 1px solid rgba(139, 69, 19, 0.3);
+        }
+
+        .profile-progress-fill {
+            height: 100%;
+            background: #8B4513;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .profile-progress-text {
+            font-size: 11px;
+            color: #DDD;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        /* Animation for inventory slot swap */
+        @keyframes slot-swap {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.1); }
+          100% { transform: scale(1); }
+        }
+
+        .slot-swap-animation {
+          animation: slot-swap 0.2s ease-out;
         }
     </style>
 </head>
@@ -1116,6 +2207,15 @@
       </div>
     </template>
 
+    <!-- Player Level Display -->
+    <div class="player-level-display">
+        <div class="player-level-number">1</div>
+        <div class="player-level-label">Level</div>
+        <div class="player-level-progress">
+            <div class="player-level-progress-fill" style="width: 0%"></div>
+        </div>
+    </div>
+
     <div class="hotbar">
         <div class="hotbar-slot selected" data-slot="0">
             <div class="item-icon"></div>
@@ -1139,9 +2239,23 @@
         </div>
     </div>
 
+    <!-- Add traveler UI container -->
+    <div class="traveler-ui" id="travelerUI">
+        <button class="close-button" id="closeTraveler">X</button>
+        <div class="traveler-content">
+            <h2>Trader</h2>
+            <div class="traveler-categories"></div>
+            <div class="traveler-items"></div>
+        </div>
+    </div>
     
     <div class="inventory-container" id="inventory" style="display: none;">
         <button class="close-button" id="closeInventory">X</button>
+        <div class="inventory-tabs">
+            <button class="tab-button active" data-tab="inventory">Inventory</button>
+            <button class="tab-button" data-tab="profile">Profile</button>
+        </div>
+        <div class="tab-content" id="inventoryTab">
         <div class="armor-and-player">
             <div class="armor-section">
                 <div class="armor-slots">
@@ -1178,6 +2292,33 @@
         </div>
         <div class="inventory-grid" id="inventoryGrid"></div>
         <div class="inventory-hotbar" id="inventoryHotbar"></div>
+        </div>
+        <div class="tab-content" id="profileTab" style="display: none;">
+            <div class="profile-container">
+                <div class="profile-header">
+                    <div class="player-info">
+                        <div class="player-name">Player Name</div>
+                        <div class="guild-name">
+                            <span class="guild-tag">No Guild</span>
+                        </div>
+                    </div>
+                    <div class="level-display">
+                        <div class="level-title">Level</div>
+                        <div class="profile-level">1</div>
+                    </div>
+                </div>
+                
+                <div class="level-info">
+                    <div class="profile-progress-bar">
+                        <div class="profile-progress-fill" style="width: 45%"></div>
+                    </div>
+                    
+                    <div class="xp-info">
+                        <span class="profile-xp">450</span> / <span class="profile-xp-max">1000</span> XP
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="crafting-ui" id="craftingUI">
@@ -1195,8 +2336,45 @@
         </div>
     </div>
 
+    <template id="entity-name-template">
+        <div class="entity-name">
+            <p class="name"></p>
+        </div>
+    </template>
+
+    <!-- Dungeon UI -->
+    <div id="dungeonUI">
+        <div class="dungeon-header">
+            DUNGEONS
+            <button id="closeDungeon" class="close-button">X</button>
+        </div>
+        <div class="dungeon-sidebar">
+            <!-- Level buttons will be added dynamically -->
+        </div>
+        <div class="dungeon-content">
+            <!-- Dungeon entries will be added dynamically -->
+        </div>
+    </div>
+
+    <!-- Template for item names -->
+    <template id="item-name-template">
+        <div class="name"></div>
+    </template>
+
+    <!-- Item name display template -->
+    <template id="item-name-display">
+        <div class="floating-text-container">
+            <div class="player-won-text">{{playerName}} won</div>
+            <div class="item-name-text rarity-{{rarity}}">{{name}}</div>
+        </div>
+    </template>
+
     <script>
         console.log('Script loaded');
+        
+
+        
+        console.log('[UI] Loaded player stats globals');
         
         // Prevent default context menu (right-click) behavior
         document.addEventListener('contextmenu', (e) => {
@@ -1257,12 +2435,13 @@
                     // Get item properties from config and itemData
                     const displayName = itemConfig.displayName || getItemDisplayName(itemData.type);
                     const category = (itemConfig.category || 'resource').toLowerCase();
+                    const rarity = itemConfig.rarity || 'common'; // Default to common rarity if not specified
                     
                     // SECTION 1: Title and Category
                     const headerSection = document.createElement('div');
                     headerSection.className = 'tooltip-section';
                     
-                    // Create title element
+                    // Create title element - keeping the default color, not using rarity color
                     const titleElement = document.createElement('div');
                     titleElement.className = 'tooltip-title';
                     titleElement.textContent = displayName;
@@ -1271,10 +2450,28 @@
                     // Format category for display (capitalize first letter)
                     const formattedCategory = category.charAt(0).toUpperCase() + category.slice(1);
                     
-                    // Add category element
+                    // Format rarity for display (capitalize first letter)
+                    const formattedRarity = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+                    
+                    // Add rarity and category element
                     const categoryElement = document.createElement('div');
-                    categoryElement.className = 'tooltip-category';
-                    categoryElement.textContent = formattedCategory;
+                    categoryElement.style.fontSize = '12px';
+                    categoryElement.style.color = '#aaaaaa';
+                    categoryElement.style.marginBottom = '3px';
+                    
+                    // Create a span for rarity text with its color
+                    const raritySpan = document.createElement('span');
+                    raritySpan.className = `rarity-${rarity}`;
+                    raritySpan.textContent = formattedRarity;
+                    categoryElement.appendChild(raritySpan);
+                    
+                    // Add a separator
+                    categoryElement.appendChild(document.createTextNode(' • '));
+                    
+                    // Add category text
+                    const categoryText = document.createTextNode(formattedCategory);
+                    categoryElement.appendChild(categoryText);
+                    
                     headerSection.appendChild(categoryElement);
                     
                     // Add header section to tooltip
@@ -1378,6 +2575,17 @@
                         tooltip.appendChild(durabilitySection);
                     }
                     
+                    // SECTION 4: Soulbound indicator (if applicable)
+                    if (itemConfig.soulbound === true) {
+                        const soulboundElement = document.createElement('div');
+                        soulboundElement.style.fontSize = '11px';
+                        soulboundElement.style.color = '#8a8a8a';
+                        soulboundElement.style.marginTop = '4px';
+                        soulboundElement.style.textAlign = 'center';
+                        soulboundElement.textContent = 'Soulbound';
+                        tooltip.appendChild(soulboundElement);
+                    }
+                    
                     tooltip.style.display = 'block';
                     moveTooltip(e);
                     
@@ -1397,6 +2605,12 @@
         // Function to move tooltip with cursor
         function moveTooltip(e) {
             tooltip.style.left = (e.clientX - tooltip.offsetWidth - 15) + 'px';
+            tooltip.style.top = (e.clientY - 25) + 'px';
+        }
+        
+        // Function to position tooltip on the right side of the cursor - specifically for dungeon tooltips
+        function moveDungeonTooltip(e) {
+            tooltip.style.left = (e.clientX + 15) + 'px';
             tooltip.style.top = (e.clientY - 25) + 'px';
         }
         
@@ -1422,12 +2636,13 @@
                     // Get item properties from config
                     const displayName = itemConfig.displayName || getItemDisplayName(itemType);
                     const category = (itemConfig.category || 'resource').toLowerCase();
+                    const rarity = itemConfig.rarity || 'common'; // Default to common rarity if not specified
                     
                     // SECTION 1: Title and Category
                     const headerSection = document.createElement('div');
                     headerSection.className = 'tooltip-section';
                     
-                    // Create title element
+                    // Create title element - keeping the default color, not using rarity color
                     const titleElement = document.createElement('div');
                     titleElement.className = 'tooltip-title';
                     titleElement.textContent = displayName;
@@ -1436,10 +2651,28 @@
                     // Format category for display (capitalize first letter)
                     const formattedCategory = category.charAt(0).toUpperCase() + category.slice(1);
                     
-                    // Add category element
+                    // Format rarity for display (capitalize first letter)
+                    const formattedRarity = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+                    
+                    // Add rarity and category element
                     const categoryElement = document.createElement('div');
-                    categoryElement.className = 'tooltip-category';
-                    categoryElement.textContent = formattedCategory;
+                    categoryElement.style.fontSize = '12px';
+                    categoryElement.style.color = '#aaaaaa';
+                    categoryElement.style.marginBottom = '3px';
+                    
+                    // Create a span for rarity text with its color
+                    const raritySpan = document.createElement('span');
+                    raritySpan.className = `rarity-${rarity}`;
+                    raritySpan.textContent = formattedRarity;
+                    categoryElement.appendChild(raritySpan);
+                    
+                    // Add a separator
+                    categoryElement.appendChild(document.createTextNode(' • '));
+                    
+                    // Add category text
+                    const categoryText = document.createTextNode(formattedCategory);
+                    categoryElement.appendChild(categoryText);
+                    
                     headerSection.appendChild(categoryElement);
                     
                     // Add header section to tooltip
@@ -1521,10 +2754,21 @@
                         tooltip.appendChild(durabilitySection);
                     }
                     
+                    // SECTION 4: Soulbound indicator (if applicable)
+                    if (itemConfig.soulbound === true) {
+                        const soulboundElement = document.createElement('div');
+                        soulboundElement.style.fontSize = '11px';
+                        soulboundElement.style.color = '#8a8a8a';
+                        soulboundElement.style.marginTop = '4px';
+                        soulboundElement.style.textAlign = 'center';
+                        soulboundElement.textContent = 'Soulbound';
+                        tooltip.appendChild(soulboundElement);
+                    }
+                    
                     tooltip.style.display = 'block';
                     
-                    // Position to the left of cursor
-                    tooltip.style.left = (e.clientX - tooltip.offsetWidth - 15) + 'px';
+                    // Position to the right of cursor for consistency with dungeon tooltips
+                    tooltip.style.left = (e.clientX + 15) + 'px';
                     tooltip.style.top = (e.clientY - 25) + 'px';
                     
                     console.log(`[UI] Showing crafting tooltip for item: ${itemType}`);
@@ -1620,8 +2864,15 @@
                     
                     // Make sure event listeners are attached
                     if (!hotbarSlot.hasAttribute('data-tooltip-initialized')) {
-                        hotbarSlot.addEventListener('mouseenter', showTooltip);
-                        hotbarSlot.addEventListener('mouseleave', hideTooltip);
+                        // Use function to capture 'this' context
+                        hotbarSlot.addEventListener('mouseenter', function(e) {
+                            hoveredSlot = this.dataset.slot;
+                            showTooltip.call(this, e);
+                        });
+                        hotbarSlot.addEventListener('mouseleave', function(e) {
+                            hoveredSlot = null;
+                            hideTooltip(e);
+                        });
                         hotbarSlot.addEventListener('mousemove', moveTooltip);
                         hotbarSlot.setAttribute('data-tooltip-initialized', 'true');
                     }
@@ -1638,17 +2889,31 @@
         }
 
         // Handle keydown
+        let hoveredSlot = null; // Track the currently hovered inventory slot
+        let lastSwapTime = 0; // For debouncing swap actions
+
         document.addEventListener('keydown', (event) => {
-            // Check if crafting UI is open
+            // Check if other UIs are open
             const isCraftingOpen = document.getElementById('craftingUI').classList.contains('visible');
             
-            // E key for inventory toggle - only if crafting is closed
-            if (event.key.toLowerCase() === 'e' && !isKeyPressed && !isCraftingOpen) {
+            // Check traveler UI - can be set to display: flex or block
+            const travelerUI = document.getElementById('travelerUI');
+            const isTravelerOpen = travelerUI && (travelerUI.style.display === 'flex' || travelerUI.style.display === 'block');
+            
+            // If crafting or traveler UI is open, don't process hotkey
+            if (isCraftingOpen || isTravelerOpen) {
+                return;
+            }
+            
+            // Handle inventory toggle with E key
+            if (event.key.toLowerCase() === 'e' && !isKeyPressed) {
                 isKeyPressed = true;
                 const inventoryContainer = document.getElementById('inventory');
-                const isInventoryOpen = inventoryContainer.style.display === 'block';
+                const isInventoryOpen = inventoryContainer && inventoryContainer.style.display === 'block';
                 
                 console.log('[UI] E key pressed - sending toggle request. Current state:', isInventoryOpen ? 'open' : 'closed');
+                
+                // Send the appropriate action based on current state
                 hytopia.sendData({
                     inventoryToggle: {
                         action: isInventoryOpen ? 'close' : 'toggle'
@@ -1656,27 +2921,119 @@
                 });
             }
             
-            // Handle ESC key for crafting only
-            if (event.key === 'Escape') {
-                if (document.getElementById('craftingUI').classList.contains('visible')) {
-                    console.log('[UI] ESC pressed - sending crafting close request');
+            // Handle crafting UI toggle with F key
+            if (event.key.toLowerCase() === 'f' && !isFPressed) {
+                isFPressed = true;
                     hytopia.sendData({
                         craftingToggle: {
                             action: 'toggle'
                         }
                     });
                 }
+            
+            // Handle number keys 1-5 for swapping items when inventory is open and a slot is hovered
+            if (event.code === 'Digit1' || event.code === 'Digit2' || event.code === 'Digit3' || 
+                event.code === 'Digit4' || event.code === 'Digit5') {
+                const inventoryContainer = document.getElementById('inventory');
+                if (inventoryContainer && inventoryContainer.style.display === 'block' && hoveredSlot !== null) {
+                    // Get hotbar slot index (0-4) from key code
+                    const hotbarSlotIndex = parseInt(event.code.replace('Digit', '')) - 1;
+                    const sourceSlot = parseInt(hoveredSlot);
+                    
+                    // Debounce: prevent multiple rapid swaps (only allow one every 200ms)
+                    const now = Date.now();
+                    if (now - lastSwapTime < 200) {
+                        return;
+                    }
+                    lastSwapTime = now;
+                    
+                    // --- Optimistic UI Update --- START
+                    const sourceData = inventoryState.get(sourceSlot);
+                    const targetData = inventoryState.get(hotbarSlotIndex);
+                    
+                    // Swap data in the local inventoryState map
+                    inventoryState.set(sourceSlot, targetData ? { ...targetData } : { type: null, count: 0 });
+                    inventoryState.set(hotbarSlotIndex, sourceData ? { ...sourceData } : { type: null, count: 0 });
+                    
+                    // Immediately update the visuals for both slots using the swapped data
+                    const newSourceData = inventoryState.get(sourceSlot); // Data that is now in the source slot
+                    const newTargetData = inventoryState.get(hotbarSlotIndex); // Data that is now in the target slot
+                    
+                    updateInventorySlot(sourceSlot, newSourceData.type, newSourceData.count, newSourceData.imageUrl, 
+                        newSourceData.durability !== undefined ? { 
+                            durability: newSourceData.durability, 
+                            maxDurability: newSourceData.maxDurability, 
+                            durabilityPercentage: newSourceData.durabilityPercentage 
+                        } : undefined);
+                        
+                    updateInventorySlot(hotbarSlotIndex, newTargetData.type, newTargetData.count, newTargetData.imageUrl, 
+                        newTargetData.durability !== undefined ? { 
+                            durability: newTargetData.durability, 
+                            maxDurability: newTargetData.maxDurability, 
+                            durabilityPercentage: newTargetData.durabilityPercentage 
+                        } : undefined);
+                    // --- Optimistic UI Update --- END
+                    
+                    // Provide visual feedback on the swap
+                    const hoveredElement = document.querySelector(`.inventory-slot[data-slot="${sourceSlot}"]`);
+                    const hotbarElement = document.querySelector(`.hotbar-slot[data-slot="${hotbarSlotIndex}"]`);
+                    
+                    if (hoveredElement) {
+                        // Use animation class for feedback
+                        hoveredElement.classList.add('slot-swap-animation');
+                        setTimeout(() => {
+                            hoveredElement.classList.remove('slot-swap-animation');
+                        }, 200);
+                    }
+                    
+                    if (hotbarElement) {
+                        // Use animation class for feedback
+                        hotbarElement.classList.add('slot-swap-animation');
+                        setTimeout(() => {
+                            hotbarElement.classList.remove('slot-swap-animation');
+                        }, 200);
+                    }
+                    
+                    console.log(`[UI] Optimistically swapped items between inventory slot ${sourceSlot} and hotbar slot ${hotbarSlotIndex}`);
+                    
+                    // Send the swap request to the server
+                hytopia.sendData({
+                        inventoryAction: {
+                            action: 'swapItems',
+                            sourceSlot: sourceSlot,
+                            targetSlot: hotbarSlotIndex
+                        }
+                    });
+                }
             }
 
-            // Handle F key for crafting
-            if (event.key.toLowerCase() === 'f' && !isFPressed) {
-                isFPressed = true;
-                console.log('[UI] F key pressed - sending crafting toggle request');
-                hytopia.sendData({
-                    craftingToggle: {
-                        action: 'toggle'
+            // Handle Q key for dropping items from inventory when hovering over a slot
+            if (event.key.toLowerCase() === 'q' && hoveredSlot !== null) {
+                const slotNumber = parseInt(hoveredSlot);
+                const inventoryContainer = document.getElementById('inventory');
+                
+                // Only drop if the inventory is open and the slot has an item
+                if (inventoryContainer && inventoryContainer.style.display === 'block') {
+                    console.log(`[UI] Q key pressed while hovering over slot ${slotNumber} - sending drop request`);
+                    
+                    // Get the item in the slot
+                    const itemData = inventoryState.get(slotNumber);
+                    if (itemData && itemData.type) {
+                        const isShiftHeld = event.shiftKey;
+                        
+                        // Send drop request to server
+                        hytopia.sendData({
+                            inventoryAction: {
+                                action: 'dropItem',
+                                slot: slotNumber,
+                                isShiftHeld: isShiftHeld
+                            }
+                        });
+                        
+                        // Prevent default behavior (might prevent text input fields from registering 'q')
+                        event.preventDefault();
                     }
-                });
+                }
             }
         });
 
@@ -1696,17 +3053,27 @@
             const slot = document.createElement('div');
             slot.className = 'inventory-slot';
             slot.dataset.slot = i.toString();
+            
             const itemIcon = document.createElement('div');
             itemIcon.className = 'item-icon';
+            
             const itemCount = document.createElement('div');
             itemCount.className = 'item-count';
+            
             slot.appendChild(itemIcon);
             slot.appendChild(itemCount);
+            
             inventoryGrid.appendChild(slot);
 
             // Add tooltip event listeners
-            slot.addEventListener('mouseenter', showTooltip);
-            slot.addEventListener('mouseleave', hideTooltip);
+            slot.addEventListener('mouseenter', function(e) {
+                hoveredSlot = this.dataset.slot;
+                showTooltip.call(this, e);
+            });
+            slot.addEventListener('mouseleave', function(e) {
+                hoveredSlot = null;
+                hideTooltip(e);
+            });
             slot.addEventListener('mousemove', moveTooltip);
 
             // Add click handler for inventory slots
@@ -1721,6 +3088,37 @@
                 });
             });
         }
+        
+        // Initialize tab functionality
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                
+                // Add active class to clicked button
+                button.classList.add('active');
+                
+                // Hide all tab contents
+                tabContents.forEach(content => {
+                    content.style.display = 'none';
+                });
+                
+                // Show the selected tab content
+                const tabName = button.getAttribute('data-tab');
+                document.getElementById(`${tabName}Tab`).style.display = 'block';
+                
+                // If profile tab is selected, request updated player data
+                if (tabName === 'profile') {
+                    console.log('[UI] Profile tab selected, requesting updated player stats');
+                    hytopia.sendData({
+                        requestPlayerStats: true
+                    });
+                }
+            });
+        });
 
         // Initialize hotbar mirror with 5 slots
         const inventoryHotbar = document.getElementById('inventoryHotbar');
@@ -1737,8 +3135,14 @@
             inventoryHotbar.appendChild(slot);
 
             // Add tooltip event listeners
-            slot.addEventListener('mouseenter', showTooltip);
-            slot.addEventListener('mouseleave', hideTooltip);
+            slot.addEventListener('mouseenter', function(e) {
+                hoveredSlot = this.dataset.slot;
+                showTooltip.call(this, e);
+            });
+            slot.addEventListener('mouseleave', function(e) {
+                hoveredSlot = null;
+                hideTooltip(e);
+            });
             slot.addEventListener('mousemove', moveTooltip);
 
             // Add click handler for hotbar mirror slots
@@ -1767,6 +3171,41 @@
             
             onState(state => {
                 counter.textContent = `${state.activeIronCount || 0} / ${state.maxItems || 10}`;
+            });
+            
+            return clone;
+        });
+
+        hytopia.registerSceneUITemplate('entity-name', (id, onState) => {
+            const template = document.getElementById('entity-name-template');
+            const clone = template.content.cloneNode(true);
+            const nameElement = clone.querySelector('.name');
+            
+            onState(state => {
+                nameElement.textContent = state.name;
+            });
+            
+            return clone;
+        });
+
+        // Register template for item names specifically, now handling rarity color
+        hytopia.registerSceneUITemplate('item-name-display', (id, onState) => {
+            const template = document.getElementById('item-name-display');
+            const clone = template.content.cloneNode(true);
+            const playerWonElement = clone.querySelector('.player-won-text');
+            const itemNameElement = clone.querySelector('.item-name-text');
+            
+            onState(state => {
+                // Set the player name part
+                if (playerWonElement) {
+                    playerWonElement.textContent = `${state.playerName || 'Player'} won`; // Verwijder extra spatie
+                }
+
+                // Set the item name part and its rarity class
+                if (itemNameElement) {
+                    itemNameElement.textContent = state.name;
+                    itemNameElement.className = `item-name-text rarity-${state.rarity || 'common'}`;
+                }
             });
             
             return clone;
@@ -1815,6 +3254,22 @@
                         // Hide inventory toggle button when inventory is open
                         if (inventoryToggleBtn) {
                             inventoryToggleBtn.style.display = 'none';
+                        }
+                        
+                        // Always select the inventory tab when opening
+                        const inventoryTabButton = document.querySelector('.tab-button[data-tab="inventory"]');
+                        const profileTabButton = document.querySelector('.tab-button[data-tab="profile"]');
+                        const inventoryTabContent = document.getElementById('inventoryTab');
+                        const profileTabContent = document.getElementById('profileTab');
+                        
+                        if (inventoryTabButton && profileTabButton && inventoryTabContent && profileTabContent) {
+                            // Set the active class on inventory tab button
+                            inventoryTabButton.classList.add('active');
+                            profileTabButton.classList.remove('active');
+                            
+                            // Show inventory tab content, hide profile tab content
+                            inventoryTabContent.style.display = 'block';
+                            profileTabContent.style.display = 'none';
                         }
                     } else {
                         console.log('[UI] INVENTORY IS CLOSED');
@@ -2238,41 +3693,362 @@
             
             // Handle crafting completion
             if (data.craftingComplete) {
-                const { recipeName, success } = data.craftingComplete;
+                const { recipeName, success, xpAwarded } = data.craftingComplete;
                 console.log(`[UI] Crafting completed for ${recipeName}: ${success ? 'Success' : 'Failed'}`);
                 
                 // Reset crafting state
                 window.isCrafting = false;
                 window.currentlyCraftingItem = null;
                 
-                // Find the recipe element and restore its craft button
-                const recipeElement = document.querySelector(`.recipe-item[data-recipe="${recipeName}"]`);
-                if (recipeElement) {
-                    console.log(`[UI] Found recipe element for ${recipeName}, restoring craft button`);
-                    const container = recipeElement.querySelector('.crafting-progress-container');
-                    if (container) {
-                        const craftButton = document.createElement('button');
-                        craftButton.className = 'craft-button';
-                        craftButton.textContent = 'Craft';
-                        craftButton.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            checkRecipeRequirements(recipeName);
+                // Show completion notification
+                if (success) {
+                    showNotification(`Successfully crafted ${recipeName}!`, 'success');
+                    
+                    // Reset the recipe element back to its original state
+                    const recipeElement = document.querySelector(`.recipe-item[data-recipe="${recipeName}"]`);
+                    if (recipeElement) {
+                        const progressContainer = recipeElement.querySelector('.crafting-progress-container');
+                        if (progressContainer) {
+                            const craftButton = document.createElement('button');
+                            craftButton.className = 'craft-button';
+                            craftButton.textContent = 'Craft';
+                            craftButton.onclick = () => checkRecipeRequirements(recipeName);
+                            progressContainer.replaceWith(craftButton);
+                        }
+                    }
+                } else {
+                    showNotification(`Failed to craft ${recipeName}`, 'error');
+                }
+            }
+            
+            // Handle traveler UI toggle
+            if (data.travelerToggle) {
+                const travelerUI = document.getElementById('travelerUI');
+                const crosshair = document.querySelector('.crosshair');
+                const inventoryContainer = document.getElementById('inventory');
+                const inventoryToggleBtn = document.querySelector('.inventory-toggle');
+                const closeInventoryBtn = document.getElementById('closeInventory');
+                
+                console.log('[UI] Received traveler toggle data:', data.travelerToggle);
+                
+                if (travelerUI && crosshair) {
+                    if (data.travelerToggle.isOpen) {
+                        console.log('[UI] TRAVELER IS OPEN');
+                        console.log('[UI] POINTLOCK IS DISABLED');
+                        travelerUI.style.display = 'flex';
+                        crosshair.classList.add('hidden');
+                        hytopia.lockPointer(false);
+                        
+                        // Also open inventory and disable its close button
+                        if (inventoryContainer) {
+                            console.log('[UI] Opening inventory with traveler');
+                            inventoryContainer.style.display = 'block';
+                            // Hide inventory toggle button
+                            if (inventoryToggleBtn) {
+                                inventoryToggleBtn.style.display = 'none';
+                            }
+                            // Disable inventory close button
+                            if (closeInventoryBtn) {
+                                closeInventoryBtn.style.pointerEvents = 'none';
+                                closeInventoryBtn.style.opacity = '0.5';
+                            }
+                        }
+                        
+                        // Ensure we always have these three categories even if server doesn't provide them
+                        const requiredCategories = ['daily', 'weekly', 'special'];
+                        let availableCategories = data.travelerToggle.categories || [];
+                        
+                        // Add any missing required categories
+                        requiredCategories.forEach(category => {
+                            if (!availableCategories.includes(category)) {
+                                availableCategories.push(category);
+                            }
                         });
                         
-                        container.replaceWith(craftButton);
-                        console.log(`[UI] Restored craft button for ${recipeName}`);
+                        // Default to 'special' if no initialCategory is provided
+                        const initialCategory = data.travelerToggle.initialCategory || 'special';
                         
-                        // Show success notification
-                        if (success) {
-                            showNotification(`Successfully crafted ${recipeName}!`, 'success');
-                        } else {
-                            showNotification(`Failed to craft ${recipeName}`, 'error');
+                        // Populate categories
+                        const categoriesContainer = travelerUI.querySelector('.traveler-categories');
+                        if (categoriesContainer) {
+                            categoriesContainer.innerHTML = '';
+                            
+                            // Always display all three category tabs in the right order
+                            requiredCategories.forEach(category => {
+                                const categoryBtn = document.createElement('button');
+                                categoryBtn.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+                                categoryBtn.classList.add('category-button');
+                                categoryBtn.setAttribute('data-category', category);
+                                
+                                if (category === initialCategory) {
+                                    categoryBtn.classList.add('active');
+                                }
+                                
+                                categoryBtn.addEventListener('click', () => {
+                                    // Remove active class from all buttons
+                                    document.querySelectorAll('.traveler-categories .category-button').forEach(btn => {
+                                        btn.classList.remove('active');
+                                    });
+                                    categoryBtn.classList.add('active');
+                                    
+                                    // Request trades for this category
+                                    console.log(`[UI] Requesting trades for category: ${category}`);
+                                    hytopia.sendData({
+                                        requestTrades: { category }
+                                    });
+                                });
+                                
+                                categoriesContainer.appendChild(categoryBtn);
+                            });
                         }
+                        
+                        // Populate trades if provided, otherwise show empty state for the initial category
+                        const trades = data.travelerToggle.trades || [];
+                        if (trades.length > 0) {
+                            console.log(`[UI] Initial trades received: ${trades.length}`);
+                            renderTrades(trades);
+                        } else {
+                            console.log(`[UI] No trades for category: ${initialCategory}, showing empty state`);
+                            renderTrades([]);
+                        }
+                    } else {
+                        travelerUI.style.display = 'none';
+                        crosshair.classList.remove('hidden');
+                        
+                        // Also close inventory and re-enable its close button
+                        if (inventoryContainer) {
+                            console.log('[UI] Closing inventory with traveler');
+                            inventoryContainer.style.display = 'none';
+                            // Show inventory toggle button
+                            if (inventoryToggleBtn) {
+                                inventoryToggleBtn.style.display = 'block';
+                            }
+                            // Re-enable inventory close button
+                            if (closeInventoryBtn) {
+                                closeInventoryBtn.style.pointerEvents = 'auto';
+                                closeInventoryBtn.style.opacity = '1';
+                            }
+                        }
+                        
+                        // Enable pointer lock when closing
+                        hytopia.lockPointer(true);
+                        console.log('[UI] POINTLOCK IS ENABLED');
                     }
                 }
             }
+            
+            // Handle trade data
+            if (data.trades) {
+                console.log(`[UI] Received ${data.trades.length} trades:`, data.trades);
+                renderTrades(data.trades);
+            }
+            
+            // Handle trade results
+            if (data.tradeResult) {
+                console.log('[UI] Received trade result:', data.tradeResult);
+                const { success, message } = data.tradeResult;
+                
+                if (success) {
+                    showNotification(message, 'success');
+                } else {
+                    showNotification(message, 'error');
+                }
+            }
+
+            // Handle dungeon UI toggle from server
+            if (data.dungeonToggle) {
+                const dungeonUI = document.getElementById('dungeonUI');
+                const crosshair = document.querySelector('.crosshair');
+                const closeInventoryBtn = document.getElementById('closeInventory');
+                
+                // CRITICAL: Debug dungeon toggle data
+                console.log(`[UI] dungeonToggle data received:`, JSON.stringify(data.dungeonToggle));
+                
+                if (dungeonUI && crosshair) {
+                    console.log('[UI] Toggling dungeon UI:', data.dungeonToggle.isOpen);
+                    
+                    if (data.dungeonToggle.isOpen) {
+                        dungeonUI.classList.add('visible');
+                        crosshair.classList.add('hidden');
+                        
+                        // Disable inventory close button
+                        if (closeInventoryBtn) {
+                            closeInventoryBtn.style.pointerEvents = 'none';
+                            closeInventoryBtn.style.opacity = '0.5';
+                            closeInventoryBtn.disabled = true;
+                        }
+                        
+                        // Disable pointer lock when opening dungeon UI
+                        hytopia.lockPointer(false);
+                        
+                        // If dungeons data is provided, render the dungeons
+                        if (data.dungeonToggle.dungeons && Array.isArray(data.dungeonToggle.dungeons)) {
+                            // CRITICAL: Verify that we have image URLs in the data
+                            if (data.dungeonToggle.dungeons.length > 0) {
+                                console.log(`[UI] First dungeon image URL: "${data.dungeonToggle.dungeons[0].imageUrl}"`);
+                            }
+                            
+                            console.log('[UI] Rendering dungeons:', JSON.stringify(data.dungeonToggle.dungeons));
+                            renderDungeons(data.dungeonToggle.dungeons);
+                        } else {
+                            console.error('[UI] No dungeons array in data:', data.dungeonToggle);
+                        }
+                    } else {
+                        dungeonUI.classList.remove('visible');
+                        crosshair.classList.remove('hidden');
+                        
+                        // Re-enable inventory close button
+                        if (closeInventoryBtn) {
+                            closeInventoryBtn.style.pointerEvents = 'auto';
+                            closeInventoryBtn.style.opacity = '1';
+                            closeInventoryBtn.disabled = false;
+                        }
+                        
+                        // Enable pointer lock when closing dungeon UI
+                        hytopia.lockPointer(true);
+                    }
+                }
+            }
+            
+            // Handle dungeon error response (missing requirements)
+            if (data.dungeonError) {
+                console.log('[UI] Received dungeon error:', data.dungeonError);
+                const message = data.dungeonError.message;
+                showNotification(message, 'error');
+            }
+            
+            // Handle successful dungeon entry
+            if (data.dungeonFightResult && data.dungeonFightResult.success) {
+                console.log('[UI] Dungeon fight started:', data.dungeonFightResult);
+                const message = data.dungeonFightResult.message;
+                showNotification(message, 'success');
+            }
+
+            // Handle player stats update
+            if (data.playerStats) {
+                console.log('[UI] Received player stats:', data.playerStats);
+                
+                // Store in window variables for backwards compatibility
+                if (typeof data.playerStats.level === 'number') {
+                    window.playerLevel = data.playerStats.level;
+                }
+                
+                if (typeof data.playerStats.xp === 'number') {
+                    window.playerXP = data.playerStats.xp;
+                }
+                
+                if (typeof data.playerStats.nextLevelXp === 'number') {
+                    window.playerNextLevelXP = data.playerStats.nextLevelXp;
+                }
+                
+                // Update both the main UI and profile tab using our centralized function
+                updateProfileLevelData(data.playerStats);
+            }
+            
+            if (data.dungeonToggle) {
+                const dungeonUI = document.getElementById('dungeonUI');
+                if (data.dungeonToggle.isOpen) {
+                    dungeonUI.classList.add('visible');
+                } else {
+                    dungeonUI.classList.remove('visible');
+                }
+            }
         });
+
+        // Function to render trades with improved UI
+        function renderTrades(trades) {
+            const tradesContainer = document.querySelector('.traveler-items');
+            if (!tradesContainer) {
+                console.error('[UI] Could not find traveler-items container');
+                return;
+            }
+            
+            console.log(`[UI] Rendering ${trades.length} trades`);
+            tradesContainer.innerHTML = '';
+            
+            if (!trades || trades.length === 0) {
+                // Show empty state
+                tradesContainer.innerHTML = `
+                    <div class="traveler-empty-state">
+                        <div class="icon">🏪</div>
+                        <div class="message">No trades available in this category</div>
+                        <div class="sub-message">Check back later or try another category</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            trades.forEach(trade => {
+                const tradeItem = document.createElement('div');
+                tradeItem.className = 'trade-item';
+                
+                tradeItem.innerHTML = `
+                    <div class="trade-name">${trade.name}</div>
+                    <div class="trade-description">${trade.description || ''}</div>
+                    <div class="trade-details">
+                        <div class="trade-inputs">
+                            <div class="trade-section-title">You give</div>
+                            ${trade.inputs.map(item => `
+                                <div class="trade-resource">
+                                    <img src="${getCorrectImageUrl(item.imageUrl)}" alt="${item.name}">
+                                    <span>${item.count}x ${item.name}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="trade-arrow">→</div>
+                        <div class="trade-outputs">
+                            <div class="trade-section-title">You receive</div>
+                            ${trade.outputs.map(item => `
+                                <div class="trade-resource">
+                                    <img src="${getCorrectImageUrl(item.imageUrl)}" alt="${item.name}">
+                                    <span>${item.count}x ${item.name}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ${trade.level > 1 ? `<div class="trade-level">Level requirement: ${trade.level}</div>` : ''}
+                    <button class="trade-button" data-trade-id="${trade.id}">Trade</button>
+                `;
+                
+                // Add trade button click handler
+                const tradeButton = tradeItem.querySelector('.trade-button');
+                tradeButton.addEventListener('click', () => {
+                    console.log(`[UI] Trade button clicked for trade ID: ${trade.id}`);
+                    hytopia.sendData({
+                        trade: { id: trade.id }
+                    });
+                });
+                
+                tradesContainer.appendChild(tradeItem);
+            });
+            
+            console.log('[UI] Trades rendered successfully');
+        }
+
+        // Helper function to ensure image URLs are correctly formed
+        function getCorrectImageUrl(imageUrl) {
+            if (!imageUrl) return 'https://localhost:8080//items/fallback.png';
+            
+            // If it already includes the full URL, return it
+            if (imageUrl.startsWith('http')) {
+                return imageUrl;
+            }
+            
+            // If it's just a relative path, add the correct prefix
+            if (imageUrl.startsWith('../')) {
+                // Remove the '../' prefix
+                const cleanUrl = imageUrl.replace('../', '');
+                return `https://localhost:8080//${cleanUrl}`;
+            }
+            
+            // If it's just the filename, add the items/ prefix
+            if (!imageUrl.includes('/')) {
+                return `https://localhost:8080//items/${imageUrl}`;
+            }
+            
+            // Otherwise, add the full URL prefix
+            return `https://localhost:8080//${imageUrl}`;
+        }
 
         // Add function to show item name
         let hideNameTimeout;
@@ -2308,7 +4084,7 @@
             console.error('[UI] Error loading model:', error);
         });
 
-        // Handle close button click
+        // Handle close button click for crafting
         document.getElementById('closeCrafting').addEventListener('click', () => {
             hytopia.sendData({
                 craftingToggle: {
@@ -2322,6 +4098,28 @@
             console.log('[UI] Inventory close button clicked');
             hytopia.sendData({
                 inventoryToggle: {
+                    action: 'close'
+                }
+            });
+            return false;
+        });
+
+        // Handle traveler close button click
+        document.getElementById('closeTraveler').addEventListener('click', () => {
+            console.log('[UI] Traveler close button clicked');
+            hytopia.sendData({
+                travelerToggle: {
+                    action: 'close'
+                }
+            });
+            return false;
+        });
+
+        // Handle dungeon close button click
+        document.getElementById('closeDungeon').addEventListener('click', () => {
+            console.log('[UI] Dungeon close button clicked');
+            hytopia.sendData({
+                dungeonToggle: {
                     action: 'close'
                 }
             });
@@ -2605,7 +4403,7 @@
                         slotElement.addEventListener('mouseleave', hideCraftingTooltip);
                         slotElement.addEventListener('mousemove', (e) => {
                             if (tooltip.style.display === 'block') {
-                                tooltip.style.left = (e.clientX - tooltip.offsetWidth - 15) + 'px';
+                                tooltip.style.left = (e.clientX + 15) + 'px';
                                 tooltip.style.top = (e.clientY - 25) + 'px';
                             }
                         });
@@ -2690,7 +4488,7 @@
                         outputSlotElement.addEventListener('mouseleave', hideCraftingTooltip);
                         outputSlotElement.addEventListener('mousemove', (e) => {
                             if (tooltip.style.display === 'block') {
-                                tooltip.style.left = (e.clientX - tooltip.offsetWidth - 15) + 'px';
+                                tooltip.style.left = (e.clientX + 15) + 'px';
                                 tooltip.style.top = (e.clientY - 25) + 'px';
                             }
                         });
@@ -2858,71 +4656,190 @@
             }, duration);
         }
 
+        // Function to show confirmation dialog
+        function showConfirmation(message, onConfirm, onCancel, bossName) {
+            console.log(`[UI] Showing confirmation dialog: ${message}`);
+            
+            // Create a modal backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'confirmation-backdrop';
+            
+            // Create the confirmation dialog
+            const dialog = document.createElement('div');
+            dialog.className = 'confirmation-dialog';
+            
+            // Create title with boss name if provided
+            if (bossName) {
+                const titleElement = document.createElement('div');
+                titleElement.className = 'confirmation-title';
+                titleElement.textContent = bossName;
+                dialog.appendChild(titleElement);
+            }
+            
+            // Create message
+            const messageElement = document.createElement('div');
+            messageElement.className = 'confirmation-message';
+            messageElement.textContent = message;
+            
+            // Create buttons container
+            const buttonsContainer = document.createElement('div');
+            buttonsContainer.className = 'confirmation-buttons';
+            
+            // Create confirm button
+            const confirmButton = document.createElement('button');
+            confirmButton.className = 'confirmation-button confirm';
+            confirmButton.textContent = 'FIGHT!';
+            confirmButton.addEventListener('click', () => {
+                document.body.removeChild(backdrop);
+                if (onConfirm) onConfirm();
+            });
+            
+            // Create cancel button
+            const cancelButton = document.createElement('button');
+            cancelButton.className = 'confirmation-button cancel';
+            cancelButton.textContent = 'Retreat';
+            cancelButton.addEventListener('click', () => {
+                document.body.removeChild(backdrop);
+                if (onCancel) onCancel();
+            });
+            
+            // Add buttons to container
+            buttonsContainer.appendChild(cancelButton);
+            buttonsContainer.appendChild(confirmButton);
+            
+            // Add elements to dialog
+            dialog.appendChild(messageElement);
+            dialog.appendChild(buttonsContainer);
+            
+            // Add dialog to backdrop
+            backdrop.appendChild(dialog);
+            
+            // Add styles if needed
+            if (!document.getElementById('confirmation-styles')) {
+                const style = document.createElement('style');
+                style.id = 'confirmation-styles';
+                style.textContent = `
+                    .confirmation-backdrop {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, 0.7);
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        z-index: 10000;
+                    }
+                    
+                    .confirmation-dialog {
+                        background-color: #1a1410;
+                        border: 2px solid #8b4513;
+                        border-radius: 8px;
+                        padding: 20px;
+                        max-width: 500px;
+                        width: 90%;
+                        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+                    }
+                    
+                    .confirmation-title {
+                        color: #ffd700;
+                        font-size: 22px;
+                        font-weight: bold;
+                        text-align: center;
+                        margin-bottom: 10px;
+                        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                        border-bottom: 1px solid #8b4513;
+                        padding-bottom: 10px;
+                    }
+                    
+                    .confirmation-message {
+                        color: #fff;
+                        font-size: 16px;
+                        margin: 15px 0 20px;
+                        text-align: center;
+                    }
+                    
+                    .confirmation-buttons {
+                        display: flex;
+                        justify-content: space-between;
+                    }
+                    
+                    .confirmation-button {
+                        padding: 10px 20px;
+                        border-radius: 6px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        min-width: 120px;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+                    }
+                    
+                    .confirmation-button.confirm {
+                        background: linear-gradient(to bottom, #8b0000, #5c0000);
+                        border: 1px solid #ff4500;
+                        color: #fff;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                    }
+                    
+                    .confirmation-button.cancel {
+                        background: linear-gradient(to bottom, #4a3728, #2c1810);
+                        border: 1px solid #8b4513;
+                        color: #ffd700;
+                    }
+                    
+                    .confirmation-button:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+                    }
+                    
+                    .confirmation-button.confirm:hover {
+                        background: linear-gradient(to bottom, #9b1111, #6c1111);
+                    }
+                    
+                    .confirmation-button.cancel:hover {
+                        background: linear-gradient(to bottom, #5a4738, #3c2820);
+                        border-color: #cd853f;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            // Add to body
+            document.body.appendChild(backdrop);
+        }
+
         // Modify the DOMContentLoaded event to avoid duplicate event listeners
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('[UI] DOM content loaded');
+            console.log('[UI] DOM content loaded, setting up close buttons...');
             
-            // Initialize inventory toggle button visibility
-            const inventoryToggleBtn = document.querySelector('.inventory-toggle');
-            const inventoryContainer = document.getElementById('inventory');
+            // Create event listener for Traveler close button
+            const travelerCloseBtn = document.getElementById('closeTraveler');
+            console.log('[UI] TRAVELER close button element:', travelerCloseBtn);
             
-            if (inventoryToggleBtn && inventoryContainer) {
-                // Show toggle button only if inventory is hidden
-                inventoryToggleBtn.style.display = inventoryContainer.style.display === 'none' ? 'block' : 'none';
-            }
-            
-            // Set up recipe cache
-            window.recipeCache = {};
-            console.log('[UI] Recipe cache initialized');
-            
-            // Initialize inventory grid
-            initializeInventoryGrid();
-            
-            // Create event listener for inventory close button
-            document.getElementById('closeInventory').addEventListener('click', () => {
-                console.log('[UI] Inventory close button clicked');
-                hytopia.sendData({
-                    closeInventory: true
-                });
-            });
-            
-            // Remove any existing click handlers from category buttons first
-            const categoryButtons = document.querySelectorAll('.crafting-categories .category-button');
-            categoryButtons.forEach(button => {
-                // Clone the button to remove all event listeners
-                const newButton = button.cloneNode(true);
-                button.parentNode.replaceChild(newButton, button);
-                
-                // Add event listener to new button
-                newButton.addEventListener('click', (e) => {
+            if (travelerCloseBtn) {
+                console.log('[UI] Adding click listener to Traveler close button');
+                travelerCloseBtn.addEventListener('click', (e) => {
+                    console.log('[UI] TRAVELER close button clicked');
+                    
+                    // Prevent any default behavior
                     e.preventDefault();
                     e.stopPropagation();
-                    const category = newButton.getAttribute('data-category');
-                    console.log(`[UI] Static category button clicked: ${category}`);
                     
-                    // Update active class
-                    document.querySelectorAll('.category-button').forEach(btn => {
-                        btn.classList.remove('active');
+                    console.log('[UI] Sending closeTraveler data to server');
+                    hytopia.sendData({
+                        closeTraveler: true
                     });
-                    newButton.classList.add('active');
-                    
-                    // Clear recipe list and show loading
-                    const recipeList = document.querySelector('.recipe-list');
-                    recipeList.innerHTML = '<div class="loading-message">Loading recipes...</div>';
-                    
-                    // Request recipes
-                    requestRecipes(category);
+                    console.log('[UI] closeTraveler data sent');
                 });
-            });
-            
-            // Initialize with the first category if crafting UI is visible
-            if (document.getElementById('craftingUI').classList.contains('visible')) {
-                const firstButton = document.querySelector('.category-button');
-                if (firstButton) {
-                    const firstCategory = firstButton.getAttribute('data-category');
-                    requestRecipes(firstCategory);
-                }
+                console.log('[UI] TRAVELER close button listener added successfully');
+            } else {
+                console.error('[UI] Could not find Traveler close button element!');
             }
+            
+            // Rest of your DOMContentLoaded code...
         });
 
         // Function to create an item icon 
@@ -3011,10 +4928,11 @@
             const config = {
                 type: itemType,
                 displayName: getItemDisplayName(itemType),
-                category: 'resource' // Default category
+                category: 'resource', // Default category
+                rarity: 'common' // Default rarity - will be overridden by server if available
             };
             
-            // Try to guess category from name
+            // Try to guess category based on name
             if (itemType.includes('sword') || itemType.includes('bow') || itemType.includes('axe-')) {
                 config.category = 'weapon';
                 config.durability = 600;
@@ -3047,8 +4965,15 @@
                 
                 // Add event listeners for tooltips if not already initialized
                 if (!slot.hasAttribute('data-tooltip-initialized')) {
-                    slot.addEventListener('mouseenter', showTooltip);
-                    slot.addEventListener('mouseleave', hideTooltip);
+                    // Use function to capture 'this' context
+                    slot.addEventListener('mouseenter', function(e) {
+                        hoveredSlot = this.dataset.slot;
+                        showTooltip.call(this, e);
+                    });
+                    slot.addEventListener('mouseleave', function(e) {
+                        hoveredSlot = null;
+                        hideTooltip(e);
+                    });
                     slot.addEventListener('mousemove', moveTooltip);
                     slot.setAttribute('data-tooltip-initialized', 'true');
                     console.log(`[UI] Initialized tooltip for hotbar slot ${index}`);
@@ -3071,8 +4996,14 @@
                 }
                 
                 // Add event listeners for tooltips
-                slot.addEventListener('mouseenter', showTooltip);
-                slot.addEventListener('mouseleave', hideTooltip);
+                slot.addEventListener('mouseenter', function(e) {
+                    hoveredSlot = this.dataset.slot;
+                    showTooltip.call(this, e);
+                });
+                slot.addEventListener('mouseleave', function(e) {
+                    hoveredSlot = null;
+                    hideTooltip(e);
+                });
                 slot.addEventListener('mousemove', moveTooltip);
                 slot.setAttribute('data-tooltip-initialized', 'true');
                 console.log(`[UI] Initialized tooltip for inventory slot ${slotIndex}`);
@@ -3202,6 +5133,24 @@
             if (data.inventoryToggle) {
                 handleInventoryData(data.inventoryToggle);
             }
+
+            // Handle dungeon UI toggle
+            if (data.dungeonToggle) {
+                const dungeonUI = document.getElementById('dungeonUI');
+                const crosshair = document.querySelector('.crosshair');
+                
+                if (dungeonUI && crosshair) {
+                    if (data.dungeonToggle.isOpen) {
+                        console.log('[UI] DUNGEON IS OPEN');
+                        dungeonUI.style.display = 'block';
+                        crosshair.classList.add('hidden');
+                    } else {
+                        console.log('[UI] DUNGEON IS CLOSED');
+                        dungeonUI.style.display = 'none';
+                        crosshair.classList.remove('hidden');
+                    }
+                }
+            }
             // ... rest of the event handlers ...
         });
 
@@ -3212,6 +5161,1045 @@
                 closeInventory: true
             });
         });
+
+        // Handle traveler UI
+        const travelerUI = document.getElementById('travelerUI');
+        const travelerCategories = document.querySelector('.traveler-categories');
+        const travelerItems = document.querySelector('.traveler-items');
+
+        // Initialize traveler UI
+        document.addEventListener('DOMContentLoaded', () => {
+            // Handle close button
+            const closeTravelerBtn = document.getElementById('closeTraveler');
+            if (closeTravelerBtn) {
+                closeTravelerBtn.addEventListener('click', () => {
+                    console.log('[UI] TRAVELER close button clicked');
+                    hytopia.sendData({
+                        travelerToggle: {
+                            action: 'close'
+                        }
+                    });
+                });
+            }
+        });
+
+        // Handle data from server
+        hytopia.on('data', (data) => {
+            // Handle traveler toggle data
+            if (data.travelerToggle) {
+                const { isOpen, categories, initialCategory, trades } = data.travelerToggle;
+                
+                if (travelerUI) {
+                    travelerUI.style.display = isOpen ? 'flex' : 'none';
+                    
+                    if (isOpen) {
+                        // Enable crosshair and handle pointer lock
+                        document.querySelector('.crosshair').classList.add('hidden');
+                        
+                        // Render categories
+                        if (categories && categories.length > 0) {
+                            travelerCategories.innerHTML = '';
+                            categories.forEach((category, index) => {
+                                const button = document.createElement('button');
+                                button.className = 'category-button';
+                                if (category === initialCategory) {
+                                    button.classList.add('active');
+                                }
+                                button.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+                                button.dataset.category = category;
+                                
+                                button.addEventListener('click', () => {
+                                    // Update active class
+                                    document.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
+                                    button.classList.add('active');
+                                    
+                                    // Request trades for this category
+                                    hytopia.sendData({
+                                        requestTrades: {
+                                            category: category
+                                        }
+                                    });
+                                });
+                                
+                                travelerCategories.appendChild(button);
+                            });
+                        }
+                        
+                        // Render trades
+                        if (trades && trades.length > 0) {
+                            console.log(`[UI] Initial trades received: ${trades.length}`);
+                            renderTrades(trades);
+                        }
+                    } else {
+                        // Show crosshair when closing
+                        document.querySelector('.crosshair').classList.remove('hidden');
+                    }
+                }
+            }
+            
+            // Handle received trades
+            if (data.trades) {
+                console.log(`[UI] Received ${data.trades.length} trades:`, data.trades);
+                renderTrades(data.trades);
+            }
+        });
+
+        // Remove all other duplicate market UI code
+        document.getElementById('closeTraveler').addEventListener('click', () => {
+            hytopia.sendData({
+                travelerToggle: {
+                    action: 'close'
+                }
+            });
+        });
+
+        // Add event listener for Traveler close button
+        document.getElementById('closeTraveler').addEventListener('click', () => {
+            console.log('[UI] TRAVELER close button clicked');
+            hytopia.sendData({
+                travelerToggle: {
+                    action: 'close'
+                }
+            });
+        });
+
+        // Add this near the top of your script section
+        window.addEventListener('load', () => {
+            console.log('[UI] Window loaded, setting up Traveler close button');
+            const closeBtn = document.getElementById('closeTraveler');
+            const travelerUI = document.getElementById('travelerUI');
+            console.log('[UI] Found close button:', closeBtn);
+            
+            if (closeBtn && travelerUI) {
+                closeBtn.onclick = function(e) {
+                    console.log('[UI] TRAVELER close button clicked via onclick');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Hide the market UI
+                    travelerUI.style.display = 'none';
+                    
+                    console.log('[UI] Sending close traveler data');
+                    hytopia.sendData({
+                        closeTraveler: true
+                    });
+                    console.log('[UI] close traveler data sent');
+                };
+                
+                console.log('[UI] TRAVELER close button handlers set up successfully');
+            } else {
+                console.error('[UI] Could not find Traveler close button or market UI!');
+            }
+        });
+
+        // Market UI close handler
+        document.getElementById('closeTraveler')?.addEventListener('click', function(e) {
+            console.log('[UI] TRAVELER close button clicked');
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const travelerUI = document.getElementById('travelerUI');
+            if (travelerUI) {
+                console.log('[UI] Hiding market UI');
+                travelerUI.style.display = 'none';
+                
+                // Send close event to server
+                hytopia.sendData({
+                    closeTraveler: true
+                });
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[UI] DOM content loaded');
+            
+            // Initialize inventory toggle button visibility
+            const inventoryToggleBtn = document.querySelector('.inventory-toggle');
+            const inventoryContainer = document.getElementById('inventory');
+            
+            if (inventoryToggleBtn && inventoryContainer) {
+                // Show toggle button only if inventory is hidden
+                inventoryToggleBtn.style.display = inventoryContainer.style.display === 'none' ? 'block' : 'none';
+            }
+            
+            // Set up recipe cache
+            window.recipeCache = {};
+            console.log('[UI] Recipe cache initialized');
+            
+            // Initialize inventory grid
+            initializeInventoryGrid();
+            
+            // Create event listener for inventory close button
+            document.getElementById('closeInventory').addEventListener('click', () => {
+                console.log('[UI] Inventory close button clicked');
+                hytopia.sendData({
+                    closeInventory: true
+                });
+            });
+            
+            // Create event listener for crafting close button
+            document.getElementById('closeCrafting').addEventListener('click', () => {
+                console.log('[UI] Crafting close button clicked');
+                hytopia.sendData({
+                    craftingToggle: {
+                        action: 'close'
+                    }
+                });
+            });
+
+            // Create event listener for dungeon close button
+            document.getElementById('closeDungeon').addEventListener('click', () => {
+                console.log('[UI] Dungeon close button clicked');
+                hytopia.sendData({
+                    dungeonToggle: {
+                        action: 'close'
+                    }
+                });
+            });
+            
+            // ... rest of initialization code ...
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add event listener for traveler close button
+            const closeTravelerButton = document.getElementById('closeTraveler');
+            if (closeTravelerButton) {
+                closeTravelerButton.addEventListener('click', function() {
+                    console.log('[UI] Traveler close button clicked');
+                    hytopia.sendData({
+                        travelerToggle: {
+                            action: 'close'
+                        }
+                    });
+                });
+            }
+        });
+
+        // Handle traveler UI toggle
+        hytopia.on('data', function(event) {
+            const data = event.data;
+            
+            if (data.travelerToggle) {
+                const travelerUI = document.getElementById('travelerUI');
+                const crosshair = document.querySelector('.crosshair');
+                
+                console.log('[UI] Received traveler toggle data:', data.travelerToggle);
+                
+                if (travelerUI && crosshair) {
+                    if (data.travelerToggle.isOpen) {
+                        console.log('[UI] TRAVELER IS OPEN');
+                        console.log('[UI] POINTLOCK IS DISABLED');
+                        travelerUI.style.display = 'flex';
+                        crosshair.classList.add('hidden');
+                        hytopia.lockPointer(false);
+                        
+                        // Ensure we always have these three categories even if server doesn't provide them
+                        const requiredCategories = ['daily', 'weekly', 'special'];
+                        let availableCategories = data.travelerToggle.categories || [];
+                        
+                        // Add any missing required categories
+                        requiredCategories.forEach(category => {
+                            if (!availableCategories.includes(category)) {
+                                availableCategories.push(category);
+                            }
+                        });
+                        
+                        // Default to 'special' if no initialCategory is provided
+                        const initialCategory = data.travelerToggle.initialCategory || 'special';
+                        
+                        // Populate categories
+                        const categoriesContainer = travelerUI.querySelector('.traveler-categories');
+                        if (categoriesContainer) {
+                            categoriesContainer.innerHTML = '';
+                            
+                            // Always display all three category tabs in the right order
+                            requiredCategories.forEach(category => {
+                                const categoryBtn = document.createElement('button');
+                                categoryBtn.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+                                categoryBtn.classList.add('category-button');
+                                categoryBtn.setAttribute('data-category', category);
+                                
+                                if (category === initialCategory) {
+                                    categoryBtn.classList.add('active');
+                                }
+                                
+                                categoryBtn.addEventListener('click', () => {
+                                    // Remove active class from all buttons
+                                    document.querySelectorAll('.traveler-categories .category-button').forEach(btn => {
+                                        btn.classList.remove('active');
+                                    });
+                                    categoryBtn.classList.add('active');
+                                    
+                                    // Request trades for this category
+                                    console.log(`[UI] Requesting trades for category: ${category}`);
+                                    hytopia.sendData({
+                                        requestTrades: { category }
+                                    });
+                                });
+                                
+                                categoriesContainer.appendChild(categoryBtn);
+                            });
+                        }
+                        
+                        // Populate trades if provided, otherwise show empty state for the initial category
+                        const trades = data.travelerToggle.trades || [];
+                        if (trades.length > 0) {
+                            console.log(`[UI] Initial trades received: ${trades.length}`);
+                            renderTrades(trades);
+                        } else {
+                            console.log(`[UI] No trades for category: ${initialCategory}, showing empty state`);
+                            renderTrades([]);
+                        }
+                    } else {
+                        console.log('[UI] TRAVELER IS CLOSED');
+                        console.log('[UI] POINTLOCK IS ENABLED');
+                        travelerUI.style.display = 'none';
+                        crosshair.classList.remove('hidden');
+                        hytopia.lockPointer(true);
+                    }
+                }
+            }
+        });
+
+        // Function to render trades with improved UI
+        function renderTrades(trades) {
+            const tradesContainer = document.querySelector('.traveler-items');
+            if (!tradesContainer) {
+                console.error('[UI] Could not find traveler-items container');
+                return;
+            }
+            
+            console.log(`[UI] Rendering ${trades.length} trades`);
+            tradesContainer.innerHTML = '';
+            
+            if (!trades || trades.length === 0) {
+                // Show empty state
+                tradesContainer.innerHTML = `
+                    <div class="traveler-empty-state">
+                        <div class="icon">🏪</div>
+                        <div class="message">No trades available in this category</div>
+                        <div class="sub-message">Check back later or try another category</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            trades.forEach(trade => {
+                const tradeItem = document.createElement('div');
+                tradeItem.className = 'trade-item';
+                
+                tradeItem.innerHTML = `
+                    <div class="trade-name">${trade.name}</div>
+                    <div class="trade-description">${trade.description || ''}</div>
+                    <div class="trade-details">
+                        <div class="trade-inputs">
+                            <div class="trade-section-title">You give</div>
+                            ${trade.inputs.map(item => `
+                                <div class="trade-resource">
+                                    <img src="${getCorrectImageUrl(item.imageUrl)}" alt="${item.name}">
+                                    <span>${item.count}x ${item.name}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="trade-arrow">→</div>
+                        <div class="trade-outputs">
+                            <div class="trade-section-title">You receive</div>
+                            ${trade.outputs.map(item => `
+                                <div class="trade-resource">
+                                    <img src="${getCorrectImageUrl(item.imageUrl)}" alt="${item.name}">
+                                    <span>${item.count}x ${item.name}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ${trade.level > 1 ? `<div class="trade-level">Level requirement: ${trade.level}</div>` : ''}
+                    <button class="trade-button" data-trade-id="${trade.id}">Trade</button>
+                `;
+                
+                // Add trade button click handler
+                const tradeButton = tradeItem.querySelector('.trade-button');
+                tradeButton.addEventListener('click', () => {
+                    console.log(`[UI] Trade button clicked for trade ID: ${trade.id}`);
+                    hytopia.sendData({
+                        trade: { id: trade.id }
+                    });
+                });
+                
+                tradesContainer.appendChild(tradeItem);
+            });
+            
+            console.log('[UI] Trades rendered successfully');
+        }
+
+        // Helper function to ensure image URLs are correctly formed
+        function getCorrectImageUrl(imageUrl) {
+            if (!imageUrl) return 'https://localhost:8080//items/fallback.png';
+            
+            // If it already includes the full URL, return it
+            if (imageUrl.startsWith('http')) {
+                return imageUrl;
+            }
+            
+            // If it's just a relative path, add the correct prefix
+            if (imageUrl.startsWith('../')) {
+                // Remove the '../' prefix
+                const cleanUrl = imageUrl.replace('../', '');
+                return `https://localhost:8080//${cleanUrl}`;
+            }
+            
+            // If it's just the filename, add the items/ prefix
+            if (!imageUrl.includes('/')) {
+                return `https://localhost:8080//items/${imageUrl}`;
+            }
+            
+            // Otherwise, add the full URL prefix
+            return `https://localhost:8080//${imageUrl}`;
+        }
+
+        // Add click event handler for the close button
+        document.addEventListener('DOMContentLoaded', function() {
+            const closeTravelerBtn = document.getElementById('closeTraveler');
+            if (closeTravelerBtn) {
+                closeTravelerBtn.addEventListener('click', function() {
+                    console.log('[UI] Traveler close button clicked');
+                    const travelerUI = document.getElementById('travelerUI');
+                    if (travelerUI) {
+                        travelerUI.style.display = 'none';
+                    }
+                    document.querySelector('.crosshair').classList.remove('hidden');
+                    hytopia.lockPointer(true);
+                    hytopia.sendData({
+                        travelerToggle: {
+                            action: 'close'
+                        }
+                    });
+                });
+            }
+        });
+
+        // CONSOLIDATED UI SETUP - Single place to initialize all UI event listeners
+        // This prevents duplicate event listeners and consolidates all UI setup in one place
+        function setupUIEventHandlers() {
+            console.log('[UI] Setting up consolidated UI event handlers');
+            
+            // Close button handlers - each using the standard pattern
+            const closeButtons = [
+                { id: 'closeTraveler', event: 'travelerToggle', action: 'close' },
+                { id: 'closeInventory', event: 'inventoryToggle', action: 'close' },
+                { id: 'closeCrafting', event: 'craftingToggle', action: 'close' }
+            ];
+            
+            // Set up each close button with a consistent pattern
+            closeButtons.forEach(button => {
+                const element = document.getElementById(button.id);
+                if (element) {
+                    console.log(`[UI] Setting up ${button.id} handler`);
+                    
+                    // Remove any existing listeners to prevent duplicates
+                    const newElement = element.cloneNode(true);
+                    element.parentNode.replaceChild(newElement, element);
+                    
+                    // Add the new listener with consistent pattern
+                    newElement.addEventListener('click', () => {
+                        console.log(`[UI] ${button.id} clicked`);
+                        const data = {};
+                        data[button.event] = { action: button.action };
+                        hytopia.sendData(data);
+                        return false;
+                    });
+                } else {
+                    console.warn(`[UI] Could not find ${button.id} element`);
+                }
+            });
+            
+            // Set up tooltips
+            initializeTooltips();
+            
+            // Initialize inventory grid
+            if (typeof initializeInventoryGrid === 'function') {
+                initializeInventoryGrid();
+            }
+            
+            // Set up recipe cache
+            window.recipeCache = window.recipeCache || {};
+            
+            // Prevent game input when clicking crafting UI
+            const craftingUI = document.getElementById('craftingUI');
+            if (craftingUI) {
+                craftingUI.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                });
+            }
+            
+            console.log('[UI] Consolidated UI event handlers setup complete');
+        }
+
+        // Call setup once on DOMContentLoaded (replaces multiple scattered initialization)
+        document.addEventListener('DOMContentLoaded', setupUIEventHandlers);
+
+        // Handle dungeon close button click
+        document.getElementById('closeDungeon')?.addEventListener('click', () => {
+            console.log('[UI] Dungeon close button clicked');
+            hytopia.sendData({
+                dungeonToggle: {
+                    action: 'close'
+                }
+            });
+        });
+
+        // Add click handlers for level buttons to show/hide appropriate bosses
+        document.querySelectorAll('.level-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                document.querySelectorAll('.level-button').forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                button.classList.add('active');
+                
+                // TODO: Show/hide appropriate boss entries based on level range
+                // This will be connected to the game logic later
+            });
+        });
+
+        // Handle dungeon UI visibility
+        hytopia.onData(data => {
+            // Handle player stats update
+            
+            
+            // Handle inventory update
+            if (data.inventory) {
+                console.log('[UI] Received inventory update:', data.inventory);
+                
+            
+
+            }
+            
+        
+        });
+
+        // Add click handlers for level buttons to show/hide appropriate bosses
+        document.querySelectorAll('.level-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                document.querySelectorAll('.level-button').forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                button.classList.add('active');
+                
+                // TODO: Show/hide appropriate boss entries based on level range
+                // This will be connected to the game logic later
+            });
+        });
+
+        // Handle dungeon UI close button
+        document.getElementById('closeDungeon').addEventListener('click', () => {
+            console.log('[UI] Dungeon close button clicked');
+            hytopia.sendData({
+                dungeonToggle: {
+                    action: 'close'
+                }
+            });
+        });
+
+        // Function to render dungeon data from server
+        function renderDungeons(dungeons) {
+            const dungeonContent = document.querySelector('.dungeon-content');
+            const sidebar = document.querySelector('.dungeon-sidebar');
+            
+            if (!dungeonContent || !sidebar) return;
+            
+            // Clear existing content
+            dungeonContent.innerHTML = '';
+            sidebar.innerHTML = '';
+            
+            // Group dungeons by level range
+            const levelRanges = [];
+            const dungeonsByLevel = {};
+            
+            dungeons.forEach(dungeon => {
+                const minLevel = dungeon.minLevel;
+                // Calculate level range (1-10, 11-20, etc.)
+                const rangeStart = Math.floor((minLevel - 1) / 10) * 10 + 1;
+                const rangeEnd = rangeStart + 9;
+                const rangeName = `LVL ${rangeStart}-${rangeEnd}`;
+                
+                // Add range to list if not already there
+                if (!levelRanges.includes(rangeName)) {
+                    levelRanges.push(rangeName);
+                    dungeonsByLevel[rangeName] = [];
+                }
+                
+                // Add dungeon to the appropriate level range
+                dungeonsByLevel[rangeName].push(dungeon);
+            });
+            
+            // Create sidebar buttons for level ranges
+            levelRanges.sort((a, b) => {
+                // Extract numbers from the level ranges (e.g., "LVL 1-10" → 1)
+                const aStart = parseInt(a.split(' ')[1].split('-')[0]);
+                const bStart = parseInt(b.split(' ')[1].split('-')[0]);
+                return aStart - bStart;
+            }).forEach((range, index) => {
+                const button = document.createElement('button');
+                button.className = 'level-button';
+                button.textContent = range;
+                button.dataset.range = range;
+                
+                // Set first button as active
+                if (index === 0) {
+                    button.classList.add('active');
+                }
+                
+                // Add click handler
+                button.addEventListener('click', () => {
+                    // Update active button
+                    document.querySelectorAll('.level-button').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    button.classList.add('active');
+                    
+                    // Show dungeons for this level range
+                    showDungeonsForRange(range, dungeonsByLevel);
+                });
+                
+                sidebar.appendChild(button);
+            });
+            
+            // Show dungeons for the first level range by default
+            if (levelRanges.length > 0) {
+                showDungeonsForRange(levelRanges[0], dungeonsByLevel);
+            } else {
+                // No dungeons available, show empty state
+                dungeonContent.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #ccc;">
+                        <p>No dungeons available for your level.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Function to show dungeons for a specific level range
+        function showDungeonsForRange(range, dungeonsByLevel) {
+            const dungeonContent = document.querySelector('.dungeon-content');
+            if (!dungeonContent) return;
+            
+            // Clear existing content
+            dungeonContent.innerHTML = '';
+            
+            // Get dungeons for this range
+            const dungeons = dungeonsByLevel[range] || [];
+            
+            if (dungeons.length === 0) {
+                // No dungeons in this range
+                dungeonContent.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #ccc;">
+                        <p>No dungeons available in this level range.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort dungeons by level from low to high
+            const sortedDungeons = [...dungeons].sort((a, b) => a.minLevel - b.minLevel);
+            console.log(`[UI] Sorted dungeons for ${range}:`, sortedDungeons.map(d => `${d.name} (Lvl ${d.minLevel})`));
+            
+            // Render each dungeon
+            sortedDungeons.forEach(dungeon => {
+                // Create dungeon entry
+                const entry = document.createElement('div');
+                entry.className = 'dungeon-entry';
+                entry.dataset.id = dungeon.id;
+                
+                // Set image (use fallback if image not available)
+                const img = document.createElement('img');
+                
+                // Use dungeon ID for image path
+                img.src = processCdnUrl(`{{CDN_ASSETS_URL}}/${dungeon.imageUrl}`);
+                img.alt = dungeon.name;
+                
+                console.log(`[UI] Setting image for dungeon ${dungeon.name} with URL:`, img.src);
+                // Set fallback for image load errors
+                
+                
+                entry.appendChild(img);
+                
+                // Create info section
+                const info = document.createElement('div');
+                info.className = 'dungeon-info';
+                
+                // Add dungeon name
+                const name = document.createElement('div');
+                name.className = 'dungeon-name';
+                name.textContent = dungeon.name;
+                info.appendChild(name);
+                
+                // Add dungeon level
+                const level = document.createElement('div');
+                level.className = 'dungeon-level';
+                level.textContent = `Level ${dungeon.minLevel}`;
+                info.appendChild(level);
+                
+                // Add loot slots
+                const lootContainer = document.createElement('div');
+                lootContainer.className = 'potential-loot';
+                
+                // Add up to 3 loot items (or placeholders if less than 3)
+                const lootItems = dungeon.loot || [];
+                for (let i = 0; i < 3; i++) {
+                    const lootSlot = document.createElement('div');
+                    lootSlot.className = 'loot-slot';
+                    
+                    const lootImg = document.createElement('img');
+                    
+                    if (i < lootItems.length) {
+                        // Use real loot data
+                        lootImg.src = processCdnUrl(`{{CDN_ASSETS_URL}}/items/${lootItems[i].item}.png`);
+                        lootImg.alt = lootItems[i].item;
+                        // Add tooltip data
+                        lootSlot.dataset.item = lootItems[i].item;
+                        lootSlot.dataset.dropChance = lootItems[i].dropChance;
+                        
+                        // Add hover tooltip for loot
+                        lootSlot.addEventListener('mouseenter', (e) => {
+                            const tooltip = document.querySelector('.item-tooltip');
+                            if (tooltip) {
+                                tooltip.innerHTML = `
+                                    <div>
+                                        <div style="font-weight: bold; color: gold;">${getItemDisplayName(lootItems[i].item)}</div>
+                                        <div>Drop Chance: ${lootItems[i].dropChance}%</div>
+                                    </div>
+                                `;
+                                tooltip.style.display = 'block';
+                                moveDungeonTooltip(e);
+                            }
+                        });
+                        
+                        lootSlot.addEventListener('mousemove', moveDungeonTooltip);
+                        
+                        lootSlot.addEventListener('mouseleave', () => {
+                            const tooltip = document.querySelector('.item-tooltip');
+                            if (tooltip) {
+                                tooltip.style.display = 'none';
+                            }
+                        });
+                    } else {
+                        // Use placeholder
+                        lootImg.src = processCdnUrl('{{CDN_ASSETS_URL}}/items/question_mark.png');
+                        lootImg.alt = '?';
+                    }
+                    
+                    lootImg.onerror = () => {
+                        lootImg.src = processCdnUrl('{{CDN_ASSETS_URL}}/items/question_mark.png');
+                    };
+                    
+                    lootSlot.appendChild(lootImg);
+                    lootContainer.appendChild(lootSlot);
+                }
+                
+                info.appendChild(lootContainer);
+                entry.appendChild(info);
+                
+                // Add fight button
+                const fightButton = document.createElement('button');
+                fightButton.className = 'fight-button';
+                fightButton.textContent = 'FIGHT';
+                
+                // Add tooltip for entry requirements
+                fightButton.addEventListener('mouseenter', (e) => {
+                    const tooltip = document.querySelector('.item-tooltip');
+                    if (tooltip) {
+                        // Build requirements HTML
+                        let requirementsHtml = `
+                            <div style="padding: 10px; min-width: 200px;">
+                                <div style="font-weight: bold; color: gold; margin-bottom: 10px; font-size: 16px; text-align: center; border-bottom: 1px solid #8b4513; padding-bottom: 5px;">
+                                    Entry Requirements
+                                </div>
+                        `;
+                        
+                        // Add level requirement
+                        requirementsHtml += `
+                            <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: #ccc; font-weight: bold;">Level:</span> 
+                                <span style="color: ${playerLevel >= dungeon.minLevel ? '#66ff66' : '#ff6666'}; font-weight: bold;">${dungeon.minLevel}+</span>
+                            </div>
+                        `;
+                        
+                        // Add key requirement if exists
+                        if (dungeon.requiredKey) {
+                            const keyName = dungeon.requiredKey.displayName || "Dungeon Key";
+                            const keyType = dungeon.requiredKey.type || "dungeon-key";
+                            const hasKey = dungeon.requiredKey.hasKey;
+                            
+                            requirementsHtml += `
+                                <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: #ccc; font-weight: bold;">Required Key:</span> 
+                                    <span style="color: ${hasKey ? '#66ff66' : '#ff6666'}; font-weight: bold;">${keyName}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: center; margin-top: 10px;">
+                                    <img src="${processCdnUrl(`{{CDN_ASSETS_URL}}/items/${keyType}.png`)}" 
+                                         style="width: 32px; height: 32px; margin-right: 10px; border: 1px solid #8b4513; border-radius: 4px; padding: 2px; background: rgba(0,0,0,0.3);" 
+                                         alt="${keyName}" 
+                                         onerror="this.src='${processCdnUrl('{{CDN_ASSETS_URL}}/items/question_mark.png')}'">
+                                    <span style="color: #ddd;">Required to enter dungeon</span>
+                                </div>
+                            `;
+                        }
+                        
+                        // Add a note about rewards
+                        requirementsHtml += `
+                            <div style="margin-top: 12px; border-top: 1px solid #8b4513; padding-top: 5px; font-style: italic; color: #aaa; font-size: 12px; text-align: center;">
+                                Defeat bosses to earn rewards!
+                            </div>
+                        `;
+                        
+                        requirementsHtml += `</div>`;
+                        
+                        // Set tooltip content
+                        tooltip.innerHTML = requirementsHtml;
+                        tooltip.style.display = 'block';
+                        tooltip.style.zIndex = '10000'; // Ensure tooltip is on top
+                        moveDungeonTooltip(e);
+                    }
+                });
+                
+                fightButton.addEventListener('mousemove', moveDungeonTooltip);
+                
+                fightButton.addEventListener('mouseleave', () => {
+                    const tooltip = document.querySelector('.item-tooltip');
+                    if (tooltip) {
+                        tooltip.style.display = 'none';
+                    }
+                });
+                
+                fightButton.addEventListener('click', () => {
+                    console.log(`[UI] Fight button clicked for dungeon: ${dungeon.id}`);
+                    console.log(`[UI] Dungeon details:`, dungeon);
+
+                    // Check player level requirement
+                    const playerLevel = window.playerLevel || 1;
+                    if (playerLevel < dungeon.minLevel) {
+                        console.log(`[UI] Player level too low: ${playerLevel} < ${dungeon.minLevel}`);
+                        showNotification(`You need to be level ${dungeon.minLevel} to enter this dungeon`, 'error');
+                        return;
+                    }
+                    
+                    // Check key requirement
+                    if (dungeon.requiredKey && !dungeon.requiredKey.hasKey) {
+                        console.log(`[UI] Player does not have required key: ${dungeon.requiredKey.type}`);
+                        showNotification(`You need a ${dungeon.requiredKey.displayName} to enter this dungeon`, 'error');
+                        return;
+                    }
+
+                    // If we get here, player meets all requirements
+                    // Show confirmation dialog
+                    showConfirmation(
+                        `Are you sure you want to enter ${dungeon.name}? You might lose all your non-soulbound items if you die!`,
+                        () => {
+                            console.log(`[UI] Player confirmed dungeon entry`);
+                            // Send the fight request to the server
+                            hytopia.sendData({
+                                dungeonAction: {
+                                    action: 'fight',
+                                    dungeonId: dungeon.id
+                                }
+                            });
+                        },
+                        () => {
+                            console.log(`[UI] Player cancelled dungeon entry`);
+                        },
+                        dungeon.name
+                    );
+                });
+                
+                entry.appendChild(fightButton);
+                
+                // Add to content
+                dungeonContent.appendChild(entry);
+            });
+        }
+        
+        // Function to close dungeon UI
+        function closeDungeonUI() {
+            // Hide UI
+            const dungeonUI = document.getElementById('dungeonUI');
+            if (dungeonUI) {
+                dungeonUI.classList.remove('visible');
+            }
+            
+            // Show crosshair
+            const crosshair = document.querySelector('.crosshair');
+            if (crosshair) {
+                crosshair.classList.remove('hidden');
+            }
+            
+            // Enable pointer lock
+            hytopia.lockPointer(true);
+            
+            // Notify server
+            hytopia.sendData({
+                dungeonToggle: {
+                    action: 'close'
+                }
+            });
+        }
+
+        // Add close button event listener for dungeon UI
+        document.getElementById('closeDungeon').addEventListener('click', closeDungeonUI);
+
+        // Helper function to process CDN URLs
+        function processCdnUrl(url) {
+            if (!url) return '';
+            
+            // For debugging
+            console.log(`[processCdnUrl] Processing URL: "${url}"`);
+            
+            // If URL contains the placeholder, replace it with the actual domain
+            if (url.includes('{{CDN_ASSETS_URL}}')) {
+                const processed = url.replace('{{CDN_ASSETS_URL}}', 'https://localhost:8080');
+                console.log(`[processCdnUrl] Processed to: "${processed}"`);
+                return processed;
+            }
+            
+            console.log(`[processCdnUrl] Leaving unchanged: "${url}"`);
+            return url;
+        }
+
+        // ... existing code ...
+
+        // Add event listener to fight buttons
+        
+
+        // ... existing code ...
+
+        // Add fight button click handler
+    
+
+        // Helper function to move dungeon tooltip
+        function moveDungeonTooltip(e) {
+            const tooltip = document.querySelector('.item-tooltip');
+            if (tooltip) {
+                tooltip.style.left = (e.clientX + 15) + 'px';
+                tooltip.style.top = (e.clientY - 25) + 'px';
+            }
+        }
+
+        // Handle inventory panel
+        hytopia.onData(data => {
+            // Existing data handlers...
+            
+            // Handle player level updates
+            if (data.level) {
+                updateProfileLevelData(data.level);
+            } else if (data.playerStats) {
+                // Use playerStats data for updating the profile tab
+                updateProfileLevelData(data.playerStats);
+            }
+
+            // Handle player name and details updates
+            if (data.playerDetails) {
+                const playerName = document.querySelector('.player-name');
+                const guildTag = document.querySelector('.guild-tag');
+                
+                if (playerName && data.playerDetails.name) {
+                    playerName.textContent = data.playerDetails.name;
+                }
+                
+                if (guildTag && data.playerDetails.guild) {
+                    guildTag.textContent = data.playerDetails.guild;
+                }
+            }
+            
+            // Handle health updates in profile tab
+            if (data.health) {
+                const profileHealth = document.querySelector('.profile-health');
+                if (profileHealth) {
+                    profileHealth.textContent = `${data.health.max}`;
+                }
+            }
+            
+            // Handle mana updates in profile tab
+            if (data.mana) {
+                const profileMana = document.querySelector('.profile-mana');
+                if (profileMana) {
+                    profileMana.textContent = `${data.mana.max}`;
+                }
+            }
+        });
+
+        function updateProfileLevelData(statsData) {
+            // Update profile level display
+            const profileLevel = document.querySelector('.profile-level');
+            const progressFill = document.querySelector('.profile-progress-fill');
+            const profileXp = document.querySelector('.profile-xp');
+            const profileXpMax = document.querySelector('.profile-xp-max');
+            
+            if (profileLevel && typeof statsData.level === 'number') {
+                profileLevel.textContent = statsData.level;
+            }
+            
+            if (progressFill && typeof statsData.xp === 'number' && typeof statsData.nextLevelXp === 'number') {
+                // Calculate progress percentage
+                const percentage = Math.min(100, (statsData.xp / statsData.nextLevelXp) * 100);
+                progressFill.style.width = `${percentage}%`;
+            }
+            
+            if (profileXp && typeof statsData.xp === 'number') {
+                profileXp.textContent = statsData.xp;
+            }
+            
+            if (profileXpMax && typeof statsData.nextLevelXp === 'number') {
+                profileXpMax.textContent = statsData.nextLevelXp;
+            }
+            
+            // Also update the bottom-right level display if it exists
+            const levelNumber = document.querySelector('.player-level-number');
+            if (levelNumber && typeof statsData.level === 'number') {
+                levelNumber.textContent = statsData.level;
+            }
+            
+            const levelProgressFill = document.querySelector('.player-level-progress-fill');
+            if (levelProgressFill && typeof statsData.xp === 'number' && typeof statsData.nextLevelXp === 'number') {
+                const percentage = Math.min(100, (statsData.xp / statsData.nextLevelXp) * 100);
+                levelProgressFill.style.width = `${percentage}%`;
+            }
+        }
+
+        // Update tab functionality to request player data when profile tab is selected
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                
+                // Add active class to clicked button
+                button.classList.add('active');
+                
+                // Hide all tab contents
+                tabContents.forEach(content => {
+                    content.style.display = 'none';
+                });
+                
+                // Show the selected tab content
+                const tabName = button.getAttribute('data-tab');
+                document.getElementById(`${tabName}Tab`).style.display = 'block';
+                
+                // If profile tab is selected, request updated player data
+                if (tabName === 'profile') {
+                    hytopia.sendData({
+                        requestProfileData: true
+                    });
+                }
+            });
+        });
+
+        // Add this debounce function near the top of your script
+        function debounce(func, wait) {
+          let timeout;
+          return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+          };
+        }
+
+        // Cached DOM elements for better performance
+        let cachedInventorySlots = null;
     </script>
 </body>
 </html>

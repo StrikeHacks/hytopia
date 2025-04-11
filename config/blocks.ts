@@ -4,6 +4,7 @@ export interface BlockConfig {
     name: string;
     hp: number;
     drops?: string;
+    xpReward?: number; // XP awarded when the block is mined
 }
 
 // Block respawn configuration
@@ -14,23 +15,26 @@ export interface BlockRespawnConfig {
 
 // Block configurations
 export const blockConfigs: Map<number, BlockConfig> = new Map([
-    [1, {
-        id: 1,
+    [37, {
+        id: 37,
         name: 'Stone',
         hp: 5, // Takes 10 clicks with pickaxe
-        drops: 'cobblestone'
+        drops: 'stone',
+        xpReward: 5 // Basic XP reward
     }],
     [21, {
         id: 21,
         name: 'Iron Ore',
         hp: 7.5, // Takes 15 clicks with pickaxe
-        drops: 'iron-ingot'
+        drops: 'iron-ore',
+        xpReward: 15 // Higher XP reward for valuable resource
     }],
     [23, {
         id: 23,
         name: 'Oak Log',
         hp: 5, // Takes 8 clicks with axe
-        drops: 'log'
+        drops: 'log',
+        xpReward: 8 // Medium XP reward
     }]
 ]);
 

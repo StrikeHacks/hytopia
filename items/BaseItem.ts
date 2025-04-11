@@ -41,7 +41,7 @@ export class BaseItem {
 
     private createPickupCollider(isSensor: boolean = true) {
         const collisionGroups = {
-            belongsTo: [CollisionGroup.ENTITY_SENSOR],
+            belongsTo: [CollisionGroup.ENTITY, CollisionGroup.ENTITY_SENSOR],
             collidesWith: [CollisionGroup.ENTITY, CollisionGroup.PLAYER]
         };
 

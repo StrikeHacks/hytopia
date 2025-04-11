@@ -4,6 +4,7 @@ import { ItemSpawner } from './ItemSpawner';
 import { getToolItem } from '../config/tools';
 import { blockConfigs, getBlockConfig, getBlockRespawnConfig } from '../config/blocks';
 import { ItemInstanceManager } from '../items/ItemInstanceManager';
+import { GameManager } from './GameManager';
 
 export interface ToolConfig {
     name: string;
@@ -27,8 +28,10 @@ export class ToolManager {
     constructor(
         private world: World,
         private playerInventories: Map<string, PlayerInventory>,
-        private itemSpawner: ItemSpawner
+        private itemSpawner: ItemSpawner,
+        private gameManager: GameManager
     ) {
+        console.log('[ToolManager] Initialized');
         
         // Ensure ItemInstanceManager is initialized
         ItemInstanceManager.getInstance();
@@ -43,11 +46,9 @@ export class ToolManager {
         if (blockKey) {
             // Reset specific block
             this.blockDamages.delete(blockKey);
-            console.log('[Mining] Reset damage for block:', blockKey);
         } else {
             // Reset all blocks
             this.blockDamages.clear();
-            console.log('[Mining] Reset all block damage');
         }
         
         // Reset UI progress
@@ -68,14 +69,11 @@ export class ToolManager {
     }
 
     public canBreakBlock(toolType: string, blockId: number): boolean {
-        console.log('[ToolManager] Checking if tool can break block:', { toolType, blockId });
         const toolItem = getToolItem(toolType);
         if (!toolItem) {
-            console.log('[ToolManager] No tool item found for:', toolType);
             return false;
         }
         const canBreak = toolItem.canBreak.includes(blockId.toString());
-        console.log('[ToolManager] Can break block?', canBreak);
         return canBreak;
     }
 
@@ -94,7 +92,6 @@ export class ToolManager {
 
         // Schedule block respawn
         const timer = setTimeout(() => {
-            console.log('[Mining] Respawning block:', { blockId, position });
             this.world.chunkLattice.setBlock(position, blockId);
             this.respawnTimers.delete(blockKey);
         }, respawnConfig.delay);
@@ -106,28 +103,23 @@ export class ToolManager {
         const playerId = String(playerEntity.player.id);
         const inventory = this.playerInventories.get(playerId);
         if (!inventory) {
-            console.log('[Mining] No inventory found for player:', playerId);
             return;
         }
 
         const selectedSlot = inventory.getSelectedSlot();
         const heldItem = inventory.getItem(selectedSlot);
         if (!heldItem) {
-            console.log('[Mining] No item held in selected slot');
             return;
         }
-        console.log('[Mining] Player trying to mine with:', heldItem);
 
         // Get tool configuration
         const toolItem = getToolItem(heldItem);
         if (!toolItem) {
-            console.log('[Mining] No tool item found for:', heldItem);
             return;
         }
         
         // Check if tool is broken
         if (inventory.isItemBroken(selectedSlot)) {
-            console.log(`[Mining] ${heldItem} is broken and can't be used`);
             return;
         }
 
@@ -154,10 +146,7 @@ export class ToolManager {
         const blockId = this.world.chunkLattice.getBlockId(hitPos);
         const currentBlockKey = this.coordinateToKey(hitPos);
         
-        console.log('[Mining] Hit block:', {
-            position: hitPos,
-            blockId
-        });
+
 
         // Check if player is looking at a different block
         if (this.lastHitBlock && this.lastHitBlock !== currentBlockKey) {
@@ -165,19 +154,16 @@ export class ToolManager {
         }
 
         if (!blockId) {
-            console.log('[Mining] No block ID found at position');
             return;
         }
 
         // Get block configuration
         const blockConfig = getBlockConfig(blockId);
         if (!blockConfig) {
-            console.log('[Mining] No block config found for ID:', blockId);
             return;
         }
 
         if (!this.canBreakBlock(heldItem, blockId)) {
-            console.log('[Mining] Cannot break block ID', blockId, 'with item:', heldItem);
             return;
         }
 
@@ -189,7 +175,6 @@ export class ToolManager {
                 lastDamageTime: Date.now()
             };
             this.blockDamages.set(currentBlockKey, blockDamage);
-            console.log('[Mining] Started mining new block at:', currentBlockKey);
         }
 
         const currentTime = Date.now();
@@ -200,17 +185,12 @@ export class ToolManager {
         if (timeSinceLastHit < this.CLICK_PENALTY_THRESHOLD) {
             // Reduce damage for rapid clicking
             damageToApply = toolItem.damage * 0.5;
-            console.log('[Mining] Rapid clicking detected! Reducing damage');
         }
         
         blockDamage.totalDamage += damageToApply;
         blockDamage.lastDamageTime = currentTime;
 
-        console.log('[Mining] Block damage:', {
-            totalDamage: blockDamage.totalDamage,
-            maxHP: blockConfig.hp,
-            tool: heldItem
-        });
+
 
         // Update UI with progress
         const progress = (blockDamage.totalDamage / blockConfig.hp) * 100;
@@ -222,15 +202,9 @@ export class ToolManager {
 
         // Check if block should break
         if (blockDamage.totalDamage >= blockConfig.hp) {
-            console.log('[Mining] Block broken!', {
-                position: hitPos,
-                blockId,
-                drops: blockConfig.drops
-            });
             
             // Decrease tool durability when a block is broken
             const itemStillUsable = inventory.decreaseItemDurability(selectedSlot, 1);
-            console.log(`[Mining] ${heldItem} durability decreased. Still usable: ${itemStillUsable}`);
             
             // Handle drops if specified in block config
             if (blockConfig.drops) {
@@ -249,6 +223,15 @@ export class ToolManager {
             if (this.resetTimer) {
                 clearTimeout(this.resetTimer);
                 this.resetTimer = null;
+            }
+
+            // Award XP to the player if block has XP reward
+            if (blockConfig.xpReward) {
+                const levelManager = this.gameManager.getLevelManager();
+                if (levelManager) {
+                    levelManager.addPlayerXP(playerId, blockConfig.xpReward);
+                    console.log(`[ToolManager] Awarded ${blockConfig.xpReward} XP to player ${playerId} for mining ${blockConfig.name}`);
+                }
             }
         }
     }
@@ -275,7 +258,6 @@ export class ToolManager {
     public repairTool(playerId: string, slot: number): boolean {
         const inventory = this.playerInventories.get(playerId);
         if (!inventory) {
-            console.log('[ToolManager] No inventory found for player:', playerId);
             return false;
         }
         
@@ -288,7 +270,6 @@ export class ToolManager {
     public getToolDurability(playerId: string, slot: number): { current: number; max: number } | null {
         const inventory = this.playerInventories.get(playerId);
         if (!inventory) {
-            console.log('[ToolManager] No inventory found for player:', playerId);
             return null;
         }
         
@@ -301,7 +282,6 @@ export class ToolManager {
     public isToolBroken(playerId: string, slot: number): boolean {
         const inventory = this.playerInventories.get(playerId);
         if (!inventory) {
-            console.log('[ToolManager] No inventory found for player:', playerId);
             return false;
         }
         

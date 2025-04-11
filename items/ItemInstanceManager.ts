@@ -121,6 +121,19 @@ export class ItemInstanceManager {
         // Direct update the instance in the map to avoid race conditions
         instance.durability = newDurability;
         
+        // Get item config to check if soulbound
+        try {
+            const { getItemConfig } = require('../config/items');
+            const itemConfig = getItemConfig(instance.type);
+            
+            // For soulbound items, they remain in inventory but can't be used
+            if (itemConfig.soulbound) {
+                return newDurability > 0;
+            }
+        } catch (error) {
+            console.error('[ItemInstanceManager] Error checking soulbound status:', error);
+        }
+        
         return newDurability > 0;
     }
 
@@ -132,7 +145,6 @@ export class ItemInstanceManager {
         if (!instance || instance.durability === undefined) {
             return false;
         }
-        
         return instance.durability <= 0;
     }
 

@@ -26,9 +26,11 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         handOffset: WEAPONS_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
         imageUrl: 'items/diamond-sword.png',
-        durability: 1500,
-        maxDurability: 1500,
-        damage: 35
+        durability: 1000,
+        maxDurability: 1000,
+        damage: 150,
+        soulbound: true,
+        rarity: 'legendary'
     },
     'sword-stone': {
         type: 'sword-stone',
@@ -48,7 +50,8 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         imageUrl: 'items/stone-sword.png',
         durability: 800,
         maxDurability: 800,
-        damage: 15
+        damage: 15,
+        rarity: 'uncommon'
     },
     'sword-golden': {
         type: 'sword-golden',
@@ -68,11 +71,12 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         imageUrl: 'items/golden-sword.png',
         durability: 300,
         maxDurability: 300,
-        damage: 20
+        damage: 20,
+        rarity: 'epic'
     },
-    'sword-wood': {
-        type: 'sword-wood',
-        modelUri: 'models/items/sword-wood.gltf',
+    'sword-wooden': {
+        type: 'sword-wooden',
+        modelUri: 'models/items/sword-wooden.gltf',
         displayName: 'Wooden Sword',
         category: 'weapon',
         maxStackSize: 1,
@@ -88,7 +92,8 @@ export const weaponItems: Record<string, WeaponItemProperties> = {
         imageUrl: 'items/wooden-sword.png',
         durability: 100,
         maxDurability: 100,
-        damage: 10
+        damage: 10,
+        rarity: 'common'
     }
 };
 

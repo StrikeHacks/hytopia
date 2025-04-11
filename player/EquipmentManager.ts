@@ -14,13 +14,17 @@ export class EquipmentManager {
         const world = this.playerEntity.world;
         if (!world) return;
 
-        // Get the item configuration to access its hand offset
+        // Get the item configuration to access its properties
         const itemConfig = getItemConfig(itemType);
+        if (!itemConfig.modelUri) {
+            console.error(`[EquipmentManager] No modelUri found for item ${itemType}`);
+            return;
+        }
         
         // Create the equipped item
         this.equippedEntity = new Entity({
             name: itemType,
-            modelUri: `models/items/${itemType}.gltf`,
+            modelUri: itemConfig.modelUri, // Use the modelUri from the item's configuration
             parent: this.playerEntity,
             parentNodeName: 'hand_right_weapon_anchor',
             rigidBodyOptions: {

@@ -8,8 +8,8 @@ export interface HealthChangeEvent {
 }
 
 export class PlayerHealth {
-    private maxHealth: number = 1000;
-    private currentHealth: number = 700;
+    private maxHealth: number = 100;
+    private currentHealth: number = 70;
     private isDead: boolean = false;
     
     // Passive healing configuration
@@ -74,16 +74,30 @@ export class PlayerHealth {
         this.currentHealth = Math.max(0, this.currentHealth - amount);
         const actualDamage = previousHealth - this.currentHealth;
 
+        // If health reaches 0, mark as dead first and notify immediately
+        if (this.currentHealth <= 0) {
+            this.currentHealth = 0;
+            this.isDead = true;
+            this.die();
+            
+            // Notify about the health change immediately
+            this.notifyHealthChange({
+                previousHealth,
+                currentHealth: this.currentHealth,
+                change: -actualDamage,
+                type: 'damage'
+            });
+            
+            return actualDamage;
+        }
+
+        // For non-death damage, notify about the health change
         this.notifyHealthChange({
             previousHealth,
             currentHealth: this.currentHealth,
             change: -actualDamage,
             type: 'damage'
         });
-
-        if (this.currentHealth === 0) {
-            this.die();
-        }
 
         return actualDamage;
     }
@@ -114,16 +128,30 @@ export class PlayerHealth {
         const previousHealth = this.currentHealth;
         this.currentHealth = Math.min(this.maxHealth, Math.max(0, amount));
 
+        // If health reaches 0, mark as dead first and notify immediately
+        if (this.currentHealth <= 0) {
+            this.currentHealth = 0;
+            this.isDead = true;
+            this.die();
+            
+            // Notify about the health change immediately
+            this.notifyHealthChange({
+                previousHealth,
+                currentHealth: this.currentHealth,
+                change: this.currentHealth - previousHealth,
+                type: 'set'
+            });
+            
+            return;
+        }
+
+        // For non-death health changes, notify normally
         this.notifyHealthChange({
             previousHealth,
             currentHealth: this.currentHealth,
             change: this.currentHealth - previousHealth,
             type: 'set'
         });
-
-        if (this.currentHealth === 0) {
-            this.die();
-        }
     }
 
 

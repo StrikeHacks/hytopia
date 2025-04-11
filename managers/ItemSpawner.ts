@@ -30,6 +30,20 @@ const INITIAL_ITEMS = [
     { type: 'stick', position: { x: 0, y: 3.7, z: 2 } },
     { type: 'bone', position: { x: -2, y: 3.7, z: 2 } },
     { type: 'log', position: { x: -4, y: 3.7, z: 2 } },
+    { type: 'dungeon-key', position: { x: -6, y: 3.7, z: 2 } },
+    { type: 'nails', position: { x: -8, y: 3.7, z: 2 } },
+    { type: 'iron-plate', position: { x: -10, y: 3.7, z: 2 } },
+    { type: 'rope', position: { x: -12, y: 3.7, z: 2 } },
+    { type: 'iron-ore', position: { x: -14, y: 3.7, z: 2 } },
+    { type: 'stone', position: { x: -16, y: 3.7, z: 2 } },
+    { type: 'iron-ingot', position: { x: -18, y: 3.7, z: 2 } },
+    { type: 'leather', position: { x: -20, y: 3.7, z: 2 } },
+    { type: 'bronze-key', position: { x: -8, y: 3.7, z: 5 } },
+    { type: 'bronze-key', position: { x: -8, y: 3.7, z: 5 } },
+    { type: 'iron-key', position: { x: -10, y: 3.7, z: 5 } },
+    { type: 'iron-key', position: { x: -10, y: 3.7, z: 5 } },
+    { type: 'gold-key', position: { x: -12, y: 3.7, z: 5 } },
+    { type: 'gold-key', position: { x: -12, y: 3.7, z: 5 } },
 ];
 
 export class ItemSpawner {
@@ -41,6 +55,15 @@ export class ItemSpawner {
         private world: World,
         private playerInventories: Map<string, PlayerInventory>
     ) {}
+
+    // Add getter methods
+    public getPlayerInventories(): Map<string, PlayerInventory> {
+        return this.playerInventories;
+    }
+
+    public getActiveItems(): Map<string, BaseItem[]> {
+        return this.activeItems;
+    }
 
     public spawnInitialItems(): void {
         INITIAL_ITEMS.forEach(({ type, position }) => {

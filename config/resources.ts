@@ -8,7 +8,8 @@ import {
     GIGA_DROP_FORCE,
     SIDEWAYS_HAND_ROTATION,
     MID_DROP_FORCE,
-    HEAVY_DROP_FORCE
+    HEAVY_DROP_FORCE,
+    TOOLS_HAND_ROTATION
 } from './constants';
 
 // Resource item configurations
@@ -28,7 +29,8 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
         },
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: SIDEWAYS_HAND_ROTATION,
-        imageUrl: 'items/log-oak.png'
+        imageUrl: 'items/log-oak.png',
+        rarity: 'common'
     },
     'iron-ingot': {
         type: 'iron-ingot',
@@ -45,7 +47,8 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
         },
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'items/iron-ingot.png'
+        imageUrl: 'items/iron-ingot.png',
+        rarity: 'uncommon'
     },
     'paper': {
         type: 'paper',
@@ -58,7 +61,8 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'items/paper.png'
+        imageUrl: 'items/paper.png',
+        rarity: 'common'
     },
     'book': {
         type: 'book',
@@ -71,7 +75,8 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'items/book.png'
+        imageUrl: 'items/book.png',
+        rarity: 'common'
     },
     'bread': {
         type: 'bread',
@@ -84,7 +89,8 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'items/bread.png'
+        imageUrl: 'items/bread.png',
+        rarity: 'common'
     },
     'clock': {
         type: 'clock',
@@ -97,7 +103,8 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'items/clock.png'
+        imageUrl: 'items/clock.png',
+        rarity: 'uncommon'
     },
     'bone': {
         type: 'bone',
@@ -110,7 +117,8 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'items/bone.png'
+        imageUrl: 'items/bone.png',
+        rarity: 'common'
     },
     'log' : {
         type: 'log',
@@ -124,11 +132,120 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
             x: 0.25,
             y: 0.3,
             z: 0.25
-        },        handOffset: DEFAULT_HAND_OFFSET,
+        },        
+        handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'items/log.png'
+        imageUrl: 'items/log.png',
+        rarity: 'common'
     },
-    
+    'nails' : {
+        type: 'nails',
+        modelUri: 'models/items/nails.gltf',
+        displayName: 'Nails',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.9,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.25,
+            y: 0.3,
+            z: 0.25
+        },        
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/nails.png',
+        rarity: 'common'
+    },
+    'iron-plate' : {
+        type: 'iron-plate',
+        modelUri: 'models/items/iron-plate.gltf',
+        displayName: 'Iron Plate',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.7,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.25,
+            y: 0.3,
+            z: 0.25
+        },        
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/iron-plate.png',
+        rarity: 'uncommon'
+    },
+    'iron-ore' : {
+        type: 'iron-ore',
+        modelUri: 'models/items/iron-ore.gltf',
+        displayName: 'Iron Ore',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.7,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.25,
+            y: 0.3,
+            z: 0.25
+        },        
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/iron-ore.png',
+        rarity: 'uncommon'
+    },
+    'stone' : {
+        type: 'stone',
+        modelUri: 'models/items/stone.gltf',
+        displayName: 'Stone',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.7,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.25,
+            y: 0.3,
+            z: 0.25
+        },        
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/stone.png',
+        rarity: 'common'
+    },
+    'rope' : {
+        type: 'rope',
+        modelUri: 'models/items/rope.gltf',
+        displayName: 'Rope',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.7,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.25,
+            y: 0.3,
+            z: 0.25
+        },        
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/rope.png',
+        rarity: 'rare'
+    },
+    'leather' : {
+        type: 'leather',
+        modelUri: 'models/items/leather.gltf',
+        displayName: 'Leather',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.5,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.25,
+            y: 0.3,
+            z: 0.25
+        },        
+        handOffset: DEFAULT_HAND_OFFSET,
+        handRotation: DEFAULT_HAND_ROTATION,
+        imageUrl: 'items/leather.png',
+        rarity: 'uncommon'
+    },
 
 };
 

@@ -3,6 +3,7 @@ import { getResourceItem } from './resources';
 import { getWeaponItem } from './weapons';
 import { getToolItem } from './tools';
 import { getArmorItem } from './armor';
+import { getKeyItem } from './keys';
 import {
     DEFAULT_ITEM_SCALE,
     PICKUP_COOLDOWN,
@@ -39,7 +40,6 @@ export function getItemConfig(itemType: string): ItemProperties {
         throw new Error('Item type is null or undefined');
     }
     
-    console.log(`[Items] Getting config for item type: "${itemType}"`);
     
     // Try to find item in the different categories
     const resourceItem = getResourceItem(itemType);
@@ -53,6 +53,9 @@ export function getItemConfig(itemType: string): ItemProperties {
     
     const armorItem = getArmorItem(itemType);
     if (armorItem) return armorItem;
+    
+    const keyItem = getKeyItem(itemType);
+    if (keyItem) return keyItem;
     
     console.error(`[Items] No configuration found for item type: "${itemType}"`);
     // Return a default config instead of throwing an error
@@ -81,6 +84,8 @@ export function getItemsByCategory(category: string): string[] {
         result = Object.keys(require('./tools').toolItems);
     } else if (category === 'armor') {
         result = Object.keys(require('./armor').armorItems);
+    } else if (category === 'key') {
+        result = Object.keys(require('./keys').keyItems);
     }
     
     return result;
@@ -99,6 +104,7 @@ export function getFallbackItem(itemType: string): ItemProperties {
         colliderSize: DEFAULT_COLLIDER_SIZE,
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
-        imageUrl: 'items/fallback.png'
+        imageUrl: 'items/fallback.png',
+        rarity: 'common'
     };
 } 

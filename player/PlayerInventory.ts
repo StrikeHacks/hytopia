@@ -1,4 +1,4 @@
-import { PlayerEntity } from 'hytopia';
+import { PlayerEntity, Audio } from 'hytopia';
 import { EquipmentManager } from './EquipmentManager';
 import { NON_STACKABLE_TYPES, getItemConfig } from '../config/items';
 import type { ItemSlot, ItemInstance } from '../types/items';
@@ -113,9 +113,15 @@ export class PlayerInventory {
         return this.slots[slot].instance;
     }
 
-    public getItemCount(slot: number): number {
-        if (slot < 0 || slot >= this.slots.length) return 0;
-        return this.slots[slot].count;
+    public getItemCount(slotOrType: number | string): number {
+        // If a number is passed, treat it as a slot index
+        if (typeof slotOrType === 'number') {
+            if (slotOrType < 0 || slotOrType >= this.slots.length) return 0;
+            return this.slots[slotOrType].count;
+        }
+        
+        // If a string is passed, treat it as an item type and sum across all slots
+        return this.getCountOfItem(slotOrType);
     }
 
     public setItem(slot: number, item: string | null, count: number = 1): void {
@@ -596,10 +602,11 @@ export class PlayerInventory {
     
     /**
      * Decrease durability of an item in a specific slot
+     * Returns true if the item is still usable, false if it's broken
      */
     public decreaseItemDurability(slot: number, amount: number = 1): boolean {
         if (slot < 0 || slot >= this.slots.length) return false;
-        
+
         const item = this.slots[slot];
         if (!item.type || !item.instance?.instanceId) return false;
         
@@ -626,17 +633,63 @@ export class PlayerInventory {
             
             // Sync the values with our local instance
             item.instance.durability = updatedInstance.durability;
-            
+
+            // Check if item is broken (durability = 0)
+            if (newDurability <= 0) {
+                try {
+                    const { getItemConfig } = require('../config/items');
+                    const itemConfig = getItemConfig(item.type);
+                    
+                    // Play break sound if we have access to the world
+                    if (this.playerEntity.world) {
+                        const breakSound = new Audio({
+                            uri: 'audio/sfx/interaction/itemBreak.mp3',
+                            position: this.playerEntity.position,
+                            volume: 0.4,
+                            referenceDistance: 5,
+                            playbackRate: 1.0
+                        });
+                        breakSound.play(this.playerEntity.world);
+                    }
+                    
+                    // Only remove non-soulbound items when broken
+                    if (!itemConfig.soulbound) {
+                        // Remove the broken item
+                        this.slots[slot] = { type: null, count: 0 };
+                        
+                        // If this was the selected slot, unequip the item
+                        if (slot === this.selectedSlot) {
+                            this.equipmentManager.unequipItem();
+                        }
+                        
+                        // Show message that item broke
+                        this.playerEntity.player.ui.sendData({
+                            showItemName: {
+                                name: `Your ${itemConfig.displayName || item.type} broke!`
+                            }
+                        });
+                    } else {
+                        // For soulbound items, show message that item can't be used
+                        this.playerEntity.player.ui.sendData({
+                            showItemName: {
+                                name: `Your ${itemConfig.displayName || item.type} is broken and needs repair!`
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error('[PlayerInventory] Error handling broken item:', error);
+                }
+            }
+
             // Only update UI for significant changes (5% change) or critical thresholds
-            // This reduces UI updates while still showing important changes
             if (Math.abs(oldPercent - newPercent) >= 5 || 
                 newPercent <= 25 || 
                 newPercent === 0 || 
                 oldPercent !== newPercent && (
-                  newPercent === 75 || 
-                  newPercent === 50 || 
-                  newPercent === 25 ||
-                  newPercent === 10
+                    newPercent === 75 || 
+                    newPercent === 50 || 
+                    newPercent === 25 ||
+                    newPercent === 10
                 )) {
                 this.updateSlotUI(slot);
                 
