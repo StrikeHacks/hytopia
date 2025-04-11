@@ -158,18 +158,19 @@ export class ItemSpawner {
      */
     public handleBlockDrop(itemType: string, position: { x: number; y: number; z: number }): void {
         try {
-            console.log(`[ItemSpawner] handleBlockDrop aangeroepen voor ${itemType} op positie`, position);
+            console.log(`[ItemSpawner] -----BEGIN DROP OPERATION-----`);
+            console.log(`[ItemSpawner] handleBlockDrop called for ${itemType} at position`, position);
             
-            // Controleer of itemType geldig is
+            // Validate input parameters
             if (!itemType || typeof itemType !== 'string') {
-                console.error(`[ItemSpawner] Ongeldige itemType: ${itemType}`);
+                console.error(`[ItemSpawner] Invalid itemType: ${itemType}`);
                 return;
             }
             
-            // Controleer of positie geldig is
+            // Check if position is valid
             if (!position || typeof position !== 'object' || 
                 position.x === undefined || position.y === undefined || position.z === undefined) {
-                console.error(`[ItemSpawner] Ongeldige positie:`, position);
+                console.error(`[ItemSpawner] Invalid position:`, position);
                 return;
             }
             
@@ -179,7 +180,7 @@ export class ItemSpawner {
                 z: Math.floor(position.z) + 0.5
             };
             
-            console.log(`[ItemSpawner] Berekende blockCenter:`, blockCenter);
+            console.log(`[ItemSpawner] Using drop position:`, blockCenter);
             
             const randomAngle = Math.random() * Math.PI * 2;
             const direction = {
@@ -188,34 +189,39 @@ export class ItemSpawner {
                 z: Math.sin(randomAngle) * 2
             };
             
-            console.log(`[ItemSpawner] Berekende drop richting:`, direction);
+            console.log(`[ItemSpawner] Using drop direction:`, direction);
             
             const items = this.activeItems.get(itemType) || [];
-            console.log(`[ItemSpawner] Er zijn momenteel ${items.length} actieve ${itemType} items`);
+            console.log(`[ItemSpawner] There are currently ${items.length} active ${itemType} items`);
             
-            // Controleer of BaseItem correct geïmporteerd is
-            if (!BaseItem) {
-                console.error(`[ItemSpawner] KRITIEKE FOUT: BaseItem class is niet geïmporteerd of undefined`);
+            // Verify BaseItem is imported correctly
+            if (typeof BaseItem !== 'function') {
+                console.error(`[ItemSpawner] CRITICAL ERROR: BaseItem is not a constructor function: ${typeof BaseItem}`);
                 return;
             }
             
-            // Maak een BaseItem aan en spawn het
-            console.log(`[ItemSpawner] Nu een nieuw ${itemType} item aanmaken...`);
-            const droppedItem = new BaseItem(this.world, blockCenter, this.playerInventories, itemType);
-            
-            console.log(`[ItemSpawner] Item aangemaakt, nu spawnen...`);
-            droppedItem.spawn();
-            
-            console.log(`[ItemSpawner] Item gespawned, nu droppen met physics...`);
-            droppedItem.drop(blockCenter, direction, true);
-            
-            console.log(`[ItemSpawner] Item succesvol gedropt met physics`);
-            
-            // Voeg toe aan actieve items
-            items.push(droppedItem);
-            this.activeItems.set(itemType, items);
-            
-            console.log(`[ItemSpawner] Item toegevoegd aan activeItems, nu ${items.length} actieve ${itemType} items`);
+            // Create and spawn the item
+            try {
+                console.log(`[ItemSpawner] Creating new ${itemType} item...`);
+                const droppedItem = new BaseItem(this.world, blockCenter, this.playerInventories, itemType);
+                
+                console.log(`[ItemSpawner] Item created, now spawning...`);
+                droppedItem.spawn();
+                
+                console.log(`[ItemSpawner] Item spawned, now dropping with physics...`);
+                droppedItem.drop(blockCenter, direction, true);
+                
+                console.log(`[ItemSpawner] Successfully dropped item with physics`);
+                
+                // Add to active items list
+                items.push(droppedItem);
+                this.activeItems.set(itemType, items);
+                
+                console.log(`[ItemSpawner] Item added to activeItems, now ${items.length} active ${itemType} items`);
+                console.log(`[ItemSpawner] -----DROP OPERATION COMPLETE-----`);
+            } catch (err) {
+                console.error(`[ItemSpawner] ERROR during item drop process:`, err);
+            }
         } catch (error) {
             console.error('[ItemSpawner] Error spawning block drop:', error);
         }

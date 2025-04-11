@@ -5,6 +5,7 @@ import { getToolItem } from '../config/tools';
 import { blockConfigs, getBlockConfig, getBlockRespawnConfig } from '../config/blocks';
 import { ItemInstanceManager } from '../items/ItemInstanceManager';
 import { GameManager } from './GameManager';
+import { BaseItem } from '../items/BaseItem';
 
 export interface ToolConfig {
     name: string;
@@ -208,7 +209,26 @@ export class ToolManager {
             
             // Handle drops if specified in block config
             if (blockConfig.drops) {
-                this.itemSpawner.handleBlockDrop(blockConfig.drops, hitPos);
+                const itemType = blockConfig.drops[0];
+                
+                // Try to add to inventory first
+                const addResult = inventory.addItem(itemType, 1);
+                
+                // Check if item was successfully added
+                if (addResult.success) {
+                    console.log(`[ToolManager] Successfully added ${itemType} to player inventory`);
+                } else {
+                    // If inventory is full, drop the item on the ground
+                    const dropPosition = {
+                        x: playerEntity.position.x,
+                        y: playerEntity.position.y + 1.5,
+                        z: playerEntity.position.z
+                    };
+                    
+                    // Drop the item
+                    this.itemSpawner.handleBlockDrop(itemType, dropPosition);
+                    console.log(`[ToolManager] Inventory full, dropping ${itemType} on ground`);
+                }
             }
 
             this.world.chunkLattice.setBlock(hitPos, 0); // Set to air

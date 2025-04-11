@@ -1,9 +1,10 @@
-import { World, Entity, Audio } from "hytopia";
+import { World, Entity, Audio, PlayerEntity } from "hytopia";
 import type { Vector3Like } from "hytopia";
 import type { CrateConfig } from "../types/crates";
 import { getCrateById } from "../config/crates";
 import { AnimationManager } from "./AnimationManager";
 import { ItemSpawner } from "./ItemSpawner";
+import { BaseItem } from "../items/BaseItem";
 
 interface CrateCooldown {
     endTime: number;
@@ -58,6 +59,21 @@ export class CrateManager {
             return;
         }
 
+        // Get the player entity directly from GameManager
+        const gameManager = (global as any).gameManagerInstance;
+        const playerManager = gameManager.getPlayerManagerById(playerId);
+        if (!playerManager) {
+            console.error(`[CrateManager] Could not find PlayerManager for ID ${playerId}`);
+            return;
+        }
+        
+        // Get the player entity
+        const playerEntity = playerManager.playerEntity;
+        if (!playerEntity) {
+            console.error(`[CrateManager] Could not find PlayerEntity in PlayerManager for ID ${playerId}`);
+            return;
+        }
+
         // Remove the crate from player's inventory
         const crateType = crateConfig.requiredKey.type;
         if (playerInventory.getItem(selectedSlot) === crateType) {
@@ -101,10 +117,26 @@ export class CrateManager {
                 (finalItem) => {
                     // Add the winning item to player's inventory
                     if (finalItem && finalItem.item) {
-                        playerInventory.addItem(finalItem.item.type, finalItem.count || 1);
-                        console.log(`[CrateManager] Added ${finalItem.count || 1}x ${finalItem.item.type} to player inventory`);
+                        // First try to add to inventory
+                        const addResult = playerInventory.addItem(finalItem.item.type, finalItem.count || 1);
                         
-                        // Play a success sound when item is added
+                        // If inventory is full or add failed, drop on ground
+                        if (!addResult.success) {
+                            // Create drop position above the player
+                            const dropPosition = {
+                                x: playerEntity.position.x,
+                                y: playerEntity.position.y + 1.5,
+                                z: playerEntity.position.z
+                            };
+
+                            // Drop the item
+                            this.itemSpawner.handleBlockDrop(finalItem.item.type, dropPosition);
+                            console.log(`[CrateManager] Inventory full, dropping ${finalItem.count || 1}x ${finalItem.item.type} on ground at ${JSON.stringify(dropPosition)}`);
+                        } else {
+                            console.log(`[CrateManager] Successfully added ${finalItem.count || 1}x ${finalItem.item.type} to player inventory in slot ${addResult.addedToSlot}`);
+                        }
+                        
+                        // Play a success sound when item is obtained
                         try {
                             const successSound = new Audio({
                                 uri: 'audio/sfx/items/pickup.mp3',

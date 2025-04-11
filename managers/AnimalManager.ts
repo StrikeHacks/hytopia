@@ -5,6 +5,7 @@ import type { AnimalConfig } from "../config/spawners";
 import { PathfindingEntityController } from "hytopia";
 import { ItemSpawner } from "./ItemSpawner";
 import { GameManager } from "./GameManager";
+import { BaseItem } from "../items/BaseItem";
 
 // Optimized animal state tracking
 interface AnimalState {
@@ -147,9 +148,59 @@ export class AnimalManager {
         const config = animalConfigs[animalState.animalType];
         const dropItems = config?.dropItems || ['bone']; // Default to bone if no drops configured
         
+        // Get the killer's inventory and player entity if available
+        let killerInventory = null;
+        let playerEntity = null;
+        
+        if (killerPlayerId) {
+            // Get PlayerManager directly from GameManager
+            const playerManager = this.gameManager.getPlayerManagerById(killerPlayerId);
+            if (playerManager) {
+                // Get inventory from player manager
+                killerInventory = playerManager.getPlayerInventory();
+                // Get player entity directly
+                playerEntity = playerManager.playerEntity;
+                
+                if (!playerEntity) {
+                    console.error(`[AnimalManager] Found PlayerManager but no PlayerEntity for ID ${killerPlayerId}`);
+                }
+            }
+        }
+
         // Drop configured items
         for (const item of dropItems) {
-            this.itemSpawner.handleBlockDrop(item, animal.position);
+            if (killerInventory && killerPlayerId) {
+                // Get player entity for position
+                const playerManager = this.gameManager.getPlayerManagerById(killerPlayerId);
+                if (playerManager && playerManager.playerEntity) {
+                    const playerEntity = playerManager.playerEntity;
+                    
+                    // Try to add to inventory first
+                    const addResult = killerInventory.addItem(item);
+                    
+                    // Check if item was successfully added
+                    if (addResult.success) {
+                        console.log(`[AnimalManager] Successfully added ${item} to player inventory`);
+                    } else {
+                        // If inventory is full, drop the item on the ground
+                        const dropPosition = {
+                            x: playerEntity.position.x,
+                            y: playerEntity.position.y + 1.5,
+                            z: playerEntity.position.z
+                        };
+                        
+                        // Drop the item
+                        this.itemSpawner.handleBlockDrop(item, dropPosition);
+                        console.log(`[AnimalManager] Inventory full, dropping ${item} on ground`);
+                    }
+                } else {
+                    // Fallback to original position if player entity not found
+                    this.itemSpawner.handleBlockDrop(item, animal.position);
+                }
+            } else {
+                // If no killer inventory found, drop on ground as fallback
+                this.itemSpawner.handleBlockDrop(item, animal.position);
+            }
         }
 
         // Award XP to the player who killed the animal (if specified)
