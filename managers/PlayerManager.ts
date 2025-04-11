@@ -26,6 +26,7 @@ import { StalkerBoss } from '../bosses/StalkerBoss';
 import { getTradesByCategory, formatTradeForUI } from '../config/travelerTrades';
 import { BaseItem } from '../items/BaseItem';
 import { AttackerTracker } from '../utils/AttackerTracker';
+import type { EventPayloads } from "hytopia";
 
 export class PlayerManager {
 	private playerEntity: PlayerEntity;
@@ -88,7 +89,7 @@ export class PlayerManager {
 		this.startHealing(); // Start the healing system
 
 		// Luister naar damage events op de player entity
-		this.playerEntity.on('damage', (data: any) => {
+		this.playerEntity.on('damage', (data: EventPayloads['damage']) => {
 			if (data && typeof data.amount === 'number') {
 				this.tryApplyDamage(data.amount);
 			}

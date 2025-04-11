@@ -15,6 +15,7 @@ export interface Recipe {
         count: number;
     };
     craftingTime?: number; // Time in milliseconds to craft this item
+    xpReward?: number; // XP reward for crafting this item
 }
 
 export const recipes: Recipe[] = [
@@ -28,20 +29,21 @@ export const recipes: Recipe[] = [
         output: {
             type: "pickaxe-stone",
             count: 1
-        }
+        },
+        xpReward: 25
     },
     {
         name: "Stone Axe",
         category: "tools",
         inputs: [
             { type: "log", count: 1 },
-            { type: "iron-ingot", count: 1 },
-
+            { type: "iron-ingot", count: 1 }
         ],
         output: {
             type: "axe-stone",
             count: 1
-        }
+        },
+        xpReward: 25
     },
     {
         name: "Iron Axe",
@@ -50,12 +52,12 @@ export const recipes: Recipe[] = [
             { type: "log", count: 2 },
             { type: "iron-ingot", count: 3 },
             { type: "book", count: 3 }
-
         ],
         output: {
             type: "axe-stone",
             count: 1
-        }
+        },
+        xpReward: 50
     },
     {
         name: "Iron Pickaxe",
@@ -64,12 +66,12 @@ export const recipes: Recipe[] = [
             { type: "log", count: 2 },
             { type: "iron-ingot", count: 3 },
             { type: "book", count: 3 }
-
         ],
         output: {
             type: "axe-stone",
             count: 1
-        }
+        },
+        xpReward: 50
     },
     {
         name: "Iron Test",
@@ -78,12 +80,12 @@ export const recipes: Recipe[] = [
             { type: "log", count: 1 },
             { type: "iron-ingot", count: 3 },
             { type: "book", count: 3 }
-
         ],
         output: {
             type: "axe-stone",
             count: 1
-        }
+        },
+        xpReward: 35
     },
     {
         name: "Stone Sword",
@@ -95,7 +97,8 @@ export const recipes: Recipe[] = [
         output: {
             type: "sword-stone",
             count: 1
-        }
+        },
+        xpReward: 30
     },
     {
         name: "Golden Sword",
@@ -107,7 +110,8 @@ export const recipes: Recipe[] = [
         output: {
             type: "sword-golden",
             count: 1
-        }
+        },
+        xpReward: 75
     }
 ];
 

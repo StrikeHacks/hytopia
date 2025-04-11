@@ -40,23 +40,27 @@ export class GameManager {
     constructor(world: World) {
         this.world = world;
         this.setupGame();
+        
+        // Store reference to GameManager in world for global access
+        (this.world as any).gameManager = this;
+        
         this.itemSpawner = new ItemSpawner(world, this.playerInventories);
         this.toolManager = new ToolManager(world, this.playerInventories, this.itemSpawner, this);
-        this.craftingManager = new CraftingManager(world, this.playerInventories);
+        this.craftingManager = new CraftingManager(world, this.playerInventories, this);
         this.animalManager = new AnimalManager(world, this.itemSpawner, this);
         this.fixedModelManager = new FixedModelManager(world);
         this.travelerManager = new TravelerManager(world, this);
         this.dungeonManager = new DungeonManager(world, this);
         this.levelManager = new LevelManager(world, this);
         this.crateManager = new CrateManager(world, this.itemSpawner);
-        //this.setupGenerators();
+        
         this.spawnInitialItems();
         this.placeFixedModels();
         
         // Create one AnimalSpawner that manages all areas
         this.animalSpawner = new AnimalSpawner(world, this, spawnAreas);
 
-        // Maak de globale ItemSpawner beschikbaar
+        // Make the global ItemSpawner available
         globalItemSpawner = this.itemSpawner;
         console.log('[GameManager] Global ItemSpawner initialized:', globalItemSpawner ? 'success' : 'failed');
     }

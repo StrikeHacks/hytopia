@@ -22,8 +22,19 @@ interface RecipeItem {
 export class CraftingManager {
     constructor(
         private world: World,
-        private playerInventories: Map<string, PlayerInventory>
+        private playerInventories: Map<string, PlayerInventory>,
+        private gameManager?: any // Optional GameManager instance
     ) {
+        console.log('[CraftingManager] Initialized');
+    }
+
+    private getGameManager(): any {
+        // Try to get GameManager from constructor param first
+        if (this.gameManager) {
+            return this.gameManager;
+        }
+        // Fallback to getting it from the world
+        return (this.world as any).gameManager;
     }
 
     /**
@@ -399,84 +410,64 @@ export class CraftingManager {
      * Complete crafting process and give the item to the player
      */
     private completeCrafting(playerId: string, recipeName: string): void {
-        
-        // Clear timer info
-        const craftingInfo = this.playerCraftingTimers.get(playerId);
-        if (!craftingInfo) {
-            return;
-        }
-        
-        this.playerCraftingTimers.delete(playerId);
-        
-        // Get inventory and recipe
         const inventory = this.playerInventories.get(playerId);
         if (!inventory) {
+            console.log(`[CraftingManager] No inventory found for player ${playerId}`);
             return;
         }
-        
+
         const recipe = getRecipeById(recipeName);
         if (!recipe) {
+            console.log(`[CraftingManager] No recipe found for ${recipeName}`);
             return;
         }
-        
-        // Add crafted item to inventory
+
+        // Add output item
         const addResult = inventory.addItem(recipe.output.type, recipe.output.count);
-        
-        // Get player entity instance using inventory
-        let notificationSent = false;
-        
-        // Try method 1: Direct playerEntity access
-        for (const [id, playerInventory] of this.playerInventories.entries()) {
-            if (id === playerId) {
-                try {
-                    // Try to access the player UI through any means possible
-                    const playerEntity = (playerInventory as any).playerEntity;
-                    if (playerEntity && playerEntity.player && playerEntity.player.ui) {
-                        try {
-                            // Send both craftingComplete and craftingCompleted for compatibility
-                            playerEntity.player.ui.sendData({
-                                craftingComplete: {
-                                    recipeName,
-                                    success: true
-                                },
-                                craftingCompleted: {
-                                    recipeName,
-                                    success: true
-                                }
-                            });
-                            notificationSent = true;
-                        } catch (error) {
-                            console.error(`[CraftingManager] Error sending UI notification:`, error);
-                        }
-                    }
-                } catch (error) {
-                    console.error(`[CraftingManager] Error accessing player UI:`, error);
-                }
-            }
+
+        // Clear the crafting timer
+        this.playerCraftingTimers.delete(playerId);
+
+        // Get the player from the inventory's playerEntity
+        const playerEntity = (inventory as any).playerEntity;
+        if (!playerEntity || !playerEntity.player) {
+            console.log(`[CraftingManager] Could not get player entity from inventory for ${playerId}`);
+            return;
         }
-        
-        // If notification couldn't be sent via the direct method, try broadcasting more aggressively
-        if (!notificationSent) {
-            
+
+        // Award XP if specified in the recipe
+        if (recipe.xpReward && recipe.xpReward > 0) {
+            const gameManager = this.getGameManager();
+            if (!gameManager) {
+                console.error(`[CraftingManager] Could not access GameManager`);
+                return;
+            }
+
+            const levelManager = gameManager.getLevelManager();
+            if (!levelManager) {
+                console.error(`[CraftingManager] Could not access LevelManager`);
+                return;
+            }
+
             try {
-                // Instead of trying to access entities directly (which causes type errors),
-                // let's try a simpler approach using the world reference we have
-                if (this.world) {
-                    // Log that we're making this attempt
-                    
-                    // We can't directly access entities due to type constraints,
-                    // so we'll rely on the PlayerManager's interval to handle this instead
-                    // and log that we need that fallback
-                }
+                console.log(`[CraftingManager] Attempting to award ${recipe.xpReward} XP to player ${playerId}`);
+                levelManager.addPlayerXP(playerId, recipe.xpReward);
+                console.log(`[CraftingManager] Successfully awarded ${recipe.xpReward} XP to player ${playerId} for crafting ${recipeName}`);
             } catch (error) {
-                console.error(`[CraftingManager] Error with alternative notification method:`, error);
+                console.error(`[CraftingManager] Error awarding XP:`, error);
             }
         }
-        
-        // Log the result of our notification attempts
-        if (!notificationSent) {
-            console.warn(`[CraftingManager] Could not notify player ${playerId} about crafting completion`);
-            console.warn(`[CraftingManager] This notification should be handled by PlayerManager instead`);
+
+        // Send completion notification to player
+        try {
+            playerEntity.player.ui.sendData({
+                craftingComplete: {
+                    recipeName,
+                    success: true
+                }
+            });
+        } catch (error) {
+            console.error(`[CraftingManager] Error sending completion notification:`, error);
         }
     }
 

@@ -3693,38 +3693,31 @@
             
             // Handle crafting completion
             if (data.craftingComplete) {
-                const { recipeName, success } = data.craftingComplete;
+                const { recipeName, success, xpAwarded } = data.craftingComplete;
                 console.log(`[UI] Crafting completed for ${recipeName}: ${success ? 'Success' : 'Failed'}`);
                 
                 // Reset crafting state
                 window.isCrafting = false;
                 window.currentlyCraftingItem = null;
                 
-                // Find the recipe element and restore its craft button
-                const recipeElement = document.querySelector(`.recipe-item[data-recipe="${recipeName}"]`);
-                if (recipeElement) {
-                    console.log(`[UI] Found recipe element for ${recipeName}, restoring craft button`);
-                    const container = recipeElement.querySelector('.crafting-progress-container');
-                    if (container) {
-                        const craftButton = document.createElement('button');
-                        craftButton.className = 'craft-button';
-                        craftButton.textContent = 'Craft';
-                        craftButton.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            checkRecipeRequirements(recipeName);
-                        });
-                        
-                        container.replaceWith(craftButton);
-                        console.log(`[UI] Restored craft button for ${recipeName}`);
-                        
-                        // Show success notification
-                        if (success) {
-                            showNotification(`Successfully crafted ${recipeName}!`, 'success');
-                        } else {
-                            showNotification(`Failed to craft ${recipeName}`, 'error');
+                // Show completion notification
+                if (success) {
+                    showNotification(`Successfully crafted ${recipeName}!`, 'success');
+                    
+                    // Reset the recipe element back to its original state
+                    const recipeElement = document.querySelector(`.recipe-item[data-recipe="${recipeName}"]`);
+                    if (recipeElement) {
+                        const progressContainer = recipeElement.querySelector('.crafting-progress-container');
+                        if (progressContainer) {
+                            const craftButton = document.createElement('button');
+                            craftButton.className = 'craft-button';
+                            craftButton.textContent = 'Craft';
+                            craftButton.onclick = () => checkRecipeRequirements(recipeName);
+                            progressContainer.replaceWith(craftButton);
                         }
                     }
+                } else {
+                    showNotification(`Failed to craft ${recipeName}`, 'error');
                 }
             }
             
