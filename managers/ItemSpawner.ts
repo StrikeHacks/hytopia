@@ -72,7 +72,7 @@ export class ItemSpawner {
     }
 
     private spawnItem(type: string, position: { x: number; y: number; z: number }): void {
-        const item = new BaseItem(this.world, position, this.playerInventories, type);
+        const item = new BaseItem(this.world, position, this.playerInventories, type, this);
         item.spawn();
         
         const items = this.activeItems.get(type) || [];
@@ -119,30 +119,61 @@ export class ItemSpawner {
             getItemConfig(itemType);
             const items = this.activeItems.get(itemType) || [];
             
-            for (let i = 0; i < dropCount; i++) {
+            // If multiple items are being dropped (shift+q), create a single stacked item
+            if (isShiftHeld && dropCount > 1) {
                 const offsetPosition = {
                     x: dropPosition.x + (Math.random() * 0.2 - 0.1),
                     y: dropPosition.y,
                     z: dropPosition.z + (Math.random() * 0.2 - 0.1)
                 };
 
-                // Create a new item with the same instance properties to preserve durability
+                // Create a single stacked item
                 let droppedItem;
-                if (itemInstance && i === 0) {
-                    // Use the original instance for the first item, but with correct count
+                if (itemInstance) {
+                    // Use the original instance properties but with the stack count
                     const modifiedInstance = {
                         ...itemInstance,
-                        count: 1
+                        count: dropCount
                     };
-                    droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType, modifiedInstance);
+                    droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType, this, modifiedInstance, dropCount);
                 } else {
-                    // Create new items without instance (they'll get new instances)
-                    droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType);
+                    // Create a new stacked item
+                    droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType, this, undefined, dropCount);
                 }
                 
                 droppedItem.spawn();
                 droppedItem.drop(offsetPosition, direction);
                 items.push(droppedItem);
+                
+                // Log the stacked drop with clearer message
+                console.log(`[ItemSpawner] Performance optimization: Dropped ${dropCount} ${itemType}s as a single stacked entity`);
+            } else {
+                // Original behavior for dropping single items
+                for (let i = 0; i < dropCount; i++) {
+                    const offsetPosition = {
+                        x: dropPosition.x + (Math.random() * 0.2 - 0.1),
+                        y: dropPosition.y,
+                        z: dropPosition.z + (Math.random() * 0.2 - 0.1)
+                    };
+
+                    // Create a new item with the same instance properties to preserve durability
+                    let droppedItem;
+                    if (itemInstance && i === 0) {
+                        // Use the original instance for the first item, but with correct count
+                        const modifiedInstance = {
+                            ...itemInstance,
+                            count: 1
+                        };
+                        droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType, this, modifiedInstance);
+                    } else {
+                        // Create new items without instance (they'll get new instances)
+                        droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType, this);
+                    }
+                    
+                    droppedItem.spawn();
+                    droppedItem.drop(offsetPosition, direction);
+                    items.push(droppedItem);
+                }
             }
             
             this.activeItems.set(itemType, items);
@@ -155,11 +186,16 @@ export class ItemSpawner {
      * Handles drops from mining/chopping blocks with a different drop behavior
      * @param itemType The type of item to drop
      * @param position The position where the block was broken
+     * @param count Optional count for stacked items (defaults to 1)
      */
-    public handleBlockDrop(itemType: string, position: { x: number; y: number; z: number }): void {
+    public handleBlockDrop(itemType: string, position: { x: number; y: number; z: number }, count: number = 1): void {
         try {
             console.log(`[ItemSpawner] -----BEGIN DROP OPERATION-----`);
-            console.log(`[ItemSpawner] handleBlockDrop called for ${itemType} at position`, position);
+            if (count > 1) {
+                console.log(`[ItemSpawner] Performance optimization: Creating a single entity for ${count} ${itemType}s at position`, position);
+            } else {
+                console.log(`[ItemSpawner] Dropping ${itemType} at position`, position);
+            }
             
             // Validate input parameters
             if (!itemType || typeof itemType !== 'string') {
@@ -202,8 +238,14 @@ export class ItemSpawner {
             
             // Create and spawn the item
             try {
-                console.log(`[ItemSpawner] Creating new ${itemType} item...`);
-                const droppedItem = new BaseItem(this.world, blockCenter, this.playerInventories, itemType);
+                if (count > 1) {
+                    console.log(`[ItemSpawner] Creating optimized stacked entity (${count}x ${itemType})`);
+                } else {
+                    console.log(`[ItemSpawner] Creating new ${itemType} item`);
+                }
+                
+                // Create a stacked item if count > 1
+                const droppedItem = new BaseItem(this.world, blockCenter, this.playerInventories, itemType, this, undefined, count);
                 
                 console.log(`[ItemSpawner] Item created, now spawning...`);
                 droppedItem.spawn();
@@ -249,6 +291,19 @@ export class ItemSpawner {
 
     public registerPlayerInventory(playerId: string, inventory: PlayerInventory): void {
         this.playerInventories.set(playerId, inventory);
+    }
+
+    // Add method to remove an item from the active list
+    public removeActiveItem(itemToRemove: BaseItem): void {
+        const itemType = itemToRemove.getItemInstance().type;
+        const items = this.activeItems.get(itemType);
+        if (items) {
+            const index = items.indexOf(itemToRemove);
+            if (index > -1) {
+                items.splice(index, 1);
+                console.log(`[ItemSpawner] Removed ${itemType} from active items list.`);
+            }
+        }
     }
 
     public cleanup(): void {

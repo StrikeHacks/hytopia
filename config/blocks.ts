@@ -3,7 +3,7 @@ export interface BlockConfig {
     id: number;
     name: string;
     hp: number;
-    drops?: string;
+    drops?: string[]; // Changed to array of strings
     xpReward?: number; // XP awarded when the block is mined
 }
 
@@ -13,27 +13,27 @@ export interface BlockRespawnConfig {
     delay: number; // Delay in milliseconds
 }
 
-// Block configurations
+// Block configurations - Updated drops to be arrays
 export const blockConfigs: Map<number, BlockConfig> = new Map([
     [37, {
         id: 37,
         name: 'Stone',
         hp: 5, // Takes 10 clicks with pickaxe
-        drops: 'stone',
+        drops: ['stone'], // Changed to array
         xpReward: 5 // Basic XP reward
     }],
     [21, {
         id: 21,
         name: 'Iron Ore',
         hp: 7.5, // Takes 15 clicks with pickaxe
-        drops: 'iron-ore',
+        drops: ['iron-ore'], // Changed to array
         xpReward: 15 // Higher XP reward for valuable resource
     }],
     [23, {
         id: 23,
         name: 'Oak Log',
         hp: 5, // Takes 8 clicks with axe
-        drops: 'log',
+        drops: ['log'], // Changed to array
         xpReward: 8 // Medium XP reward
     }]
 ]);

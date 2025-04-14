@@ -129,8 +129,8 @@ export class CrateManager {
                                 z: playerEntity.position.z
                             };
 
-                            // Drop the item
-                            this.itemSpawner.handleBlockDrop(finalItem.item.type, dropPosition);
+                            // Drop the item with its count
+                            this.itemSpawner.handleBlockDrop(finalItem.item.type, dropPosition, finalItem.count || 1);
                             console.log(`[CrateManager] Inventory full, dropping ${finalItem.count || 1}x ${finalItem.item.type} on ground at ${JSON.stringify(dropPosition)}`);
                         } else {
                             console.log(`[CrateManager] Successfully added ${finalItem.count || 1}x ${finalItem.item.type} to player inventory in slot ${addResult.addedToSlot}`);

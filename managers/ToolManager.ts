@@ -226,7 +226,7 @@ export class ToolManager {
                     };
                     
                     // Drop the item
-                    this.itemSpawner.handleBlockDrop(itemType, dropPosition);
+                    this.itemSpawner.handleBlockDrop(itemType, dropPosition, 1);
                     console.log(`[ToolManager] Inventory full, dropping ${itemType} on ground`);
                 }
             }

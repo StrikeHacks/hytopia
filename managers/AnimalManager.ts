@@ -189,17 +189,17 @@ export class AnimalManager {
                             z: playerEntity.position.z
                         };
                         
-                        // Drop the item
-                        this.itemSpawner.handleBlockDrop(item, dropPosition);
+                        // Drop the item with count 1 since we're just dropping one
+                        this.itemSpawner.handleBlockDrop(item, dropPosition, 1);
                         console.log(`[AnimalManager] Inventory full, dropping ${item} on ground`);
                     }
                 } else {
                     // Fallback to original position if player entity not found
-                    this.itemSpawner.handleBlockDrop(item, animal.position);
+                    this.itemSpawner.handleBlockDrop(item, animal.position, 1);
                 }
             } else {
                 // If no killer inventory found, drop on ground as fallback
-                this.itemSpawner.handleBlockDrop(item, animal.position);
+                this.itemSpawner.handleBlockDrop(item, animal.position, 1);
             }
         }
 
