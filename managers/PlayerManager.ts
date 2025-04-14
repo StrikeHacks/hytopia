@@ -1,32 +1,39 @@
 import {
 	World,
+	Player,
 	PlayerEntity,
 	PlayerCameraMode,
 	PlayerUIEvent,
 	PlayerEntityController,
 	PlayerEvent,
+	Entity,
 	EntityEvent,
 	BaseEntityControllerEvent,
 	RigidBodyType,
 	Audio,
-	Entity,
 	ColliderShape,
-	CollisionGroup
+	CollisionGroup,
+	BlockType,
+	SceneUI
 } from "hytopia";
-import type { Vector3Like } from "hytopia";
 import { ItemSpawner } from "./ItemSpawner";
 import { PlayerHealth } from "../player/PlayerHealth";
 import { PlayerInventory } from "../player/PlayerInventory";
 import { ToolManager } from "./ToolManager";
 import { GameManager } from "./GameManager";
 import { CraftingManager } from "./CraftingManager";
-import type { HealthChangeEvent } from "../player/PlayerHealth";
-import { getAvailableCategories } from '../config/recipes';
-import { StalkerBoss } from '../bosses/StalkerBoss';
-import { getTradesByCategory, formatTradeForUI } from '../config/travelerTrades';
+import { getRecipeById, formatRecipeForUI } from "../config/recipes";
+import { DEFAULT_CRAFTING_TIME } from "../config/recipes";
 import { BaseItem } from '../items/BaseItem';
 import { AttackerTracker } from '../utils/AttackerTracker';
 import type { EventPayloads } from "hytopia";
+import { FixedModelManager } from "./FixedModelManager";
+import { CrateManager } from "./CrateManager";
+import { getTradesByCategory, formatTradeForUI } from '../config/travelerTrades';
+import { StalkerBoss } from '../bosses/StalkerBoss';
+import type { Vector3Like, Quaternion } from "hytopia";
+import type { HealthChangeEvent } from "../player/PlayerHealth";
+import CustomPlayerController from "../player/CustomPlayerController";
 
 export class PlayerManager {
 	private playerEntity: PlayerEntity;
@@ -68,6 +75,12 @@ export class PlayerManager {
 	private readonly DAMAGE_ANIMATION_DURATION: number = 300;
 	private _isImmuneFromBoss: boolean = false; // Bijhouden of speler immune is van boss aanvallen
 
+	// Ground contact state (managed within PlayerManager)
+	private _groundContactCount: number = 0;
+	private _platform: Entity | undefined = undefined; // For platform sticking
+	private jumpOneshotAnimations: string[] = ['jump']; // Define jump animation name(s)
+	private sticksToPlatforms: boolean = true; // Assuming platform sticking is desired
+
 	constructor(
 		private world: World,
 		private player: any,
@@ -81,10 +94,10 @@ export class PlayerManager {
 		this.toolManager = gameManager.getToolManager();
 		this.craftingManager = gameManager.getCraftingManager();
 		this.setupHealth();
+		this.setupPlayerCamera();
 		this.setupInventory();
 		this.setupUI();
 		this.setupInputHandling(this.playerEntity);
-		this.setupCamera();
 		this.spawnPlayer(this.playerEntity);
 		this.startHealing(); // Start the healing system
 
@@ -227,15 +240,28 @@ export class PlayerManager {
 	}
 
 	private createPlayerEntity(): PlayerEntity {
-		// Create the player entity with only idle animation
+		// Define standard player dimensions for scale 1
+		const playerHeight = 1.8; // Approx height in blocks
+		const playerRadius = 0.3; // Approx radius in blocks
+
+		// Create the player entity with scale 1 and explicit collider
 		const entity = new PlayerEntity({
 			player: this.player,
+			controller: new CustomPlayerController(),
 			modelUri: "models/players/player.gltf",
 			modelLoopedAnimations: ["idle"],
-			modelScale: 0.5,
+			modelScale: 0.65, // Set scale to 1
+			
 		});
 
 		return entity;
+	}
+
+	private setupPlayerCamera(): void {
+		this.player.camera.setMode(PlayerCameraMode.FIRST_PERSON);
+		this.player.camera.setModelHiddenNodes([ 'head', 'neck' ]);
+		this.player.camera.setOffset({ x: 0, y: 0.5, z: 0 });
+		this.player.camera.setForwardOffset(0.3); 
 	}
 
 	private setupHealth(): void {
@@ -300,8 +326,8 @@ export class PlayerManager {
 								z: dropPosition.z + (Math.random() * 1.0 - 0.5)  // -0.5 to 0.5
 							};
 							
-							// Create the item with small spread
-							const droppedItem = new BaseItem(this.world, spreadPosition, this.itemSpawner.getPlayerInventories(), itemType, i === 0 ? itemInstance : undefined);
+							// Create the item with small spread, passing this.itemSpawner as 5th arg
+							const droppedItem = new BaseItem(this.world, spreadPosition, this.itemSpawner.getPlayerInventories(), itemType, this.itemSpawner, i === 0 ? itemInstance : undefined, 1);
 							droppedItem.spawn();
 							
 							// Drop with only vertical force for gravity
@@ -826,14 +852,24 @@ export class PlayerManager {
 		if (!heldItem) return;
 
 		const direction = playerEntity.player.camera.facingDirection;
+		const forwardOffset = playerEntity.player.camera.forwardOffset; // Get the current forward offset
+		const cameraYOffset = playerEntity.player.camera.offset.y;
+		
+		// Get camera position and apply minimal fixed offsets
 		const origin = {
-			x: playerEntity.position.x,
-			y:
-				playerEntity.position.y +
-				playerEntity.player.camera.offset.y +
-				0.33,
-			z: playerEntity.position.z,
+			// Use a small fixed forward push of 0.1 blocks in the exact direction player is looking
+			x: playerEntity.position.x + (direction.x * 0.1),
+			// Add camera height and offset based on look direction
+			y: playerEntity.position.y + cameraYOffset + (direction.y < -0.7 ? 0.4 : 0.325), // Use higher offset when looking straight down
+			// Use a small fixed forward push of 0.1 blocks in the exact direction player is looking
+			z: playerEntity.position.z + (direction.z * 0.1)
 		};
+		
+		// For horizontal movement, add a slight additional forward push
+		if (Math.abs(direction.y) < 0.3) { // Only when looking roughly horizontally
+			origin.x += direction.x * 0.2;
+			origin.z += direction.z * 0.2;
+		}
 
 		const raycastResult = this.world.simulation.raycast(
 			origin,
@@ -848,13 +884,6 @@ export class PlayerManager {
 			const hitPos = raycastResult.hitBlock.globalCoordinate;
 			this.toolManager.tryMineBlock(playerEntity);
 		}
-	}
-
-	private setupCamera(): void {
-		this.player.camera.setMode(PlayerCameraMode.FIRST_PERSON);
-		this.player.camera.setOffset({ x: 0, y: 0.7, z: 0 });
-		this.player.camera.setModelHiddenNodes(["head", "neck"]);
-		this.player.camera.setForwardOffset(0.3);
 	}
 
 	private spawnPlayer(playerEntity: PlayerEntity): void {
@@ -1238,11 +1267,24 @@ export class PlayerManager {
 
 		// Raycast vanaf de spelerpositie in de kijkrichting
 		const direction = playerEntity.player.camera.facingDirection;
+		const forwardOffset = playerEntity.player.camera.forwardOffset; // Get the current forward offset
+		const cameraYOffset = playerEntity.player.camera.offset.y;
+		
+		// Get camera position and apply minimal fixed offsets
 		const origin = {
-			x: playerEntity.position.x,
-			y: playerEntity.position.y + 1,
-			z: playerEntity.position.z,
+			// Use a small fixed forward push of 0.1 blocks in the exact direction player is looking
+			x: playerEntity.position.x + (direction.x * 0.1),
+			// Add camera height and offset based on look direction
+			y: playerEntity.position.y + cameraYOffset + (direction.y < -0.7 ? 0.4 : 0.325), // Use higher offset when looking straight down
+			// Use a small fixed forward push of 0.1 blocks in the exact direction player is looking
+			z: playerEntity.position.z + (direction.z * 0.1)
 		};
+		
+		// For horizontal movement, add a slight additional forward push
+		if (Math.abs(direction.y) < 0.3) { // Only when looking roughly horizontally
+			origin.x += direction.x * 0.2;
+			origin.z += direction.z * 0.2;
+		}
 
 		// Vergroot de raycast range naar 4 blokken
 		const raycastResult = this.world.simulation.raycast(origin, direction, this.ATTACK_RANGE, {
@@ -1580,11 +1622,24 @@ export class PlayerManager {
 	public placeFixedModel(modelId: string): boolean {
 		try {
 			const direction = this.playerEntity.player.camera.facingDirection;
+			const forwardOffset = this.playerEntity.player.camera.forwardOffset; // Get the current forward offset
+			const cameraYOffset = this.playerEntity.player.camera.offset.y;
+			
+			// Get camera position and apply minimal fixed offsets
 			const origin = {
-				x: this.playerEntity.position.x,
-				y: this.playerEntity.position.y + 1,
-				z: this.playerEntity.position.z,
+				// Use a small fixed forward push of 0.1 blocks in the exact direction player is looking
+				x: this.playerEntity.position.x + (direction.x * 0.1),
+				// Add camera height and offset based on look direction
+				y: this.playerEntity.position.y + cameraYOffset + (direction.y < -0.7 ? 0.4 : 0.325), // Use higher offset when looking straight down
+				// Use a small fixed forward push of 0.1 blocks in the exact direction player is looking
+				z: this.playerEntity.position.z + (direction.z * 0.1)
 			};
+			
+			// For horizontal movement, add a slight additional forward push
+			if (Math.abs(direction.y) < 0.3) { // Only when looking roughly horizontally
+				origin.x += direction.x * 0.2;
+				origin.z += direction.z * 0.2;
+			}
 
 			// Cast a ray to find where to place the model
 			const raycastResult = this.world.simulation.raycast(origin, direction, 4, {
@@ -1617,12 +1672,27 @@ export class PlayerManager {
 	}
 
 	private handleRightClick(playerEntity: PlayerEntity): void {
-		const direction = this.player.camera.facingDirection;
+		const player = playerEntity.player;
+		const direction = player.camera.facingDirection;
+		const forwardOffset = player.camera.forwardOffset; // Get the current forward offset
+		const cameraYOffset = player.camera.offset.y;
+
+		// Calculate origin based on player position, camera offsets, and direction
+		// Get camera position and apply minimal fixed offsets
 		const origin = {
-			x: playerEntity.position.x,
-			y: playerEntity.position.y + 1, // Adjusted to be at eye level
-			z: playerEntity.position.z
+			// Use a small fixed forward push of 0.1 blocks in the exact direction player is looking
+			x: playerEntity.position.x + (direction.x * 0.1),
+			// Add camera height and offset based on look direction
+			y: playerEntity.position.y + cameraYOffset + (direction.y < -0.7 ? 0.4 : 0.325), // Use higher offset when looking straight down
+			// Use a small fixed forward push of 0.1 blocks in the exact direction player is looking
+			z: playerEntity.position.z + (direction.z * 0.1)
 		};
+		
+		// For horizontal movement, add a slight additional forward push
+		if (Math.abs(direction.y) < 0.3) { // Only when looking roughly horizontally
+			origin.x += direction.x * 0.2;
+			origin.z += direction.z * 0.2;
+		}
 
 		// Cast a ray to detect what's in front of the player
 		const raycastResult = this.world.simulation.raycast(origin, direction, 5, {

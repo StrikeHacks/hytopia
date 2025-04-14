@@ -52,8 +52,8 @@ export const toolItems: Record<string, ToolItemProperties> = {
         handOffset: TOOLS_HAND_OFFSET,
         handRotation: TOOLS_HAND_ROTATION,
         imageUrl: 'items/axe-stone.png',
-        durability: 2,
-        maxDurability: 2,
+        durability: 20,
+        maxDurability: 20,
         damage: 1,  // Damage per click
         canBreak: ['23'],  // Log blocks
         rarity: 'uncommon'

@@ -1,4 +1,4 @@
-import { PlayerEntity, Audio } from 'hytopia';
+import { PlayerEntity, Audio, PlayerUIEvent } from 'hytopia';
 import { EquipmentManager } from './EquipmentManager';
 import { NON_STACKABLE_TYPES, getItemConfig } from '../config/items';
 import type { ItemSlot, ItemInstance } from '../types/items';
@@ -23,10 +23,19 @@ export class PlayerInventory {
     ) {
         this.equipmentManager = new EquipmentManager(playerEntity);
         this.setupItemNameRequests();
+        this.setupUIEvents(); // Set up UI event listener
+    }
+
+    private setupUIEvents(): void {
+        this.playerEntity.player.ui.on(PlayerUIEvent.DATA, (data: Record<string, any>) => {
+            if (data.inventoryToggle?.action === 'close') {
+                this.handleInventoryToggle();
+            }
+        });
     }
 
     private setupItemNameRequests(): void {
-        this.playerEntity.player.ui.on('data', (data: any) => {
+        this.playerEntity.player.ui.on(PlayerUIEvent.DATA, (data: Record<string, any>) => {
             if (!data.getItemName?.type) return;
 
             if (this.nameRequestTimeout) {
@@ -776,5 +785,19 @@ export class PlayerInventory {
     // Add public getter
     public getIsInventoryOpen(): boolean {
         return this.isInventoryOpen;
+    }
+
+    // Add method to clear the inventory
+    public clearInventory(): void {
+        for (let i = 0; i < this.slots.length; i++) {
+            const item = this.slots[i];
+            if (item.instance?.instanceId) {
+                ItemInstanceManager.getInstance().deleteInstance(item.instance.instanceId);
+            }
+            this.setItem(i, null, 0); // Use setItem to handle UI updates and equipment
+        }
+        // Force UI update after clearing
+        this.sendBatchUpdate(); 
+        console.log('[PlayerInventory] Inventory cleared.');
     }
 } 

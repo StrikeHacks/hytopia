@@ -122,7 +122,7 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
     },
     'log' : {
         type: 'log',
-        modelUri: 'models/items/log.gltf',
+        modelUri: 'models/items/log.glb',
         displayName: 'Log',
         category: 'resource',
         maxStackSize: 64,
