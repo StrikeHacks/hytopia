@@ -317,22 +317,22 @@ export class PlayerManager {
 						// Remove items from inventory first
 						this.playerInventory.removeItem(itemType, count);
 						
-						// Drop all items with a small spread
+						// Drop all items with a small spread - REMOVED SPREAD
 						for (let i = 0; i < count; i++) {
-							// Add small random spread (max 0.5 blocks)
-							const spreadPosition = {
-								x: dropPosition.x + (Math.random() * 1.0 - 0.5), // -0.5 to 0.5
+							// Use exact drop position without random spread
+							const exactDropPosition = { 
+								x: dropPosition.x,
 								y: dropPosition.y,
-								z: dropPosition.z + (Math.random() * 1.0 - 0.5)  // -0.5 to 0.5
+								z: dropPosition.z
 							};
 							
 							// Create the item with small spread, passing this.itemSpawner as 5th arg
-							const droppedItem = new BaseItem(this.world, spreadPosition, this.itemSpawner.getPlayerInventories(), itemType, this.itemSpawner, i === 0 ? itemInstance : undefined, 1);
+							const droppedItem = new BaseItem(this.world, exactDropPosition, this.itemSpawner.getPlayerInventories(), itemType, this.itemSpawner, i === 0 ? itemInstance : undefined, 1);
 							droppedItem.spawn();
 							
 							// Drop with only vertical force for gravity
 							const direction = { x: 0, y: 0.1, z: 0 };
-							droppedItem.drop(spreadPosition, direction);
+							droppedItem.drop(exactDropPosition, direction);
 							
 							// Add to active items
 							const items = this.itemSpawner.getActiveItems().get(itemType) || [];
@@ -1573,26 +1573,38 @@ export class PlayerManager {
 	
 	// Public API om knockback toe te passen met cooldown check
 	public tryApplyKnockback(direction: { x: number, y: number, z: number }, force: number, fromBoss: boolean = true): boolean {
-		if (!this.playerEntity || !this.playerEntity.isSpawned) return false;
+		// Temporarily disable checks for testing
+		// if (!this.canReceiveKnockback() && !fromBoss) {
+		// 	return false;
+		// }
 		
-		if (!this.canReceiveKnockback()) {
+		// Ensure playerEntity exists and is spawned
+		if (!this.playerEntity || !this.playerEntity.isSpawned) {
+			console.log(`[PlayerManager] Cannot apply knockback: player entity not available`);
 			return false;
 		}
 		
-		// Update laatste knockback tijd
+		// Apply impulse for knockback - ensure noticeable vertical component
+		const MIN_VERTICAL_IMPULSE_FACTOR = 0.4; // Ensure at least 40% of the force goes upwards
+		const verticalFactor = Math.max(Math.abs(direction.y), MIN_VERTICAL_IMPULSE_FACTOR);
+		
+		const impulse = {
+			x: direction.x * force,
+			y: verticalFactor * force, // Apply strong vertical knockback
+			z: direction.z * force
+		};
+		
+		console.log(`[PlayerManager] Applying knockback impulse:`, impulse); // Added log
+		this.playerEntity.applyImpulse(impulse);
+		console.log(`[PlayerManager] Knockback impulse applied.`); // Added log
+		
+		// Update last knockback time
 		this._lastKnockbackTime = Date.now();
 		
-		// Als de knockback van een boss komt, activeer immuniteit
+		// Activate immunity if from boss
 		if (fromBoss) {
 			this._activateBossImmunity();
 		}
-		
-		// Pas knockback toe
-		this.playerEntity.applyImpulse({
-			x: direction.x * force,
-			y: direction.y * force,
-			z: direction.z * force
-		});
 		
 		return true;
 	}

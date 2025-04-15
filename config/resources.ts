@@ -9,7 +9,10 @@ import {
     SIDEWAYS_HAND_ROTATION,
     MID_DROP_FORCE,
     HEAVY_DROP_FORCE,
-    TOOLS_HAND_ROTATION
+    TOOLS_HAND_ROTATION,
+    TOOLS_HAND_OFFSET,
+    RESOURCES_HAND_ROTATION,
+    RESOURCES_HAND_OFFSET
 } from './constants';
 
 // Resource item configurations
@@ -45,8 +48,8 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
             y: 0.37,
             z: 0.3
         },
-        handOffset: DEFAULT_HAND_OFFSET,
-        handRotation: DEFAULT_HAND_ROTATION,
+        handOffset: { x: -0.03, y: -0.15, z: 0.2 },
+        handRotation: { x: 0, y: 0 , z: 0, w: 1 }, // Rotated 90 degrees around Y axis to lay flat
         imageUrl: 'items/iron-ingot.png',
         rarity: 'uncommon'
     },
@@ -122,7 +125,7 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
     },
     'log' : {
         type: 'log',
-        modelUri: 'models/items/log.glb',
+        modelUri: 'models/items/log.gltf',
         displayName: 'Log',
         category: 'resource',
         maxStackSize: 64,
@@ -133,8 +136,8 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
             y: 0.3,
             z: 0.25
         },        
-        handOffset: DEFAULT_HAND_OFFSET,
-        handRotation: DEFAULT_HAND_ROTATION,
+        handOffset: RESOURCES_HAND_OFFSET,
+        handRotation: RESOURCES_HAND_ROTATION,
         imageUrl: 'items/log.png',
         rarity: 'common'
     },
@@ -151,8 +154,8 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
             y: 0.3,
             z: 0.25
         },        
-        handOffset: DEFAULT_HAND_OFFSET,
-        handRotation: DEFAULT_HAND_ROTATION,
+        handOffset: RESOURCES_HAND_OFFSET,
+        handRotation: RESOURCES_HAND_ROTATION,
         imageUrl: 'items/nails.png',
         rarity: 'common'
     },
@@ -169,8 +172,8 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
             y: 0.3,
             z: 0.25
         },        
-        handOffset: DEFAULT_HAND_OFFSET,
-        handRotation: DEFAULT_HAND_ROTATION,
+        handOffset: RESOURCES_HAND_OFFSET,
+        handRotation: RESOURCES_HAND_ROTATION,
         imageUrl: 'items/iron-plate.png',
         rarity: 'uncommon'
     },
@@ -187,8 +190,8 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
             y: 0.3,
             z: 0.25
         },        
-        handOffset: DEFAULT_HAND_OFFSET,
-        handRotation: DEFAULT_HAND_ROTATION,
+        handOffset: RESOURCES_HAND_OFFSET,
+        handRotation: RESOURCES_HAND_ROTATION,
         imageUrl: 'items/iron-ore.png',
         rarity: 'uncommon'
     },
@@ -205,8 +208,8 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
             y: 0.3,
             z: 0.25
         },        
-        handOffset: DEFAULT_HAND_OFFSET,
-        handRotation: DEFAULT_HAND_ROTATION,
+        handOffset: RESOURCES_HAND_OFFSET,
+        handRotation: RESOURCES_HAND_ROTATION,
         imageUrl: 'items/stone.png',
         rarity: 'common'
     },
@@ -223,8 +226,8 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
             y: 0.3,
             z: 0.25
         },        
-        handOffset: DEFAULT_HAND_OFFSET,
-        handRotation: DEFAULT_HAND_ROTATION,
+        handOffset: RESOURCES_HAND_OFFSET,
+        handRotation: RESOURCES_HAND_ROTATION,
         imageUrl: 'items/rope.png',
         rarity: 'rare'
     },
@@ -241,12 +244,29 @@ export const resourceItems: Record<string, ResourceItemProperties> = {
             y: 0.3,
             z: 0.25
         },        
-        handOffset: DEFAULT_HAND_OFFSET,
-        handRotation: DEFAULT_HAND_ROTATION,
+        handOffset: RESOURCES_HAND_OFFSET,
+        handRotation: RESOURCES_HAND_ROTATION,
         imageUrl: 'items/leather.png',
         rarity: 'uncommon'
     },
-
+    'elderwood-scrap' : {
+        type: 'elderwood-scrap',
+        modelUri: 'models/items/milk.gltf',
+        displayName: 'Elderwood Scrap',
+        category: 'resource',
+        maxStackSize: 64,
+        scale: 0.5,
+        dropForce: HEAVY_DROP_FORCE,
+        colliderSize: {
+            x: 0.25,
+            y: 0.3,
+            z: 0.25
+        },        
+        handOffset: TOOLS_HAND_ROTATION,
+        handRotation: TOOLS_HAND_ROTATION,
+        imageUrl: 'items/elderwood-scrap.png',
+        rarity: 'common'
+    }
 };
 
 // Helper function to get resource item by type

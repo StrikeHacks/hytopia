@@ -15,6 +15,7 @@ export class BaseItem {
     private itemInstance: ItemInstance;
     private stackCount: number = 1;
     protected itemSpawner: ItemSpawner;
+    private lastMergeAttemptTime: number | null = null;
 
     constructor(
         protected world: World,
@@ -62,36 +63,51 @@ export class BaseItem {
         this.updateVisualStack(); // Update visual representation
     }
 
-    // Method to update the visual stack based on count
+    // Method to update the visual stack based on count using child entities
     private updateVisualStack(): void {
         if (!this.entity || !this.entity.isSpawned) return;
 
         let targetVisualCount = 0;
         if (this.stackCount >= 64) {
-            targetVisualCount = 3;
+            targetVisualCount = 3; // Max 3 visual children for 64+
         } else if (this.stackCount >= 32) {
             targetVisualCount = 2;
         } else if (this.stackCount >= 2) {
             targetVisualCount = 1;
         }
+
+        // TODO: Implement new logic for adding/removing child entities based on stackCount
+        // and the calculated targetVisualCount.
         
-        // Add or remove visual entities
+        // Add child entities if needed
         while (this.visualEntities.length < targetVisualCount) {
-            // Add a new visual entity
-            const visualEntity = new Entity({
-                name: `${this.itemType}_visual_${this.visualEntities.length}`,
+            const childIndex = this.visualEntities.length;
+            const childEntity = new Entity({
+                name: `${this.itemType}_visual_${childIndex}`,
                 modelUri: this.itemConfig.modelUri,
-                modelScale: 1, // Always use scale 1 for visual entities
+                modelScale: 1, // Match parent's scale
                 parent: this.entity, // Attach to the main entity
+                parentNodeName: "cube", // Attach to the 'cube' node within the parent model
             });
 
-            // Spawn at the parent's origin (0, 0, 0 offset)
-            visualEntity.spawn(this.world, { x: 0, y: 0, z: 0 });
-            this.visualEntities.push(visualEntity);
+            // Simple, distinct offsets for the children relative to the parent node
+            let offset = { x: 0, y: 0.1, z: 0 }; // Default offset slightly above parent origin
+            if (childIndex === 0) { 
+                offset = { x: 0.1, y: 0.1, z: 0.1 };
+            } else if (childIndex === 1) {
+                offset = { x: -0.2, y: 0.3, z: -0.4 };
+            } else if (childIndex === 2) {
+                 offset = { x: -0.6, y: 0.1, z: -0.2 };
+            }
+            // Add more offset variations if targetVisualCount can exceed 3
+
+            // Spawn child entity relative to the parent node with the calculated offset
+            childEntity.spawn(this.world, offset);
+            this.visualEntities.push(childEntity);
         }
 
+        // Remove excess child entities
         while (this.visualEntities.length > targetVisualCount) {
-            // Remove the last visual entity
             const entityToRemove = this.visualEntities.pop();
             if (entityToRemove && entityToRemove.isSpawned) {
                 entityToRemove.despawn();
@@ -100,7 +116,7 @@ export class BaseItem {
     }
 
     // Method to try merging with nearby items
-    public tryMergeWithNearbyItems(radius: number = 1): boolean {
+    public tryMergeWithNearbyItems(radius: number = 1.5): boolean {
         if (!this.entity || !this.entity.isSpawned) return false;
 
         // Get max stack size for this item type, default to 1 if not defined or non-stackable category
@@ -219,7 +235,22 @@ export class BaseItem {
 
     private handleGroundCollision(other: BlockType | Entity, started: boolean) {
         if (!started || other instanceof PlayerEntity || !this.entity) return;
-        this.entity.setLinearVelocity({ x: 0, y: 0, z: 0 });
+        
+        // Reduce velocity significantly on ground contact
+        const currentVel = this.entity.linearVelocity;
+        this.entity.setLinearVelocity({ x: currentVel.x * 0.1, y: 0, z: currentVel.z * 0.1 }); 
+        
+        // Attempt to merge with nearby items shortly after landing
+        // Add a check to prevent constant merging attempts if bouncing
+        const now = Date.now();
+        if(now - (this.lastMergeAttemptTime || 0) > 500) { // Cooldown of 500ms for merge attempts on ground hit
+            this.lastMergeAttemptTime = now;
+             setTimeout(() => { // Slight delay to allow physics to settle
+                if (this.entity && this.entity.isSpawned) {
+                    this.tryMergeWithNearbyItems(); 
+                }
+             }, 100);
+        }
     }
 
     public spawn(): void {

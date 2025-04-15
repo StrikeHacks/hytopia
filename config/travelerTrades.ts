@@ -32,37 +32,47 @@ export const travelerTrades: TravelerTrade[] = [
             type: "dungeon-key",
             count: 1
         },
-        description: "A basic key that can open simple dungeon doors - Special offer!",
+        description: "A basic key that can open simple dungeon doors!!",
     },
     {
-        id: "dungeon-key",
-        name: "Dungeon Key",
+        id: "bronze-key",
+        name: "Bronze Key",
         category: "special",
         requirements: [
-            { type: "iron-ingot", count: 5 },
-            { type: "log", count: 5 }
-
+            { type: "elderwood-scrap", count: 3 }
         ],
-        result: {
-            type: "dungeon-key",
+        result: {   
+            type: "bronze-key",
             count: 1
         },
-        description: "A basic key that can open simple dungeon doors - Special offer!",
+        description: "A bronze key that can open a brozne crate!",
     },
     {
-        id: "dungeon-key-crazy",
-        name: "Crazy Basic Dungeon Key",
+        id: "iron-key",
+        name: "Gold Key",
         category: "special",
         requirements: [
-            { type: "log", count: 5 },
-            { type: "book", count: 5 }
+            { type: "elderwood-scrap", count: 10 }
         ],
-        result: {
-            type: "dungeon-key",
+        result: {   
+            type: "iron-key",
             count: 1
         },
-        description: "A basic key that can open simple dungeon doors - Special offer!",
+        description: "An iron key that can open an iron crate!",
     },
+    {
+        id: "gold-key",
+        name: "Gold Key",
+        category: "special",
+        requirements: [
+            { type: "elderwood-scrap", count: 20 }
+        ],
+        result: {   
+            type: "gold-key",
+            count: 1
+        },
+        description: "A golden key that can open a gold crate!",
+    }
 ];
 
 // Helper function to get trades by category

@@ -25,8 +25,12 @@ const INITIAL_ITEMS = [
     { type: 'sword-golden', position: { x: 18, y: 3.7, z: 0 } },
     { type: 'fishing-rod', position: { x: 20, y: 3.7, z: 2 } },
     { type: 'fishing-rod', position: { x: 20, y: 3.7, z: 1 } },
-    { type: 'axe-stone', position: { x: 4, y: 3.7, z: 2 } },
-    { type: 'pickaxe-stone', position: { x: 2, y: 3.7, z: 2 } },
+    { type: 'axe-wood', position: { x: 4, y: 3.7, z: 2 } },
+    { type: 'pickaxe-wood', position: { x: 2, y: 3.7, z: 2 } },
+    { type: 'axe-stone', position: { x: 4, y: 3.7, z: 0} },
+    { type: 'pickaxe-stone', position: { x: 2, y: 3.7, z: 0 } },
+    { type: 'axe-iron', position: { x: 4, y: 3.7, z: -2 } },
+    { type: 'pickaxe-iron', position: { x: 2, y: 3.7, z: -2 } },
     { type: 'stick', position: { x: 0, y: 3.7, z: 2 } },
     { type: 'bone', position: { x: -2, y: 3.7, z: 2 } },
     { type: 'log', position: { x: -4, y: 3.7, z: 2 } },
@@ -112,6 +116,9 @@ export class ItemSpawner {
         // Update inventory, removing the items that will be dropped
         inventory.setItem(selectedSlot, newCount > 0 ? itemType : null, newCount);
 
+        // Play the simple_interact animation when dropping items
+        playerEntity.startModelOneshotAnimations(["simple_interact"]);
+
         const dropPosition = this.calculateDropPosition(playerEntity);
         const direction = this.calculateDropDirection(playerEntity);
 
@@ -150,10 +157,11 @@ export class ItemSpawner {
             } else {
                 // Original behavior for dropping single items
                 for (let i = 0; i < dropCount; i++) {
-                    const offsetPosition = {
-                        x: dropPosition.x + (Math.random() * 0.2 - 0.1),
+                    // Remove random offset - drop exactly at calculated position
+                    const exactDropPosition = {
+                        x: dropPosition.x, 
                         y: dropPosition.y,
-                        z: dropPosition.z + (Math.random() * 0.2 - 0.1)
+                        z: dropPosition.z
                     };
 
                     // Create a new item with the same instance properties to preserve durability
@@ -164,14 +172,14 @@ export class ItemSpawner {
                             ...itemInstance,
                             count: 1
                         };
-                        droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType, this, modifiedInstance);
+                        droppedItem = new BaseItem(this.world, exactDropPosition, this.playerInventories, itemType, this, modifiedInstance);
                     } else {
                         // Create new items without instance (they'll get new instances)
-                        droppedItem = new BaseItem(this.world, offsetPosition, this.playerInventories, itemType, this);
+                        droppedItem = new BaseItem(this.world, exactDropPosition, this.playerInventories, itemType, this);
                     }
                     
                     droppedItem.spawn();
-                    droppedItem.drop(offsetPosition, direction);
+                    droppedItem.drop(exactDropPosition, direction);
                     items.push(droppedItem);
                 }
             }

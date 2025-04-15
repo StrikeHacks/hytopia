@@ -112,6 +112,7 @@ export interface FoodItemProperties extends ItemProperties {
 // Keys
 export interface KeyItemProperties extends ItemProperties {
   category: 'key';
+  soulbound?: boolean;
   // Key-specific properties can be added here
 }
 

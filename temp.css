@@ -1,0 +1,62 @@
+/* Health and Mana bar styles */
+.health-bar {
+    position: fixed;
+    bottom: 90px;
+    left: calc(50% - 148px);
+    width: 142px;
+    height: 12px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid #000;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.health-bar-fill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, #ff3333, #ff6666);
+    transition: width 0.3s ease-out;
+}
+
+.health-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-size: 10px;
+    line-height: 12px;
+    font-weight: normal;
+    pointer-events: none;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+.mana-bar {
+    position: fixed;
+    bottom: 90px;
+    left: calc(50% + 6px);
+    width: 142px;
+    height: 12px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid #000;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.mana-bar-fill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, #3333ff, #6666ff);
+    transition: width 0.3s ease-out;
+}
+
+.mana-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-size: 10px;
+    line-height: 12px;
+    font-weight: normal;
+    pointer-events: none;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+} 

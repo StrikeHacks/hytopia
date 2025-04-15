@@ -206,7 +206,8 @@ export class BossManager {
         type: "StalkerBoss",
         options: getStalkerBossConfig('balanced-stalker')
       });
-      
+
+    
     } catch (error) {
       console.error("[BossManager] Error in setupDefaultBosses:", error);
     }
@@ -431,13 +432,7 @@ export class BossManager {
     
     // Start een nieuwe timer die elke 15 seconden een fast-stalker spawnt
     // Verhoog interval van 10 naar 15 seconden voor betere performance
-    /*this._spawnTimerId = setInterval(() => {
-        // Alleen spawn als er actieve spelers zijn en nog niet teveel bosses zijn
-        if (this._world.entityManager.getAllPlayerEntities().length > 0 &&
-            this._activeBosses.size < 8) { // Limit to 8 active bosses maximum
-            this._spawnFastStalker();
-        }
-    }, 15000); // 15 seconden (was 10 seconden)*/
+  
   }
   
   // Stop de spawn timer
@@ -446,68 +441,5 @@ export class BossManager {
       clearInterval(this._spawnTimerId);
       this._spawnTimerId = null;
     }
-  }
-  
-  // Spawn een nieuwe fast-stalker op een random locatie rond de starter positie
-  private _spawnFastStalker(): void {
-    this._fastStalkerSpawnCounter++;
-    
-    // Bepaal een random offset voor de spawn positie
-    const randomX = (Math.random() * 20) - 10; // -10 tot 10
-    const randomZ = (Math.random() * 20) - 10; // -10 tot 10
-    
-    // Basis positie plus random offset
-    const basePosition = { x: 10, y: 5, z: 10 };
-    const spawnPosition = {
-      x: basePosition.x + randomX,
-      y: basePosition.y,  // Standard Y height is fine for scale 1.0
-      z: basePosition.z + randomZ
-    };
-    
-    const bossId = `fast-stalker-${this._fastStalkerSpawnCounter}`;
-    
-    // The modelScale for fast stalkers is 1.0, so no height adjustment is needed
-    
-    // Spawn de boss met unieke naam
-    const spawner = {
-      position: spawnPosition,
-      type: 'StalkerBoss',
-      options: {
-        name: `Fast Stalker #${this._fastStalkerSpawnCounter}`,
-        modelUri: 'models/npcs/stalker.gltf',
-        modelScale: 1.0, // Explicitly set 1.0 scale
-        
-        // Fast stalker stats
-        health: 150,
-        maxHealth: 150,
-        moveSpeed: 5,
-        detectionRange: 20,
-        
-        // Combat eigenschappen
-        attackDamage: 5,
-        attackCooldown: 400,
-        attackRange: 4,
-        
-        // Knockback eigenschappen
-        knockbackForce: 15,
-        knockbackCooldown: 300,
-        
-        // SpeedUp eigenschappen
-        speedMultiplier: 2.5,
-        speedUpDuration: 2000,
-        speedUpCooldown: 7000,
-        
-        // Pathfinding options optimized for fast movement
-        pathfindOptions: {
-          maxFall: 5,    // Can fall from higher places
-          maxJump: 1.5,  // Can jump a bit higher
-          verticalPenalty: 0.8, // Less penalty for vertical movement (more agile)
-          waypointTimeoutMs: 2000 // Faster waypoint timeout
-        }
-      }
-    };
-    
-    // Spawn de boss
-    this._spawnBoss(bossId, spawner);
   }
 } 

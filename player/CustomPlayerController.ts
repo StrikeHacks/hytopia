@@ -63,6 +63,9 @@ import {
   
     /** The camera Y offset when sprinting */
     sprintYOffset?: number;
+    
+    /** The minimum time in milliseconds between jumps */
+    jumpCooldownMs?: number;
   }
   
   /**
@@ -156,7 +159,10 @@ import {
     public defaultYOffset: number = 0.5;
   
     /** The camera Y offset when sprinting */
-    public sprintYOffset: number = 0.26;
+    public sprintYOffset: number = 0.3;
+    
+    /** The minimum time in milliseconds between jumps */
+    public jumpCooldownMs: number = 250;
   
     /** @internal */
     private _stepAudio: Audio | undefined;
@@ -166,6 +172,9 @@ import {
   
     /** @internal */
     private _platform: Entity | undefined;
+  
+    /** @internal - Timestamp of the last jump */
+    private _lastJumpTime: number = 0;
   
     /**
      * @param options - Options for the controller.
@@ -187,6 +196,7 @@ import {
       this.sprintForwardOffset = options.sprintForwardOffset ?? this.sprintForwardOffset;
       this.defaultYOffset = options.defaultYOffset ?? this.defaultYOffset;
       this.sprintYOffset = options.sprintYOffset ?? this.sprintYOffset;
+      this.jumpCooldownMs = options.jumpCooldownMs ?? this.jumpCooldownMs;
     }
   
     /** Whether the entity is grounded. */
@@ -245,7 +255,7 @@ import {
           collidesWith: [CollisionGroup.BLOCK, CollisionGroup.ENTITY],
         },
         isSensor: true,
-        relativePosition: { x: 0, y: -1.05, z: 0 },
+        relativePosition: { x: 0, y: -0.9, z: 0 },
         tag: "groundSensor",
         onCollision: (_other: BlockType | Entity, started: boolean) => {
           if (!entity.isSpawned) {
@@ -275,10 +285,10 @@ import {
       entity.createAndAddChildCollider({
         shape: ColliderShape.CAPSULE,
         halfHeight: 0.33,
-        radius: 0.4,
+        radius: 0.6,
         collisionGroups: {
           belongsTo: [CollisionGroup.ENTITY_SENSOR],
-          collidesWith: [CollisionGroup.BLOCK, CollisionGroup.ENTITY],
+          collidesWith: [CollisionGroup.BLOCK],
         },
         friction: 0,
         frictionCombineRule: CoefficientCombineRule.Min,
@@ -409,16 +419,19 @@ import {
       }
   
       // Calculate target vertical velocity (jump)
-      if (sp && this.canJump(this)) {
-        if (
-          this.isGrounded &&
-          currentVelocity.y > -0.001 &&
-          currentVelocity.y <= 3
-        ) {
-          targetVelocities.y = this.jumpVelocity;
-        }
+      const now = Date.now(); // Get current time for cooldown check
+      if (
+        sp &&
+        this.canJump(this) &&
+        this.isGrounded &&
+        currentVelocity.y > -0.001 &&
+        currentVelocity.y <= 0.1 &&
+        now - this._lastJumpTime > this.jumpCooldownMs // Check cooldown
+      ) {
+        targetVelocities.y = this.jumpVelocity;
+        this._lastJumpTime = now; // Update last jump time
       }
-  
+      
       // Apply impulse relative to target velocities, taking platform velocity into account
       const platformVelocity = this._platform
         ? this._platform.linearVelocity

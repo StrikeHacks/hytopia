@@ -21,7 +21,8 @@ export const keyItems: Record<string, KeyItemProperties> = {
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
         imageUrl: 'items/dungeon-key.png',
-        rarity: 'epic'
+        rarity: 'epic',
+        soulbound: true
     },
     'bronze-key': {
         type: 'bronze-key',
@@ -35,7 +36,8 @@ export const keyItems: Record<string, KeyItemProperties> = {
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
         imageUrl: 'items/key-bronze.png',
-        rarity: 'uncommon'
+        rarity: 'uncommon',
+        soulbound: true
     },
     'iron-key': {
         type: 'iron-key',
@@ -49,7 +51,8 @@ export const keyItems: Record<string, KeyItemProperties> = {
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
         imageUrl: 'items/key-iron.png',
-        rarity: 'common'
+        rarity: 'common',
+        soulbound: true
     },
     'gold-key': {
         type: 'gold-key',
@@ -63,7 +66,8 @@ export const keyItems: Record<string, KeyItemProperties> = {
         handOffset: DEFAULT_HAND_OFFSET,
         handRotation: DEFAULT_HAND_ROTATION,
         imageUrl: 'items/key-gold.png',
-        rarity: 'rare'
+        rarity: 'rare',
+        soulbound: true
     }
 };
 

@@ -32,7 +32,7 @@ export const toolItems: Record<string, ToolItemProperties> = {
         imageUrl: 'items/pickaxe-stone.png',
         durability: 800,
         maxDurability: 800,
-        damage: 0.5,  // Damage per click
+        damage: 1,  // Damage per click
         canBreak: ['37', '21'],  // Stone and iron ore block IDs
         rarity: 'uncommon'
     },
@@ -60,7 +60,7 @@ export const toolItems: Record<string, ToolItemProperties> = {
     },
     'pickaxe-wood': {
         type: 'pickaxe-wood',
-        modelUri: 'models/items/pickaxe-wood.gltf',
+        modelUri: 'models/items/pickaxe-wooden.gltf',
         displayName: 'Wooden Pickaxe',
         category: 'tool',
         maxStackSize: 1,
@@ -77,12 +77,12 @@ export const toolItems: Record<string, ToolItemProperties> = {
         durability: 40,
         maxDurability: 40,
         damage: 0.5,  // Damage per click
-        canBreak: ['37', '21'],  // Stone and iron ore block IDs
+        canBreak: ['37'],  // Stone and iron ore block IDs
         rarity: 'common'
     },
     'axe-wood': {
         type: 'axe-wood',
-        modelUri: 'models/items/axe-wood.gltf',
+        modelUri: 'models/items/axe-wooden.gltf',
         displayName: 'Wooden Axe',
         category: 'tool',
         maxStackSize: 1,
@@ -98,7 +98,7 @@ export const toolItems: Record<string, ToolItemProperties> = {
         imageUrl: 'items/axe-wood.png',
         durability: 40,
         maxDurability: 40,
-        damage: 0.5,  // Damage per click
+        damage: 1,  // Damage per click
         canBreak: ['23'],  // Log blocks
         rarity: 'common'
     },

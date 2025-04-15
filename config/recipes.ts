@@ -16,6 +16,7 @@ export interface Recipe {
     };
     craftingTime?: number; // Time in milliseconds to craft this item
     xpReward?: number; // XP reward for crafting this item
+    successRate?: number; // Optional success rate (0-100)
 }
 
 export const recipes: Recipe[] = [
@@ -23,27 +24,29 @@ export const recipes: Recipe[] = [
         name: "Stone Pickaxe",
         category: "tools",
         inputs: [
-            { type: "log", count: 2 },
-            { type: "iron-ingot", count: 1 }
+            { type: "stone", count: 2 },
+            { type: "log", count: 3 }
         ],
         output: {
             type: "pickaxe-stone",
             count: 1
         },
-        xpReward: 25
+        xpReward: 25,
+        successRate: 100
     },
     {
         name: "Stone Axe",
         category: "tools",
         inputs: [
-            { type: "log", count: 1 },
-            { type: "iron-ingot", count: 1 }
+            { type: "stone", count: 3 },
+            { type: "log", count: 3 }
         ],
         output: {
             type: "axe-stone",
             count: 1
         },
-        xpReward: 25
+        xpReward: 25,
+        successRate: 100
     },
     {
         name: "Iron Axe",
@@ -71,7 +74,8 @@ export const recipes: Recipe[] = [
             type: "axe-stone",
             count: 1
         },
-        xpReward: 50
+        xpReward: 50,
+        successRate: 100
     },
     {
         name: "Iron Test",
@@ -85,7 +89,8 @@ export const recipes: Recipe[] = [
             type: "axe-stone",
             count: 1
         },
-        xpReward: 35
+        xpReward: 35,
+        successRate: 100
     },
     {
         name: "Stone Sword",
@@ -98,7 +103,8 @@ export const recipes: Recipe[] = [
             type: "sword-stone",
             count: 1
         },
-        xpReward: 30
+        xpReward: 30,
+        successRate: 100
     },
     {
         name: "Golden Sword",
@@ -111,7 +117,8 @@ export const recipes: Recipe[] = [
             type: "sword-golden",
             count: 1
         },
-        xpReward: 75
+        xpReward: 75,
+        successRate: 100
     }
 ];
 
@@ -141,6 +148,19 @@ export function getRecipeById(id: string): Recipe | undefined {
 // Helper function to format recipe for UI display
 export function formatRecipeForUI(recipe: Recipe) {
     try {
+        // Get item config for output item to access rarity and durability
+        const outputItemConfig = getItemConfig(recipe.output.type);
+        const outputRarity = outputItemConfig.rarity || 'common';
+        
+        // Get maxDurability only if the item type supports it
+        let outputMaxDurability: number | undefined = undefined;
+        if (outputItemConfig.category === 'tool' || outputItemConfig.category === 'tools' || 
+            outputItemConfig.category === 'weapon' || outputItemConfig.category === 'weapons' || 
+            outputItemConfig.category === 'armor') {
+             // Cast to the appropriate type to access maxDurability safely
+             outputMaxDurability = (outputItemConfig as any).maxDurability;
+        }
+            
         const formattedRecipe = {
             name: recipe.name,
             category: recipe.category,
@@ -160,8 +180,12 @@ export function formatRecipeForUI(recipe: Recipe) {
             }),
             output: {
                 ...recipe.output,
-                imageUrl: `{{CDN_ASSETS_URL}}/${getItemConfig(recipe.output.type).imageUrl}`
-            }
+                imageUrl: `{{CDN_ASSETS_URL}}/${outputItemConfig.imageUrl}`,
+                rarity: outputRarity,
+                maxDurability: outputMaxDurability // Use the correctly fetched value
+            },
+            craftingTime: recipe.craftingTime ?? DEFAULT_CRAFTING_TIME, // Use default if not specified
+            successRate: recipe.successRate ?? 100 // Default to 100% if not specified
         };
         
 
@@ -173,7 +197,9 @@ export function formatRecipeForUI(recipe: Recipe) {
             name: recipe.name,
             category: recipe.category,
             inputs: recipe.inputs,
-            output: recipe.output
+            output: recipe.output,
+            craftingTime: recipe.craftingTime ?? DEFAULT_CRAFTING_TIME,
+            successRate: recipe.successRate ?? 100
         };
     }
 } 

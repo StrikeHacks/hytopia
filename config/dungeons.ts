@@ -48,7 +48,7 @@ export const DUNGEONS: Record<string, DungeonConfig> = {
             },
         ],
         lootTable: [
-            { item: getItemConfig('rope'), count: 2, dropChance: 35 },
+            { item: getItemConfig('elderwood-scrap'), count: 2, dropChance: 35 },
             { item: getItemConfig('log'), count: 1, dropChance: 65 },
             { item: getItemConfig('nails'), count: 1, dropChance: 50 }
         ]
@@ -74,7 +74,7 @@ export const DUNGEONS: Record<string, DungeonConfig> = {
             },
         ],
         lootTable: [
-            { item: getItemConfig('iron-ingot'), count: 2, dropChance: 35 },
+            { item: getItemConfig('elderwood-scrap'), count: 2, dropChance: 35 },
             { item: getItemConfig('leather'), count: 1, dropChance: 65 },
             { item: getItemConfig('dungeon-key'), count: 2, dropChance: 25 }
         ]

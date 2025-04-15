@@ -19,7 +19,7 @@ export const STALKER_BOSSES: Record<string, StalkerBossOptions> = {
         attackRange: 4,
         
         // Knockback eigenschappen
-        knockbackForce: 10,
+        knockbackForce: 20,
         knockbackCooldown: 800,
         
         // SpeedUp eigenschappen
@@ -36,7 +36,7 @@ export const STALKER_BOSSES: Record<string, StalkerBossOptions> = {
         },
         
         // Drop items
-        dropItems: ['rope'],
+        dropItems: ['elderwood-scrap'],
         
         // XP reward for defeating this boss
         xpReward: 8
@@ -59,7 +59,7 @@ export const STALKER_BOSSES: Record<string, StalkerBossOptions> = {
         attackRange: 4,
         
         // Knockback eigenschappen
-        knockbackForce: 20,
+        knockbackForce: 40,
         knockbackCooldown: 2000,
         
         // SpeedUp eigenschappen
@@ -76,7 +76,7 @@ export const STALKER_BOSSES: Record<string, StalkerBossOptions> = {
         },
         
         // Drop items
-        dropItems: ['sword-stone'],
+        dropItems: ['elderwood-scrap'],
         
         // XP reward for defeating this boss
         xpReward: 10
@@ -99,7 +99,7 @@ export const STALKER_BOSSES: Record<string, StalkerBossOptions> = {
         attackRange: 4,
         
         // Knockback eigenschappen
-        knockbackForce: 15,
+        knockbackForce: 20,
         knockbackCooldown: 1000,
         
         // SpeedUp eigenschappen
@@ -116,7 +116,7 @@ export const STALKER_BOSSES: Record<string, StalkerBossOptions> = {
         },
         
         // Drop items
-        dropItems: ['sword-wooden'],
+        dropItems: ['elderwood-scrap'],
         
         // XP reward for defeating this boss
         xpReward: 15

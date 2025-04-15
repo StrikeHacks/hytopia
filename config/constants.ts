@@ -18,8 +18,10 @@ export const MID_COLLIDER_HEIGHT = 0.4;
 export const DEFAULT_HAND_OFFSET = { x: 0.0, y: 0.07, z: 0.3 };
 export const TOOLS_HAND_OFFSET = { x: -0.48, y: 0.5, z: 0.4 };
 export const WEAPONS_HAND_OFFSET = { x: 0, y: 0.07, z: 0.6 };
+export const RESOURCES_HAND_OFFSET = { x: 0.5, y: -0.3, z: 0.7 };
 
 // Hand rotation constants (x: pitch, y: yaw, z: roll, w: scalar)
 export const DEFAULT_HAND_ROTATION = { x: -Math.PI / 3, y: 0, z: 0, w: 1 };
 export const SIDEWAYS_HAND_ROTATION = { x: -Math.PI / 3, y: Math.PI / 2, z: 0, w: 1 };
 export const TOOLS_HAND_ROTATION = { x: -Math.PI / 6, y: Math.PI / 3, z: -0.5, w: 1 }; 
+export const RESOURCES_HAND_ROTATION = { x: 0 , y: Math.PI, z: 0, w: 0 }; 

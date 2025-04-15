@@ -38,7 +38,7 @@ export const animalConfigs: Record<string, AnimalConfig> = {
         ],
         mass: 100,
         maxHP: 50,
-        dropItems: ['bone'],
+        dropItems: ['leather'],
         // Performance optimalisaties
         cullingDistance: 50, // Alleen actief binnen 50 blokken van speler
         updateInterval: 500, // Update AI elke 0.5 seconden (was voorheen elke frame)
